@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WorkingExperience on LittleDriver</title>
+    <link>http://littledriver.net/tags/workingexperience/</link>
+    <description>Recent content in WorkingExperience on LittleDriver</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 19 Apr 2018 23:56:41 +0000</lastBuildDate>
+    
+	<atom:link href="http://littledriver.net/tags/workingexperience/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>记一次追查 gRPC Server 报错的过程</title>
+      <link>http://littledriver.net/posts/the-process-of-resolving-a-bug-for-grpc-server/</link>
+      <pubDate>Thu, 19 Apr 2018 23:56:41 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/the-process-of-resolving-a-bug-for-grpc-server/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>工作中踩过的的坑之golang的临时变量</title>
+      <link>http://littledriver.net/posts/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</link>
+      <pubDate>Sun, 05 Mar 2017 11:26:36 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>乐观锁和悲观锁</title>
+      <link>http://littledriver.net/posts/pessimistic-and-optimistic-locker/</link>
+      <pubDate>Sun, 27 Nov 2016 20:59:27 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/pessimistic-and-optimistic-locker/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reflection in golang (4) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Reflection in golang (4)</span></h1>
+
+<h2 class="date">2017/03/12</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/golang">Golang</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<h1 id="reflection-in-struct-tag">Reflection in Struct tag</h1>
+
+<p>golang中的struct类型，在使用的时候为了编码方便我们经常会给其内部的field指定一些特定的tag。这些tag不仅仅可以用来改变编码后相应字段名称，还有一些特别的作用。比如在使用Json这种数据格式的时候，我们可以为struct的field指定一个自定义的json tag，在按照json的格式编码转换的时候，该field的名字就会使用我们自定义的，而不是采取默认的将field的名字的小写形式。如果此时再加上一些特殊的tag，会改变编码时候的行为。如omiempty，在编码一个struct的时候，只要有field值为0值的时候，都不会把他们encoding到json当中。</p>
+
+<p>在reflect中，我们同样可以通过strct的tag以及fieldName等属性对一个未知的struct进行操作。</p>
+
+<h3 id="extract-params-to-appropriate-type">Extract params to appropriate Type</h3>
+
+<p>在使用golang实现一些网络接口的时候，普遍需要的一项工作就是解析参数。将http请求带过来的参数解析到之前约定好的数据类型的变量内。这些变量一般都是struct类型，毕竟golang中是通过struct来实现类型的组合，以便构造自定义类型的。那么实现一个这样的结构需要哪几步呢？</p>
+
+<ol>
+<li>获取http传递进来的所有参数，无论是get还是post</li>
+<li>定义好包含所有要处理参数的struct类型</li>
+<li>用解析到http请求参数的字段名通过反射获取到对应struct类型中与其tag相等的field</li>
+<li>将之前从请求中解析出的参数值赋值给已经找到的field</li>
+</ol>
+
+<p>第一步完成比较容易，使用http包中的ParseForm即可将请求中传递的参数都放在req.Form中。第二步也同样简单，我们只需要将要接收的参数以及其对应的类型定义到一个struct内就行了。但是要注意的是，每一个字段tag名称都必须要和请求参数中对应的字段名相等才可以，不然我们就没法通过请求参数的字段名和将要填充的Struct类型的变量链接在一起了。整个解析参数的功能最重要的就是第三步。</p>
+
+<p>我们可以在外循环遍历请求参数中的字段名，内循环遍历定义好的struct类型变量的field。但是这样效率是非常低的。稍微考虑一下就可以将定义好的struct类型的变量保存在一个map[string]reflect.Value内，map的key为struct内对应的tag，value则为对应的字段值。这样我们就可以在拿到请求参数字段名的时候，以O(1)的复杂度在这个map内找到其对应的field值，然后调用相应的Set方法即可将请求参数的值解析到具体类型的变量中。之所以能够通过构造出来的map改动定义好的struct类型变量内的field值，是因为map本身是一个引用类型，其底层使用的内存空间还是属于struct。</p>
+
+<p>实现代码如下</p>
+
+<pre><code>import (
+	&quot;fmt&quot;
+	&quot;github.com/qiniu/errors&quot;
+	&quot;net/http&quot;
+	&quot;reflect&quot;
+	&quot;strconv&quot;
+)
+
+func ExtractHttpReq(req *http.Request, ptr interface{}) error {
+	m := make(map[string]reflect.Value)
+	value := reflect.ValueOf(ptr).Elem()
+	if value.Kind() != reflect.Struct || !value.IsValid() {
+		return errors.New(&quot;input data is invalid&quot;)
+	}
+
+	for i := 0; i &lt; value.NumField(); i++ {
+		tag := value.Type().Field(i).Tag.Get(&quot;http&quot;)
+		if tag == &quot;&quot; {
+			tag = value.Type().Field(i).Name
+		}
+		m[tag] = value.Field(i)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
+	for key, value := range req.Form {
+		f, ok := m[key]
+		if !ok || !f.IsValid() {
+			continue
+		}
+
+		for _, item := range value {
+			Populate(f, item)
+		}
+	}
+
+	return nil
+}
+
+func Populate(value reflect.Value, item string) {
+	switch value.Kind() {
+	case reflect.Slice:
+		vv := reflect.New(value.Type().Elem()).Elem()
+		Populate(vv, item)
+		value.Set(reflect.Append(value, vv))
+	case reflect.Int, reflect.Int8, reflect.Int16,
+		reflect.Int32, reflect.Uint64:
+		num, _ := strconv.ParseInt(item, 10, 64)
+		value.SetInt(num)
+	case reflect.Bool:
+		num, _ := strconv.ParseBool(item)
+		value.SetBool(num)
+	case reflect.String:
+		value.SetString(item)
+	default:
+		fmt.Println(&quot;unsupport type&quot;)
+	}
+
+	return
+}
+
+</code></pre>
+
+<h1 id="reflection-in-method">Reflection in method</h1>
+
+<p>除了上面讲到的，可以使用reflect通过struct tag找到其对应的field变量并且更新里面的值之外。我们还可以是用reflect通过一个普通类型的值，找到其定义的成员函数。</p>
+
+<pre><code>package main
+
+import (
+	&quot;fmt&quot;
+	&quot;reflect&quot;
+	&quot;strings&quot;
+)
+
+type T struct {
+	Text string
+}
+
+func (t T) GetText() string {
+	fmt.Println(&quot;get text&quot;)
+	return t.Text
+}
+
+func PrintMethod(v reflect.Value) {
+	if !v.IsValid() {
+		fmt.Println(&quot;input params is invalid&quot;)
+		return
+	}
+
+	for i := 0; i &lt; v.NumMethod(); i++ {
+		fmt.Printf(&quot;func (%s) %s %s\n&quot;, v.Type().String(),
+			v.Type().Method(i).Name, strings.TrimPrefix(v.Method(i).Type().String(), &quot;func&quot;))
+		fmt.Println(v.Method(i).Call([]reflect.Value{}))
+	}
+
+	return
+}
+
+func main() {
+	a := T{Text: &quot;haha&quot;}
+	PrintMethod(reflect.ValueOf(a))
+	return
+}
+
+</code></pre>
+
+<p>通过上面的实现我们可以看出来，reflect.Type以及reflect.Value都有自己的Method方法。只不过reflect.Type的Method返回的是一个Method类型的数据，它里面包含了关于这个method的一切信息。但是reflect.Value的Method返回的是一个包含了函数值的reflect.Value。我们可以直接通过reflect.Value.Method(index).Call的形式去调用这个函数。</p>
+
+<h1 id="how-to-use-reflect">How to use reflect</h1>
+
+<p>使用reflect包写出来的代码实际上都是非常脆弱的，尽管我们在使用的过程当中能够尽量的保证我们的程序不panic。但是仔细想想，reflect包一般被用于实现我们的标准库，标准库内对painic的发生是有一套健全的处理机制的，而我在日常工作当中的项目里还仅仅只是处理error而不是处理panic。这可能跟我写的代码都是上层逻辑有关，如果实现一些标准库的话，可能就需要去注意panic的处理了。并且，reflect包使用过程当中的错误，基本不会被在编译时期就检查出来，都是在运行时触发的。</p>
+
+<p>reflect.Value类型的变量在调用相应方法的时候，一定记得先要检查这个变量是否是zero value或者它的动态类型是什么。因为reflect包中的很多方法在调用的时候都不会帮你做这些，一旦你使用了不当的类型调用了其所没有实现的方法的时候，将会直接导致panic的发生。另外一个类似的问题就是，在调用setxx方法之前，要检查一下这个变量是否是可寻址的并且是可以更新的。</p>
+
+<p>还有一个比较危险的地方就是，reflect包无法识别无限递归的问题。我们之前实现了一个格式化输出一般数据类型变量内容的函数，假设这个数据类型的内部成员的类型和外部是一致的，就会导致无限递归的调用。如：</p>
+
+<pre><code>type Recursive struct {
+	T Recursive
+	A string
+}
+</code></pre>
+
+<p>这种例子其实并不罕见，比如链表的实现常常就会使用类似的数据结构。而且reflect的代码因为没有依赖具体的数据类型，所以它的速度是非常慢的。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

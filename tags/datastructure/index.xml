@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>DataStructure on LittleDriver</title>
+    <link>http://littledriver.net/tags/datastructure/</link>
+    <description>Recent content in DataStructure on LittleDriver</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 28 Sep 2017 16:39:57 +0000</lastBuildDate>
+    
+	<atom:link href="http://littledriver.net/tags/datastructure/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Data Structure Review - Circular Queue</title>
+      <link>http://littledriver.net/posts/data-structure-review-circular-queue/</link>
+      <pubDate>Thu, 28 Sep 2017 16:39:57 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/data-structure-review-circular-queue/</guid>
+      <description>0x01 为什么需要循环队列 普通的队列结构无论在逻辑上还是在物理存储上，都是一个连续的线性结构。队列的插入和弹出操作符合「FIFO」原则。我们一般在操作队列的时候，都会有两个指针，一个指向队列头部，另外一个指向队列尾部。当我们想弹出一个元素的时候，可以清空队列头部指针所指向的元素，然后将指针向队列尾部移动一个元素的长度。当我们想插入一个元素的时候，可以在队尾指针所指向的位置放入我们想要插入的元素，然后队尾指针向后移动一个元素的长度。
+一个队列初始的时候，队头和队尾指针都是指向同一个位置的，一般来说就是底层线性结构的第一个元素的位置(如数组)。如果现在只有十个元素的空间可以用于实现队列，但是我们却要求插入20个元素，中间会不定的弹出元素，这样是否可以实现呢？
+乍一看10个位置想要插入20个元素是不现实的，不过中间会不定的弹出一些元素，只要是在插入一个元素之前，有一个或一个以上的元素被弹出了，就是有可能实现的。那么问题来了，插入元素的位置和弹出元素的位置是由两个不同的指针来控制的，队尾指针如果移动到了底层线性结构的边界应该怎么办？队头指针同样也会遇到这个问题。答案是要使用循环队列。
+0x02 循环队列长什么样 循环队列是一个在逻辑上成环，但是物理上还是线性的一种数据结构。底层存储队列元素的结构没有变，只不过在使用这些空间上面使用了一些小的技巧。
+ Circular Queue is a linear data structure in which the operations are performed based on FIFO (First In First Out) principle and the last position is connected back to the first position to make a circle.
+ 0x03 循环队列的实现 0x031 enqueue In [10]: def enqueue(item): ...: # queue 为空/一直插入元素到没有可用空间/循环插入后没有可用空间 ...: if queue and ((rear == len(queue) - 1 and front == 0) or (rear + 1 == front)): .</description>
+    </item>
+    
+  </channel>
+</rss>

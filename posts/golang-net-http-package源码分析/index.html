@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>golang net/http package源码分析(1) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">golang net/http package源码分析(1)</span></h1>
+
+<h2 class="date">2017/02/17</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/sourcecodeanalyse">SourceCodeAnalyse</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<blockquote>
+<p>平时在工作的过程当中对net包里面的各种库有非常多的使用，本文将先对golang标准库中net/http包进行剖析，文末会向大家展示使用golang编写的简单网络服务的运行机制。基于golang1.8版本。</p>
+</blockquote>
+
+<pre><code>	func CanonicalMIMEHeaderKey(s string) string
+</code></pre>
+
+<h3 id="函数功能描述">函数功能描述</h3>
+
+<p>该函数将会按照mime的规范来格式化你传递进来的http header字符串。如你传入keep-alive，该函数就会返回一个Keep-Alive。具体的规范简单来说就是把开头的第一个字母以及如果连字符后面的第一个字母变成大写。</p>
+
+<p>函数的内部会逐个字节的去检测你传递进来需要转换的http header字符串里面的字符是否合法。具体的检测规则如下：</p>
+
+<ol>
+<li>检查某个字符的ascii码值是否处于ascii码表中可显示字符能表示的范围内</li>
+<li>在net/textproto包下会有一个预定义的数组，它以ascii码值为索引，true为对应的元素值。在上一条检测成功的前提下，还会利用检查的字符作为数组索引去预定义的数组中取值的方式来再次校验这个字符是否真的是合法的ascii字符。</li>
+</ol>
+
+<p>检测函数内容如下：</p>
+
+<pre><code>// validHeaderFieldByte reports whether b is a valid byte in a header
+// field name. RFC 7230 says:
+//   header-field   = field-name &quot;:&quot; OWS field-value OWS
+//   field-name     = token
+//   tchar = &quot;!&quot; / &quot;#&quot; / &quot;$&quot; / &quot;%&quot; / &quot;&amp;&quot; / &quot;'&quot; / &quot;*&quot; / &quot;+&quot; / &quot;-&quot; / &quot;.&quot; /
+//           &quot;^&quot; / &quot;_&quot; / &quot;`&quot; / &quot;|&quot; / &quot;~&quot; / DIGIT / ALPHA
+//   token = 1*tchar
+func validHeaderFieldByte(b byte) bool {
+	return int(b) &lt; len(isTokenTable) &amp;&amp; isTokenTable[b]
+}
+</code></pre>
+
+<p>下面我们来看下这个函数的具体实现：</p>
+
+<pre><code>func CanonicalMIMEHeaderKey(s string) string {
+	// Quick check for canonical encoding.
+	upper := true
+	for i := 0; i &lt; len(s); i++ {
+		c := s[i]
+		if !validHeaderFieldByte(c) {
+			return s
+		}
+		if upper &amp;&amp; 'a' &lt;= c &amp;&amp; c &lt;= 'z' {
+			return canonicalMIMEHeaderKey([]byte(s))
+		}
+		if !upper &amp;&amp; 'A' &lt;= c &amp;&amp; c &lt;= 'Z' {
+			return canonicalMIMEHeaderKey([]byte(s))
+		}
+		upper = c == '-'
+	}
+	return s
+}
+
+// canonicalMIMEHeaderKey is like CanonicalMIMEHeaderKey but is
+// allowed to mutate the provided byte slice before returning the
+// string.
+//
+// For invalid inputs (if a contains spaces or non-token bytes), a
+// is unchanged and a string copy is returned.
+func canonicalMIMEHeaderKey(a []byte) string {
+	// See if a looks like a header key. If not, return it unchanged.
+	for _, c := range a {
+		if validHeaderFieldByte(c) {
+			continue
+		}
+		// Don't canonicalize.
+		return string(a)
+	}
+
+	upper := true
+	for i, c := range a {
+		// Canonicalize: first letter upper case
+		// and upper case after each dash.
+		// (Host, User-Agent, If-Modified-Since).
+		// MIME headers are ASCII only, so no Unicode issues.
+		if upper &amp;&amp; 'a' &lt;= c &amp;&amp; c &lt;= 'z' {
+			c -= toLower
+		} else if !upper &amp;&amp; 'A' &lt;= c &amp;&amp; c &lt;= 'Z' {
+			c += toLower
+		}
+		a[i] = c
+		upper = c == '-' // for next time
+	}
+	// The compiler recognizes m[string(byteSlice)] as a special
+	// case, so a copy of a's bytes into a new string does not
+	// happen in this map lookup:
+	if v := commonHeader[string(a)]; v != &quot;&quot; {
+		return v
+	}
+	return string(a)
+}
+
+</code></pre>
+
+<p>内层的canonicalMIMEHeaderKey函数在转换之前需要检查所有的字符是否符合规范，如果符合规范则开始转换。检测的过程当中，通过判断当前字符是否是连接符来决定是否应该转换字符为大写。在规范的http请求头中，第一个字符和连接线后第一个字符都应该是大写的。至于其余的字符，都应该是小写才对。第一个if分支用来将第一个小写字符和连接符后的小写字符变为大写，第二个if分支用来将除上述两个字符之外的字符变为小写。commonHeader检测我们转换后的字符串，如果是已知的，则直接返回我们预定义的，否则返回转换后的。</p>
+
+<p>外层的CanonicalMIMEHeaderKey则决定是否要进行进一步的检测和转换，如果传递进来的字符串是符合规范的，那么外层的逻辑可保证不会进行多余的转换。外层的两个if逻辑和上面内层叙述的两个if逻辑是一样的。都是按照标准的http header来检测每一个字符来决定是否要进行下一步的转换。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

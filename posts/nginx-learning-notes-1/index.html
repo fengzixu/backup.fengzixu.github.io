@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>nginx Learning notes(1) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">nginx Learning notes(1)</span></h1>
+
+<h2 class="date">2017/04/24</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/nginx">Nginx</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<blockquote>
+<p>本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址 <a href="https://openresty.org/cn/ebooks.html">https://openresty.org/cn/ebooks.html</a></p>
+</blockquote>
+
+<h1 id="变量插值">变量插值</h1>
+
+<p>变量插值可以在不使用明确的字符串连接符的情况下，将字符串中的变量替换成相应的字符串，并将它和剩余的字符链接在一起。nginx中没有转义功能，也就是说必须通过不支持变量插值功能的模块将一个变量赋值为$符号，这样在其他输出语句中使用的时候，才能够正常的输出$这个值。如果在变量插值中，变量后面紧接着普通的字符，这个时候为了能够不产生歧义，将使用{}将变量括起来。</p>
+
+<p>set和geo指令，除了给变量赋值的功能之外，还有创建变量的功效。如果将某个值赋值给一个之前不存在的变量，那么将会自动创建该变量。但是如果，实现没有创建就直接读取这个变量的值，那么就会报错。nginx中，创建变量和给量赋值发生在不同时期内。变量在nginx配置加载的时候就已经创建的。但是并没有做赋值。只有在使用这个变量真正需要使用的时候，才会发生相应的赋值操作。这也就随之带来了两个问题：</p>
+
+<ol>
+<li>运行过程中不能够创建新的变量</li>
+<li>变量如果没有定义就开始使用，那么nginx服务器可能启动失败</li>
+</ol>
+
+<p>nginx配置中的变量一经定义其作用范围就是整个配置，所以在不同的server模块下也是可以共享同一个变量的定义的。但是这里要注意的是， 虽然不同server模块之间可以共享变量的定义，但是变量的赋值行为却是无法共享的。如：</p>
+
+<pre><code>server{
+	location / {
+		echo &quot;$foo&quot;
+	}
+	
+	location /test {
+		set $foo hahah
+		echo &quot;$foo&quot;
+	}
+}
+</code></pre>
+
+<p>这种nginx配置文件，是可以成功启动的。因为nginx中允许共享变量的定义。 但是当我们使用curl来访问/和/test的时候，得到的结果可以证明，$foo这个变量的在每一个location都有一个独立的副本。其实想想，前面说的共享变量定义实际上应该被认为是共享变量的声明，不同的location模块都能够成功识别$foo这个变量。但是，这个变量的值，抑或说这个变量的内存在不同的location下是相互独立的。</p>
+
+<p>看到上面这个例子，可能会觉得，变量的在内存中的值是和location绑定的，不同的变量在不同的location中会有一份独立的副本存放它的值。但是事实上，一个变量在内存中的副本是和请求绑定的。如从/test运行echo_exec跳转到/，此时在/这个location块下输出foo的值，仍然是hahah。也就是说，在内部跳转的过程当中，它对一个变量使用了同一份内存副本。这就证明了，某个location中使用的变量在内存中的副本并不是和location本身强绑定的，而是和请求绑定的。</p>
+
+<h1 id="内建变量">内建变量</h1>
+
+<p>nginx中的变量基本可以分为两类，一类是被索引的，另外一类是未被索引的。其实说白了，就是一类是可寻址的，另外一类是不可寻址的。</p>
+
+<p>可寻址的变量在内存中有一个确定的位置来保存这个变量的值，我们所定义的变量都是这样的。但是一些内建变量，也就是nginx预定义的变量是没有和特定的内存位置来绑定的，对未被索引的内建变量进行读写的时候，实际上都是nginx的存取处理程序在起作用。</p>
+
+<p>nginx中的存取处理程序类似于面向对象当中的get和set方法。这两个方法将读写操作都封装了起来。你不知道它在内部做了什么操作，只知道他会返回给你想要的数据。一些未被索引的内建变量在读写的时候就依赖的这种机制。如$arg_xxx这个内建变量，它就是未被索引。每次当我们想要读取$arg_变量内保存的参数值的时候，实际上都是由它的存处理程序完成的，它会动态的去解析url的参数串在我们需要的时候，而不是在一开始就把url参数串的参数都解析好了放在那里等我们取用。</p>
+
+<h1 id="nginx中的请求">Nginx中的请求</h1>
+
+<p>nginx中的请求分为两种：</p>
+
+<ol>
+<li>主请求：此类请求是由http客户端从nginx外部发起的，通过echo_exec和rewrite发起的请求也属于主请求。</li>
+<li>子请求：此类请求和http没有任何关系，属于在Nginx内部将一个请求划分为多个子请求进行处理，是一种抽象的概念。这些子请求既可以串行的进行，也可以并行的进行。</li>
+</ol>
+
+<p>前面说过，nginx中的变量的内存分配情况是和请求相关的。对于同名的变量，每一个请求都对这个变量有一份唯一的内存拷贝，保证了多个请求之间对同名变量的操作是独立的。这一特性不仅仅体现在主请求中，在父子请求的逻辑关系中对待同名变量也是一样的。但是这种行为是有特殊情况的，比如在ngx_auth_request模块中的auth_request指令，此时它所执行的子请求就和父请求是共享同名变量的内存的。</p>
+
+<p>上面所说的受主，子请求影响的变量是用户自定义的。那么nginx内建的变量会受什么影响呢？
+如果是通过nginx的存取处理程序来处理的内建变量，在主，子请求上，大部分的内建变量都是基于当前请求的，主请求和子请求在访问这种内建变量的时候都会重新去计算内建变量的数据。但是也有少数内建变量只作用于主请求，如$request_method内建变量。</p>
+
+<h1 id="变量类型">变量类型</h1>
+
+<p>nginx中正常的变量只有一种类型：字符串。但是同时也有两种比较特殊的类型：invalid和notfound。但定义了一个变量但是没有给他赋值的时候，那么这个变量的值就是不合法的。当一个变量不存在的时候，你直接去引用它，这个变量就是不存在的。</p>
+
+<p>在使用set指令创建一个变量的时候，在某个请求中，如果此变量还没有被初始化，按理来说，此时使用这个变量的时候它保存值的类型是invalid。那么为什么在使用的时候没有报错呢？是因为set指令在创建一个变量的时候自动为这个变量创建了一个取处理程序，如果在使用这个具有明确内存空间的变量但是里面没有被初始化值的时候，nginx就会调用这个取处理程序，生成一个空值，并且缓存在这个变量对应的内存空间中。一些支持缓存机制的内建变量也是用的这样的一套机制，只不过这种内建变量，在生存周期内只会运行一次取处理程序。</p>
+
+<h1 id="nginx指令执行顺序">nginx指令执行顺序</h1>
+
+<p>经过这几天对nginx的了解，我觉得nginx和我们本身在写的服务端是没有什么区别的，只不过不同服务的职责是不同的。nginx这种服务主要是处理请求的负载均衡，在请求还没有正式进入我们后面的负责业务逻辑的服务中，先做一层代理，以便我们可以从容的控制用户的请求，防止被被攻击，为后端核心服务提供稳定运行的保证。通过前面的学习，我们知道，在nginx的配置文件中，可以通过制定Location来自定义服务器的路由。那么在一个Location块中，处理这个请求的众多nginx指令是按照什么顺序执行的？一定是按照书写的顺序执行的么？</p>
+
+<p>nginx在处理一个用户请求的时候，只按照不同的阶段依次处理的。nginx中请求的处理阶段一共有11个，常见的有三个。</p>
+
+<ol>
+<li>rewrite</li>
+<li>access</li>
+<li>content</li>
+</ol>
+
+<p>这三个阶段的处理的先后顺序从上到下。其中我们之前看到的set指令就是在rewrite阶段运行的，而echo指令是在content阶段运行。对于多条set指令而言，他们的执行顺序是按照ngx_rewrite模块来保证和书写顺序一致的,同理多条echo指令也是一样的。</p>
+
+<h2 id="rewrite">rewrite</h2>
+
+<p>ngx_rewrite模块中所包含的指令基本都运行在请求处理的rewrite阶段。如果该模块中的指令是在server配置模块中，那么这一系列的指令将会运行在一个更早的阶段，叫做server_rewrite。一些第三方的模块如果也是在rewrite阶段执行的， 并且其指令已经嵌入到了ngx_rewrite指令序列中，那么第三方模块的指令和ngx_rewrite会按照我们书写的顺序进行执行。否则，他们之间的执行顺序是不能保证的。在nginx当中，可能会有多个模块的只能共同运行在同一阶段中，但是运行在同一阶段中的指令执行顺序并没有一个明确的规定，所以应该避免写这种依赖执行顺序的代码。</p>
+
+<p>rewrite是对请求较早的处理阶段，一般在这个阶段里会对请求做一些定制化的操作，如改写头部等</p>
+
+<h2 id="access">access</h2>
+
+<p>在此阶段执行的指令，大多数都是对请求的访问性进行一些控制，如黑白名单，访问权限等等。ngx_access模块内的指令如果有多条出现在access阶段中，那么他们会顺序执行。与access相关的指令也都在ngx_access这个模块内。无论是在rewrite还是access阶段，想要插入我们自定义的lua脚本代码，都需要用到ngx_x模块中的xxx_by_lua指令。这条指令一般在rewrite和access阶段的末尾执行，也就是说ngx_x模块的指令都执行完了，最后在执行xxx_by_lua。</p>
+
+<h2 id="content">content</h2>
+
+<p>content阶段的指令主要负责生成Http中的response并返回给外部请求的客户端。在rewrite阶段和access阶段中，只要是该阶段的指令，那么多个模块的指令是可以配合起来用的。比如在access阶段中的ngx_access和ngx_lua两个模块中的指令可以共存于access阶段，并且按照一定的顺序运行。但是对于content来说，这是不可行的。</p>
+
+<p>在一个location块中，只能有一个所谓的&rdquo;内容处理程序&rdquo;。如果我们写入了多个内容处理程序，那么究竟谁会执行是无法确定的。如：</p>
+
+<pre><code>worker_processes  1;
+events {
+        worker_connections 1024;
+}
+error_log logs/error.log debug;
+http {
+    server {
+	listen 8080;
+        location /test {
+	    echo &quot;fuck you&quot;;
+	    content_by_lua 'ngx.say(&quot;hello world&quot;)';
+	}
+    }
+}
+
+</code></pre>
+
+<p>在location部分中有两个所谓的内容处理程序，他们来自不同的包，但是最后只输出了helloworld。当你将echo和content_by_lua交换位置之后，最后会输出fuckyou。对于某些指令来说，如果在一个location的范围内，有多个同一个模块下的指令被用作内容处理程序的时候会按照一定的顺序都执行一遍。而有的模块则不行。比如多个echo在同一个location中就可以按照一定的顺序都执行一遍，但是content_by_lua就只会执行一次。</p>
+
+<p>在content阶段中，如果我们实现没有注册一个“内容处理程序”，那么nginx会把这个请求映射到几个文件系统静态资源服务模块上。默认情况下，nginx会为我们安排三个静态资源服务模块，ngx_index, ngx_autoindex, ngx_static。前面两个模块都作用于以／结尾的请求，static模块作用于不以／结尾的请求。</p>
+
+<p>ngx_index模块中的index指令会在nginx所在的文件系统中查找指定的文件。如</p>
+
+<pre><code>	location / {
+	    root /var/www/;
+	    index index.html;
+	    autoindex on;
+	}
+	
+	location /index.html {
+	    echo &quot;fuck&quot;;
+	}
+
+</code></pre>
+
+<p>当请求是直接访问根目录的时候，首先通过root指令指定后面指令所运行的目录。index指令将会在root指令所指示的目录下查找index.html这个文件，如果找到了，那么内部跳转到/index.html的location块中进行请求的处理。如果不存在，那么直接放弃这个请求的处理。也就是说，根据上面的配置，如果/var/www/这个目录下有index.html这个文件，那么访问根目录的时候就会条换到/index.html这个location中，输出fuck。否则将会返回错误信息。</p>
+
+<p>当nginx保持上面的配置文件不变，删除/var/www目录下的index.html文件之后，会发现并没有和预期中的一样报错。而是访问到了一个目录索引的html页面，这个页面就是autoindex指令为我们生成的。如果此时你将autoindex指令去掉，那么就会因为没有找到这个index.html文件而报错403。</p>
+
+<p>之前说过，ngx_index和ngx_autoindex都是处理以/结尾的请求，但是ngx_static模块正好相反。ngx_static作为content阶段最后一个执行的模块，主要负责将文件系统中的一些静态资源作为响应返回给客户端。假设现在在/var/www/目录下创建两个html文件分别是1.html和2.html。在location /中只留下root /var/www/这一条指令。那么在访问<a href="http://localhost:8080/1.html的时候，ngx_static模块就会为我们在目录下找到相应的文件并且返回给我们。">http://localhost:8080/1.html的时候，ngx_static模块就会为我们在目录下找到相应的文件并且返回给我们。</a> ngx_static模块默认是一直开启的，但是是否会运行该模块相关的指令就看它之前的模块是否运行了。上面的nginx的配置中，我们是在location内部制定了文档的根目录，如果没有制定的话，那么默认它就是nginx安装的根目录。如果在启动nginx的时候使用了-p这个参数，那么-p这个参数所制定的路径就是文档根目录。在ngx_static模块生效的时候，如果没指定文档根目录，那么它就会去默认的目录下的/html子目录下查找相应的静态资源。</p>
+
+<p>content阶段中默认的静态资源服务可能在一般情况下并不是我们想要的，所以在写nginx配置文件的时候，如果明确的不想使用默认的静态资源服务，一定不要忘记注册相应的&rdquo;内容处理程序&rdquo;。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

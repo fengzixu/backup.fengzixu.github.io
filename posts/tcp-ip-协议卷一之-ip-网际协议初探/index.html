@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TCP/IP 协议卷一之 IP 网际协议初探 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">TCP/IP 协议卷一之 IP 网际协议初探</span></h1>
+
+<h2 class="date">2017/10/30</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/network">Network</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<h2 id="ip-数据报字段">IP 数据报字段</h2>
+
+<ul>
+<li>IP 数据报长度（首部长度+数据长度)用一个16位的字段进行标识，最大数据报长度为65535，但是链路层都会对数据报进行分片处理。数据报总长度字段是需要的，链路层会读取这个字段的值，来判断是否数据报的长度达到了链路层封装数据包的最小长度，如果没有达到的话，还需要填充一些字节来保证链路层的传输效</li>
+<li>TTL 值标识了数据报可以经过的最大路由个数，也就是这个数据报的生存时间。当 TTL 到达0的时候，该数据报被丢弃，并且向源主机发送 ICMP 报文。</li>
+<li>IP 数据报内的首部校验和字段是对首部字段进行计算得到的一个数值。发送方对首部字段每16位进行计算，反码求和，存在校验和字段中。接收方以同样的形式进行计算，最终应该得到的值为1。如果最后值不唯1，那么由上层进行重新发送，不会使用 ICMP 报文进行报错处理。</li>
+</ul>
+
+<h2 id="ip-路由选择">IP 路由选择</h2>
+
+<p>IP 层在内存当中有一个路由表，路由表项基本上是源 IP 到下一跳 IP 映射的一条记录。一台pc 可以作为主机来使用，也可以作为路由器来使用。路由器和主机在功能上最大的区别就是，主机在收到一个 ip 数据报的时候，如果发现目的 ip 不是自己或者广播地址，那么就会直接丢弃。但是路由器会对这个数据报继续进行转发操作。所以说，一般路由器的网络模型都是只有网络层和链路层。</p>
+
+<p>进行路由选择的时候，大致会遵循以下的顺序
+1. 路由表中是否有与目的主机 IP 严格匹配的表项，如果有，直接使用其表项中的目的 IP 进行继续转发
+2. 路由表中是否有与目的主机网络号相匹配的表项。这一般出现在有局域的时候，某一个局域网内的所有主机都可以使用某一个网络号来进行标识。这一类特性也极大的缩减了路由表的规模。
+3. 路由表中是否有默认跳转的 IP 地址</p>
+
+<p>IP 数据报在传输的时候，如果接收数据报的机器不是目的主机，那么数据报就不会再向上层传输，也就是说不会经过传输层。并且还有一个需要特别注意的是，在转发的过程中，链路层的硬件地址是一直在变的，唯独IP 数据报内的目的 IP 地址不会变。这一个特性其实也可以反证我们刚说的，在 IP 数据报进行路由的时候，是不会经过上层的。</p>
+
+<h2 id="带有子网划分的路由选择过程">带有子网划分的路由选择过程</h2>
+
+<p>为了减少内存当中路由表的规模，我们一般都会通过划分子网的方式来解决这个问题。当我们拿到本机(所经过路由) IP，目的主机 IP，以及我们所处的子网掩码的时候，我们的比较过程会按照如下的大致顺序。</p>
+
+<ol>
+<li>目的主机的网络号是否与本机的网络号相同（知道 IP 地址就知道了哪一类的 IP，从而也就知道了网络号的位数）</li>
+<li>网络号相同则根据子网掩码分别对本机 IP 和目的 IP 进行与运算，得出的子网号看是否相同，如果相同，那么就证明目的主机就处在本机所在的子网</li>
+<li>如果子网号不相同，说明还需要在继续查找路由表
+上述过程发生在 IP 路由选择的第二步，也就说在没有找到与目的 IP 严格符合的路由表项的时候。</li>
+</ol>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

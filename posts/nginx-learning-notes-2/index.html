@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>nginx Learning notes(2) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">nginx Learning notes(2)</span></h1>
+
+<h2 class="date">2017/05/03</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/nginx">Nginx</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<blockquote>
+<p>本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址 <a href="https://openresty.org/cn/ebooks.html">https://openresty.org/cn/ebooks.html</a></p>
+</blockquote>
+
+<h1 id="nginx请求过程">Nginx请求过程</h1>
+
+<p>rewrite，access, content应该是nginx中对一个请求处理的最核心的三个阶段。但是，当我们想对一个请求做更多的控制的时候，nginx也为我们提供了更多的阶段。</p>
+
+<h2 id="post-read">post_read</h2>
+
+<p>post_read是nginx处理用户请求进行的第一个阶段，这个阶段的指令在nginx解析完请求的头部之后就立即开始运行了。其中ngx_realip模块就是这个阶段中比较常用的，它的作用是可以通过特定的指令修改请求头的来源地址。如下面的例子：</p>
+
+<pre><code>server{
+	set_real_ip_from 127.0.0.1
+	real_ip_header X-LOCAL-IP
+}
+</code></pre>
+
+<p>这两条来自ngx_realip模块的指令，在处理请求的时候，会把来自本地的请求中的来源地址设置成X-LOCAL-IP这个头部字段所制定的ip。如果该字段的值是空或者不是一个合法的ip格式，那么是不会更改的。nginx中对于请求来源地址有一个相关的内建变量可以直接访问：$remote_addr。如果nginx配置文件中配置了上面在post_read阶段执行的指令并且在rewrite阶段中我们要使用remote_addr这个变量，此时它就是被上面的指令改过的版本。</p>
+
+<p>之所以需要改动请求来源地址，是因为，如果在nginx前面还有一层代理的话，那么按照原始的方式获取来源ip地址肯定是不准确的，代理服务器一般会在代理的过程中将用户请求的来源地址写入到一个特定的http头部字段中，这样nginx在收到这个请求的时候，就可以做一个翻译，以便后续的阶段使用。post_read阶段是在nginx读取到请求的头部就开始运行的，改写请求来源地址的这类事情还是越早做越好。</p>
+
+<h2 id="server-rewrite和rewrite">server-rewrite和rewrite</h2>
+
+<p>以我目前所学的Nginx的知识来讲，rewrite阶段一般分为两类，一类是server之内，一类是location之内。location虽说是被包含在server内的，但是location外server内还是可以算作一种特殊的rewrite阶段&mdash;-server-rewrite阶段。server-write阶段的执行顺序仅次于post-read，在rewrite之前运行。</p>
+
+<h2 id="find-config">find_config</h2>
+
+<p>find_config阶段内，不支持其他nginx模块注册处理程序，这阶段内主要的作用就是将请求和location进行配对。配对成功之后，就会进入和请求对应的location配置块中，location中第一个经历的阶段就是rewrite阶段。</p>
+
+<h2 id="post-rewrite">post_rewrite</h2>
+
+<p>post_rewrite阶段和find_config阶段一样，不支持nginx模块在此阶段注册处理程序。这一阶段的主要工作是根据rewrite阶段的指令看是否要执行内部跳转操作。上一篇文章中说过rewrite指令是可以实现内部跳转的。rewrite实现内部跳转的原理实际上就是通过改写请求的url，然后使请求的处理阶段倒回find_config阶段。重新将请求的url和location块进行匹配。这个&rdquo;回退&rdquo;的操作之所以没有在rewrite阶段中完成的原因是，rewrite阶段可以执行多个rewrite指令，但是后面的rewrite指令的结果是会覆盖前面的。对于内部跳转这个动作来讲，rewrite阶段的rewrite指令相当于做了一次记录，记录了内部跳转的目的地，最后真正实施内部跳转操作的，实际上是在post_rewrite阶段。</p>
+
+<p>之前说过，rewrite指令不仅仅可以用来Location内部，还可以用在server内Location外。这个时候进行的请求重写并没有发生在post_rewrite阶段，而是发生在server_rewrite阶段，这个阶段还没有执行find_config阶段内的配对操作，所以不能算是内部跳转，可以算作是内部重定向把，毕竟真正第一次配对的find_config阶段还没有执行。</p>
+
+<h2 id="preaccess">preaccess</h2>
+
+<p>通过这个阶段的名字我们就可以看出来，此阶段是在access阶段前运行的。ngx_req_limit和ngx_req_zone两个模块分别控制请求的频度和并发度，他们都是运行在preaccess这个阶段中的。前面提到的可以修改请求源地址的ngx_realip模块也在这个阶段注册了处理程序，按道理来说，ngx_realip在post-read阶段来做是最合适的，post-read阶段和任何的location块都是无关的。但是如果我们想在post-head以后的处理阶段中进行需改请求源地址操作的话，就要依赖于ngx_realip在preaccess阶段注册的处理程序。修改请求源站地址的指令可以写在location中，这样在preaccess阶段中就可以执行相关的指令了。</p>
+
+<h2 id="access">access</h2>
+
+<p>这个阶段在上一篇文章中已经有所提及，是负责对请求做一些访问性的控制操作。除了ngx_access标准模块，ngx_lua中的access_by_lua指令也运行在这个阶段。</p>
+
+<h2 id="post-access">post_access</h2>
+
+<p>post_access和post_rewrite一样，后者是运行在rewrite之后，前者则是运行在access阶段之后。post_rewrite会将rewrite阶段中的内部跳转指令综合起来，最终在该阶段只跳转一次。post_access会将access阶段中注册的多种访问控制相关处理程序综合起来，根据satisfy指令给出一个逻辑或关系的表达式，任意一个请求在access阶段有satisfy指令的情况下，最终都会根据post_access阶段给出的逻辑表达式来计算其是否能够继续被处理。虽然post_access阶段是在access阶段之后被处理，但是实际上这两个阶段是相互配合的，rewrite和post_rewrite是一样的。</p>
+
+<h2 id="try-files">try_files</h2>
+
+<p>try_files阶段不支持其他nginx模块注册处理程序。try_files指令接受N个参数，在try_files阶段，该指令会依次检查前N-1个参数对应的文件系统的位置是否存在一个明确的文件对象。如果存在，那么就改写请求uri的值为对应的参数值，否则直接执行一个内部跳转，跳转到第N个参数所制定的url中。</p>
+
+<p>try_files指令在从左向右匹配的时候，只要是有一个参数被验证在文件系统中有明确的文件对象，那么他就不继续向下匹配了，改写完请求uri之后，就直接进行后面的请求处理阶段。这么说来，在try_files匹配的过程中，对于前N-1个参数来讲都是一个或的关系。</p>
+
+<p>并且，在第N个参数上，也就是前n-1个参数都没匹配到，无条件内部跳转过去的位置，除了可以指定一个uri来跳转到具体的一个location块，还可以用等号加状态码的形式(=404)，让内部跳转到这个位置的时候，直接根据状态码返回一个响应。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

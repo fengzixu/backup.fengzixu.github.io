@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Https通信机制 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Https通信机制</span></h1>
+
+<h2 class="date">2017/02/16</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/network">NetWork</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<h1 id="为何要使用加密通信">为何要使用加密通信</h1>
+
+<p>这个标题看起来似乎是一句废话，谁不想自己将要在互联网传递的信息是加密的呢？但是事实并不是这样。互联网中传递的信息类型有很多种，我们谈到的信息指的是隐私信息，如用户名和密码或者是聊天记录等。
+如今的web服务在应用层上大多采取http协议来进行通信，http协议是没有加密机制的，所有需要传递的信息都是明文传输。为了信息的完整性，保密性，正确性，我们需要以更安全的协议来保证通信的安全。</p>
+
+<h1 id="使用密钥加密通信的内容">使用密钥加密通信的内容</h1>
+
+<p>我们很容易想到使用对称加密的方式，客户端和服务端共享同一个密钥，客户端和服务端之间通信的时候使用此密钥来加密通信的内容，当加密的信息到达目的地的时候，需要使用相同的密钥解密才能读取出信息。
+但是处于互联网中的通信双方彼此之间的距离是很远的，很难做到在线下交换需要共享的密钥。线上传输的方式也并不安全，所以人们对加密方式进行改进，使用公开密钥的方式进行加密。</p>
+
+<p>公开密钥加密属于非对称的加密方式。服务端发布一个公开密钥，这个密钥是所有的人都可以拿到的。客户端在想和服务端通信之前，用服务端发布的公开密钥加密要传输的数据。服务端保存了一个私有密钥，这个密钥只在服务端存在。当服务端接受到客户端发来加密的数据的时候，使用私钥进行解密以得到客户端想要传输的数据。这种非对称加密的方式改进了共享密钥中无法安全传递加密密钥的问题。但是，公开密钥也有一个缺点：客户端无法验证它得到的密钥就是其想通信的那个服务端发布的公开密钥。也就是说，公开密钥加密的通信方式存在着遭受中间人攻击的风险。中间可以伪装成合法的服务端与客户端进行通信。</p>
+
+<h1 id="用证书来证明你的身份">用证书来证明你的身份</h1>
+
+<p>既然公开密钥加密的方式的弊端是无法验证公开密钥的发布者是否合法。那么就需要借助第三方证书机构颁发的证书来证明其身份。第三方的证书机构很多，如果你遵循一定的协议，自己也可以成为一个证书的颁发机构。但是你建立的证书颁发机构是不受信任的。</p>
+
+<p>服务端会将自己想发布的公开密钥发送给证书机构，证书机构将此公开密钥集成到将要颁发的证书内。但这时大家可能会有疑问，我们如何得知客户端得到的这个服务端的证书是合法的呢？当然也是通过一定的验证机制。但是因为证书验证是否合法的过程也需要密钥的传输，问题好像就进入了无限的递归之中。所以，一般的浏览器在发布版本的时候，都会把受信任的证书机构的密钥集成在浏览器中。当客户端接受到了服务端的证书的时候，会使用该密钥来验证证书的完整性和合法性。如果验证通过，那么客户端将会得到两个信息：</p>
+
+<ol>
+<li>该证书是由合法的证书机构颁发的，收信任的</li>
+<li>随证书附带的服务端公开密钥也是合法的</li>
+</ol>
+
+<h1 id="https的通信过程">HTTPS的通信过程</h1>
+
+<p>Https的通信分为两部分，第一部分是建立https连接，第二部分是在建立的安全连接上进行通信。https通信之所以安全是因为它使用密钥对通信内容进行了加密，对通信双方的身份进行确认，一旦通信的内容有被篡改会立刻知道。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/bg2014020502.png" alt="" /></p>
+
+<h2 id="https链接的建立">HTTPS链接的建立</h2>
+
+<ol>
+<li><p>客户端首先发送一个client hello的报文，主动与服务端建立https连接。报文内包含客户端支持的ssl协议的版本以及一些加密组件。最重要的是，报文内会包含一个随机数，用于之后的通信加密。</p></li>
+
+<li><p>服务端接收到客户端发来的client hello的报文之后，会返回一个server hello的报文，里面包括了服务端支持的ssl协议的版本以及通过客户端加密组件筛选出来的共同支持的部分组件，同样，报文内会包含一个随机数。之后，服务端会把带有公开密钥的证书发送给客户端。最后，发送一个server hello done报文表示第一次握手成功。</p></li>
+
+<li><p>客户端接受到服务端发来的证书证书之后会对证书进行验证。验证成功之后会取出随证书携带的服务端公开密钥。此时客户端会再向服务端发送一个随机数，这个随机数已经是链接建立过程当中发送的第三个随机数，又称为pre-master-key。这个报文发送给服务端之后，通信的双方都各自拥有了三个随机数，他们会根据这三个随机数生成一个用于之后通信的对称密钥。然后，客户端还会给服务端发送一个ChangeCipherSpec报文来通知服务端接下来的通信加密方式和使用的密钥会改变。最后，客户端发送给服务端一个Finished报文，此报文包含了从建立连接开始一直到本次之前客户端发送报文的整体校验值。服务端会拿到这个报文的内容进行校验。</p></li>
+
+<li><p>服务端接收到客户端发来的报文之后，向客户端发送ChangeCipherSpec报文，表明之后服务端向客户端的通信当中通信加密的方式和使用的密钥也会发生改变。最后再发送一个Finished报文，代表https链接正式建立成功。</p></li>
+</ol>
+
+<h2 id="https通信">HTTPS通信</h2>
+
+<p>基于上面https链接的成功建立，接下来的通信过程中使用共享密钥的方式进行加密。整个通信过程都会受到ssl的保护。</p>
+
+<h1 id="https混合了两种加密方式">HTTPS混合了两种加密方式</h1>
+
+<p>https在整个通信的过程当中使用了两种加密方式。利用公开密钥加密传输以后通信过程当中使用的共享密钥。因为公开密钥加密方式属于非对称加密，加密和解密次数多了自然会影响性能。我们可以用公开密钥的加密方式来传输一个共享密钥，保证了共享密钥传输的安全性之后就可以使用共享密钥加密来传输数据，从而提高了性能。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

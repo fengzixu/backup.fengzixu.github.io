@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>乐观锁和悲观锁 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">乐观锁和悲观锁</span></h1>
+
+<h2 class="date">2016/11/27</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/workingexperience">WorkingExperience</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<blockquote>
+<p>本科的时候学习过数据库，但是只限于书面上的东西，并没有过多的实践。而且我依稀记得，当时教学的重点是在关系代数和数据库三大范式这两方面。
+学完之后，晕晕乎乎，最后只记得自己学会了写sql语句。最近在工作中遇到了处理数据库并发性访问的难题，组里的前辈教会我用golang实现了悲观锁和乐观锁。虽然结合现实工作中的场景能够了解为何需要这两个东西。
+但自己本身对乐观锁和悲观锁还是第一次听说(MD,好菜~~<del>(&gt;_&lt;)</del>~~)，觉得学习新东西不应该只停留在会用的层面上，要尝试理解一下背后的原理。So，写此博文，做一记录，同时也提醒自己，该补补数据库系统的知识了。</p>
+</blockquote>
+
+<h1 id="数据库的并发控制">数据库的并发控制</h1>
+
+<p>简单来说，数据库中并发控制的任务就是确保在多个事务同时存取同一份数据的时候，能够不破坏事务的统一性，隔离性以及数据的一致性。
+乐观并发控制和悲观并发控制是实现并发控制的两种主要技术手段。将这两种思想进行延伸，就得出了我上面所说的，乐观锁和悲观锁。
+乐观锁和悲观锁其实并不局限于关系型数据库中，非关系型数据库同样可以实现这两种锁。本质上来讲，乐观锁和悲观锁都是处理并发控制问题的一种思想。</p>
+
+<h1 id="悲观锁的定义-以关系型数据库为例">悲观锁的定义(以关系型数据库为例)</h1>
+
+<p>在关系数据库管理系统里，悲观并发控制（又名“悲观锁”，Pessimistic Concurrency Control，缩写“PCC”）是一种并发控制的方法。它可以阻止一个事务以影响其他用户的方式来修改数据。如果一个事务操作的数据应用了锁，那只有当这个事务把锁释放，其他事务才能够执行与该锁冲突的操作。
+悲观并发控制主要用于数据争用激烈的环境，以及发生并发冲突时使用锁保护数据的成本要低于回滚事务的成本的环境中。</p>
+
+<h1 id="场景1">场景1</h1>
+
+<p>众所周知，数据库的增删改查操作是原子操作。何为原子操作？说白了就是你在对一份数据做增删改查操作的时候，同一时间肯定只会有一个操作作用于这条数据上。不会出现丢失更新的情况。
+实际应用的过程当中，我遇到过下面的情形：</p>
+
+<blockquote>
+<p>我需要先读数据库中id为1的一条数据，在代码中对取出的这份数据有所更改。最后把我修改后的这份数据写回数据库，以达到对id为1这条数据更新的目的。</p>
+</blockquote>
+
+<p>根据上面的描述我们可以知道，读，改，更新，这三个操作是捆绑在一起的，只有这三个操作都完成之后，才能够说明他们对id为1的这条数据处理完成了。所以，这三个操作在一起应该是一个原子性的操作。换句话说，在对id为1的这条数据执行那三个操作的时候，中途不得有人再去碰那条数据，无论是读写。
+读的话可能会造成脏读的现象，写的话可能会造成丢失更新的情况。无论是同一个进程中的多线程，还是同一个服务部署在多台服务器上的多进程场景，都会出现上面所说的那种情况。
+为了处理这样的问题，我们很容易想到的就是，为数据库中的每一条数据都加上锁。任何进程或者线程想要操作某条数据的时候，都必须通过加锁的方式来得到这条数据的操作权限。当对这条数据的操作完成之后，要通过解锁的方式释放掉这条数据操作权限，以便其他进程和线程来使用。</p>
+
+<p>悲观锁思想的特别之处在于它对数据的修改是持悲观态度的，他假定脏读和更新覆盖这两个问题是有很大概率会发生的，所以对每条数据都加了锁。并且在任意一条数据处理的过程中，这条数据都是处于被锁定的状态。</p>
+
+<h1 id="悲观锁的实现">悲观锁的实现</h1>
+
+<p>悲观锁的实现，既可以依靠数据库的排它锁机制，也可以自己实现一个“排它锁”来保证数据访问的排他性，这里只介绍实现悲观锁的主要工作流程，至于用什么方式来实现，各位读者可以根据自己的需求来决定。
+（本人工作当中用的数据库是mongodb，是通过建立一个数据锁的collection来实现的。）</p>
+
+<ul>
+<li>对任意一条数据操作前，都加上排他锁</li>
+<li>如果对每条数据加锁失败，说明获取此条数据的操作权限失败。此时，你可以选择设定超时时间进行等待，亦或是直接跑出异常</li>
+<li>加锁成功，则获取到对应数据的操作权限。在操作完成之后，需要解锁</li>
+<li>在某条数据正在处理期间，若有其他事务想要操作这条数据，都会等待解锁或者直接抛出异常</li>
+</ul>
+
+<h1 id="悲观锁的优缺点">悲观锁的优缺点</h1>
+
+<p>悲观锁用比较极端的方式来保证了数据的一致性。但是服务运行的过程中，频繁对锁的操作会产生很多额外的开销。</p>
+
+<h1 id="乐观锁的定义-以关系型数据库为例">乐观锁的定义(以关系型数据库为例)</h1>
+
+<p>在关系数据库管理系统里，乐观并发控制（又名“乐观锁”，Optimistic Concurrency Control，缩写“OCC”）是一种并发控制的方法。他假设多用户并发的事务并不会互相影响，各自的事务能够在不产生锁的情况下处理只影响自己的那份数据。在更新数据的时候，都会
+去检查该事务读取数据之后有没有其他的事务对数据作了修改。如果比较结果和之前所读取到的数据没变化，那么则可以正常更新数据。如果比较结果有其他事务修改了数据，则正在提交的事务会回滚。</p>
+
+<p>乐观锁的思想在于，他假设数据一般情况下不会出现冲突。所以也就不会对数据加锁。只有最后在提交对数据的更新的时候，才会去检测到底是否出现冲突。</p>
+
+<h1 id="场景2">场景2</h1>
+
+<p>同一条数据在并发环境中可能会被多个进程或者线程同时处理。假设目前有两个进程AB在同时处理一条数据data1，AB可能同时也可能先后拿到了data1，此时两个进程开始处理属于他们独立的两份数据，在处理期间互不影响。
+当两个进程要处理完毕之后，需要更新data1。此时我们要求只有一个进程可以更新成功，如果不做限制，那么就又吃了并发的亏，造成了更新丢失的现象。</p>
+
+<p>上述场景是非常符合乐观锁的思想的。乐观锁只在最后提交数据更新的时候去检测data1是否与之前读取到的版本是一致的，如果发现有修改，就证明在此进程处理的过程中已经有其他的更新操作成功了，此时就不能够再去覆盖已经成功的修改了。</p>
+
+<h1 id="乐观锁的实现">乐观锁的实现</h1>
+
+<p>一般实现乐观锁的方式，是在每条数据内加上版本号。在读取数据的时候将版本号一起读出，在更新的时候，会先对比该数据的版本号看数据是否被修改过。如果没有，则将版本号+1，更新数据。否则放弃此次更新操作。需要注意的是，对比数据的版本号和更新版本号两个操作在一起必须是一个原子操作，mongo的update操作内部是保证了这一点，至于其他的数据库要想办法来实现这两个操作的原子性才可以。</p>
+
+<h1 id="乐观锁的优缺点">乐观锁的优缺点</h1>
+
+<p>乐观锁的锁操作较悲观锁少了很多，减轻了很多系统的开销。但无法避免脏读现象。</p>
+
+<h1 id="到底该用哪个">到底该用哪个</h1>
+
+<p>如果你的系统对性能要求较高，并且允许同一份数据的不同形态在多进程或者多线程的环境下运行，直到最后更新数据的时候再处理冲突的话。那么可以使用乐观锁。
+如果你的系统对数据的一致性要求较高，只允许一份数据以一种形态运行在多个进程或者线程中运行。不但写的时候要避免冲突，读的时候也要防止脏读。那么可以使用悲观锁。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

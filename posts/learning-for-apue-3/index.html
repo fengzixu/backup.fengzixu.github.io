@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning for APUE(3)--从操作系统的角度来看文件共享 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Learning for APUE(3)--从操作系统的角度来看文件共享</span></h1>
+
+<h2 class="date">2017/04/04</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/linux">Linux</a> <a href="/tags/apue">APUE</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/IMG_0354.JPG" alt="" /></p>
+
+<h1 id="先谈文件i-o效率">先谈文件I/O效率</h1>
+
+<p>在unix系统中读写文件会涉及到i/o操作，大家也都清楚i/o操作是非常消耗系统资源的。对于简单的读写文件来说，其i/o效率的变化是有一定规律可循的。apue第三章中提到了这样一个例子，从终端标准输入中读取数据，每次读取buffsize个字节，然后将读取到的数据写入到文件中，直到处理完标准输入中全部的数据。作者怀疑，我们选取的buffsize值可能会影响读写文件的i/o效率，所以控制buffsize大小这个变量，每次实验增加一倍的大小，直至处理完所有的数据。但是在做这个实验之前需要注意的是，进程在处理数据的时候会把它们加载到主存里，如果我们每一次实验读取的数据都是同样的，那么操作系统的缓存机制是不会将常用的数据置换出去的，它们会一直保存在内存中。这样一来，我们的测试结果就是不准确的。为了保证实验结果的准确性，每一次实验在改变buffsize大小的同时也要更换实验demo读写的文件内容。</p>
+
+<p>实现demo代码如下：</p>
+
+<pre><code>#include &quot;apue.h&quot;
+#include &quot;apueerror.h&quot;
+
+#define BUFFSIZE 4096
+
+int main() {
+    int n;
+    char buff [BUFFSIZE];
+    while((n = read(STDIN_FILENO, buff, BUFFSIZE))&gt; 0) {
+	if (write(STDOUT_FILENO, buff, n) != n) {
+	    err_sys(&quot;write file fail&quot;);
+	}
+    }
+
+    if (n &lt; 0){
+	err_sys(&quot;read file fail&quot;);
+    }
+
+    return 0;
+}
+
+</code></pre>
+
+<p>实验结果如下:</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/WX20170404-235411@2x.png" alt="" />
+这张表是非常有意思的，仔细看看就能发现一些特别的规律。首先看第一列，随着buffsize的增加，用户cpu的时间逐渐减小，猜测是因为buffsize一开始选取的太小，导致需要多次的进行i/o操作。但是到了buffsize为4096个字节之后，用户cpu的时间再没有明显的变化了。由于该表是在linux ext4文件系统上测试的结果，我们自然就可以得知，ext4文件系统一个磁盘块的长度是4kb，也就是4096个字节，由于从4096个字节之后，buffsize的大小是翻倍的，也就是我们每次都读写整个一个磁盘块长度的数据，这样的消耗自然要比之前的小且稳定。</p>
+
+<p>再看buffsize为32字节的时候对应的clocktime为8.82秒，但是随着buffsize的增加，时钟时间也不在有明显的变化。这是因为大多数文件系统都采用了一种叫做就近预读的技术。当系统检测到某个进程正在以一定的顺序进行读取的时候，系统将会试图读入比进程要求更多字节的数据进内存，以备使用。操作系统之所以会有这样的行为，是因为它假定了该进程会很快使用它预读到内存的数据。</p>
+
+<h1 id="文件共享">文件共享</h1>
+
+<p>不同进程间的文件共享也是进程间通讯的一种体现。在之前的开发生涯中，我对共享，和进程间通讯的了解仅仅止步于锁的使用以及如何避免死锁等问题的层面上。apue的3.10一节，让我从操作系统+数据结构的角度窥视了系统实现文件共享的原理，着实让我看的大呼过瘾。</p>
+
+<p>操作系统内核为一个打开的文件维护了三种数据结构：</p>
+
+<ol>
+<li><p>进程表项： 在操作系统中，维护着一张进程表。每一个进程在这个表里都有一个进程表项，里面保存了和该进程相关所有的信息。和我们本次讲述的主题有关的信息是文件描述符表，这张表里记录了进程操作的文件描述符标志以及文件指针等信息。</p></li>
+
+<li><p>文件表项：进程的文件描述符表中的每一项都有一个文件指针，这个指针指向了一个名为文件表项的数据结构。文件表项存在于内核维护的一张文件表中。它和进程表对系统的含义是一样的。每一个文件表项中都包括文件的状态标识（读， 写，追加等），文件当前的偏移量以及一个v节点的指针。这里需要提到的是，既然文件表和进程表都是属于内核维护的唯一的一份关于进程和文件的信息，那么也就说明，同一个进程或同一个文件在进程表和文件表中都只有唯一的一项，不会重复。</p></li>
+
+<li><p>v-node节点：在使用linux系统的时候，我了解过i-node这个节点的概念，它是系统中一个文件的索引节点，里面存在文件的所有者等相关信息，其中最重要的当属一个指向文件实际数据块存放磁盘位置的指针。文件的实际数据在磁盘中是存储于每个磁盘块中的，多个磁盘块根据链表的形式链接起来。想要找到文件存在磁盘上的实际数据，就得首先找到其i-node节点。这里的v-node节点让我感觉到了像是数据结构当中的一个链表头一样，里面存了一些与文件相关的信息，更重要的是一个指向该文件i-node节点的指针。</p></li>
+</ol>
+
+<p>通过上面的描述，我们可以很自然的画出这三种数据结构的相互关系：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/fuck3.jpg" alt="" /></p>
+
+<p>当两个不同的进程打开同一个文件的时候，进程表项，文件表项，v-node节点的关系如上图所示。在这张图中，我们更加印证了：每一个进程有一个唯一的进程表项，进程打开一个文件有一个与其关联的文件表项，但是如果两个进程最终打开的文件都是一个，他们将都指向一个vnode节点。仔细想想为什么不是一个进程一个vnode节点呢？为什么不同进程打开同一个文件需要不同的文件表项呢？</p>
+
+<p>第一个问题，按照之前的理解vnode节点只是去取文件落在磁盘上真实数据的一个引路人，其内部数据结构保存的信息基本是不会变的，所以并不需要每一个进程都要有一份，</p>
+
+<p>第二个问题，多个进程打开同一个文件，就单以读这个操作来讲，两个进程不可能以同样的速度读取。因为在读取的过程中会改变当前文件的偏移量，而这个偏移量又仅对当前这个进程有效，所以要每个进程维护一份文件表项，其内部数据会跟随进程的操作而变化。这也就解释了，我们之前说的多进程同时操作一个很大的文件的时候，互相之间可以从文件中不同的位置开始处理但是却不会受到它人的影响的现象。</p>
+
+<p>像write这种会对文件有改变的操作，在写入数据的时候，文件表项当中的文件当前偏移量也会随之增加，当写入的数据长度超过了该操作之前的文件长度，系统会将文件表项中的文件当前偏移量写入到文件的inode节点中。如果我们是以追加的形式打开文件进行写入的时候，在写入之前，系统会将该文件inode节点中保存的文件长度加载到文件表项中文件当前偏移量上。lseek函数就更不用说了，他会直接更改一个文件表项中的文件当前偏移量，但是不会引起任何i/o操作。</p>
+
+<p>系统设计了上面这三种数据结构，从根本上保证了多进程共享一个文件内容的时候不会互相影响，但这里提到的共享仅仅是读取。对共享文件的写入将有更复杂的机制来保证。</p>
+
+<h1 id="原子操作">原子操作</h1>
+
+<p>在之前的系统实现里还没有以追加的模式打开一个文件的时候，如果想从文件的尾部开始写入数据需要先调用lseek，然后再调用write。表面上看这应该是一个操作，但是实际上却调用了两个函数。如果在lseek执行了之后，该进程被挂起。此时另外一个进程也要以追加的方式写入一同一个文件的时候，由于不同的进程对同一个文件有不同的文件表项，它们之中的文件当前偏移量又没有同步，那么一开始被挂起的进程重新执行的时候，很可能就会覆盖掉另外一个进程刚刚写入的内容。</p>
+
+<p>为了解决上面所说的关于文件写入的问题，有两点是我们必须要考虑的。</p>
+
+<ol>
+<li>在写入之前我们拿到的文件当前偏移量必须是和文件长度相等的。</li>
+<li>移动到文件尾部和写入文件必须作为一个原子操作来进行。</li>
+</ol>
+
+<p>原子操作，顾名思义就是一个逻辑上不可分割的操作。要么全都执行完，要么就彻底不执行。针对第二点，我们可以将移动文件偏移量和写入包装在一个函数内来解决。至于第一点，我们就必须在每次写入前先到文件的inode节点中读取出文件当前的长度来作为文件的当前偏移量。</p>
+
+<p>lseek和以追加模式打开文件虽然都可以实现将文件的当前偏移量移动到文件的尾部，但是lseek仅仅是改变了文件表项当中的文件偏移量，并且它的效果是一次性的，且和老版的open函数配合起来没办法完成一个原子的操作。但是有了追加模式的open函数，不但实现了原子操作，并且能够满足一次打开文件，之后只要不关闭重新打开，对该文件的写入都是从文件尾部开始，不需要再调用lseek函数。另外，当我们以追加的方式打开文件之后，如果再想用lseek把文件偏移量移动到文件的其他位置之后写入数据的话是不可行的，数据仍然写入到了文件的尾部。</p>
+
+<p>对于open函数的追加模式，文档中有如下描述:</p>
+
+<p>The file is opened in append mode. Before each write(2), the file offset is positioned at the end of the file, as if with lseek(2).</p>
+
+<p>也就是说当你以追加的方式打开一个文件的话，以后对此文件任何写的操作都会强制的从文件尾部开始写。根据之前所讲的三种数据结构，我推测，以追加方式打开文件之后，每次write操作都会强制将文件inode节点中的文件长度赋值给文件表项中的文件当前偏移量。而lseek只会改动文件表项中的当前文件偏移量是没有用的。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning for APUE(1) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Learning for APUE(1)</span></h1>
+
+<h2 class="date">2017/03/19</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/linux">Linux</a> <a href="/tags/apue">APUE</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<blockquote>
+<p>说来惭愧，像apue这种书籍被我买了一直放在书架里，仔细想想大学四年做的唯一一件错事就是没用大量的空闲时间去多读书。从集训队出来之后，一直被找工作困扰，失去了自己学习的节奏，现在看来是非常得不偿失的。俗话说，出来混总是要还的。在你想做一些技术含量更好的工作的时候，而不是仅仅的谢谢if-else，像apue书中所讲的一些基础知识是怎么也绕不开的。</p>
+</blockquote>
+
+<h1 id="文件和目录">文件和目录</h1>
+
+<p>unix文件系统中，目录和文件的结构是树形的，起点是根目录 “/”。unix中目录其实也是一个文件，这个文件记录了此目录下每一个目录项的详细信息，如文件大小，文件权限，文件的最后修改时间等等。系统在创建一个目录的时候，会自动的创建两个目录项，“.”和“..”，前者表示当前目录，后者表示其父目录。在根目录中，这两者的意义自然是相同的。</p>
+
+<p>在系统中，我们通过文件路径来定位一个文件。文件路径分为相对路径和绝对路径。绝对路径以根目录为起点，但是相对路径是以当前目录为起点，所以，相对路径是相对当前目录的文件路径。</p>
+
+<h1 id="输入和输出">输入和输出</h1>
+
+<p>在unix系统中如果我们对一个文件进行操作的话，自然需要知道如何才能找到这个文件。当一个进程在运行的时候，系统实际上会为他们打开三个文件，分别是标准输入，标准输入和标准错误。被进程访问的文件在进程内部通常会得到这个文件的文件描述符，文件描述符是一个非负整数，是内核用来标识一个被进程访问的文件。进程中在对该文件进行操作的时候，都可以使用这个文件描述符。</p>
+
+<p>默认情况下，上面三种默认打开的文件描述符都指向终端，但是我们可以通过重定向的命令，将这几个文件描述符重定向到某个文件，这样一来，一些流入标准输出，标准错误的信息，以及要从标准输入读入的信息，他们的来源均从终端变成了某个特定的文件。</p>
+
+<h1 id="程序和进程">程序和进程</h1>
+
+<p>每一个进程在执行的时候，内核都会分配给它一个唯一的id来标识它。在unix系统中他被存在一个pid_t类型的变量里。跟进程密切相关的函数有三个：</p>
+
+<ul>
+<li>fork</li>
+<li>waitpid</li>
+<li>exec</li>
+</ul>
+
+<p>fork是一个大家耳熟能详的函数，它可以在一个进程中创建一个该进程的子进程。调用一次fork函数通常会返回两次，它对父进程返回子进程的pid，对子进程返回0。fork的时候，子进程将会复制父进程的内存状态，这样一来子进程的运行起点就从调用fork函数的位置开始，而不是从整个程序的起始部分开始。</p>
+
+<p>exec函数将根据接受的参数，执行一个新的程序文件用于替换旧的。</p>
+
+<p>waitpid函数将会根据接受的参数，等待某个特定进程执行结束。</p>
+
+<p>一个进程通常只是提供了其内部运行的一些资源，真正执行计算的是进程内的线程。线程和进程的内存模型相似，一个进程内的所有线程都共享一块进程的内存，线程也有id，但是这个id只在其对应的进程中有用。</p>
+
+<h1 id="出错处理">出错处理</h1>
+
+<p>unix系统函数通常在调用出错的时候，都会返回一个负值。如open函数，在成功的时候会返回一个文件描述符，但是在失败的时候就会返回一个-1。由于错误的种类不同，所以在调用函数失败的时候，返回的errno值也会不一样。<errno.h>这个头文件中包含了函数返回errno值的预定义值。另外还有一些函数可以将这个errno值映射为文字的错误信息，如strerror。</p>
+
+<h1 id="信号">信号</h1>
+
+<p>信号通常用于通知一个进程。比如一个进程如果执行了除数为0的除法的时候，系统就会发送SIGFPE信号给进程，如果该进程没有对此信号进行特别的处理，那么就会采用默认的方式，即终止此线程的执行。当然，我们也可以提供一些函数，在程序中专门用来捕捉和处理某一种特定的信号。</p>
+
+<h1 id="时间">时间</h1>
+
+<p>unix系统中一般有两种时间，第一种是utc时间，它表示了从1970年1月1日到现在为止所经历的描述，用于描述文件最近的一次修改时间。另外一种是进程时间，用来衡量一个进程使用的cpu资源。unix系统一般来说会提供三个进程运行时间：</p>
+
+<ol>
+<li>时钟时间： 即该进程一共运行的多久，这个时间可能包括进程因cpu调度而等待的时间</li>
+<li>内核时间： 该进程执行系统调用的时间</li>
+<li>用户时间： 该进程执行的非系统调用的时间</li>
+</ol>
+
+<h1 id="系统调用和库函数的区别">系统调用和库函数的区别</h1>
+
+<p>我们常说的操作系统，一般包括两部分，内核和一些其他必须的软件。内核负责控制计算机软硬件资源，提供程序的运行环境。在编程中使用的系统调用，一般指的是内核的接口，它向我们开辟了一条路径，由于请求内核的相关服务。unix系统在标准的C库中为我们提供了一些和系统调用同名的函数。在使用c编程的时候，如果我们调用了一个和系统调用重名的库函数，那么这个库函数在内部将负责调用对应的系统调用函数。</p>
+
+<p>虽然在使用的角度上，我们可以将系统调用看做为c的库函数。但是在实现的角度上，他们是有所不同的。比如malloc库函数，它用于分配内存，但是实际上真正提供分配内存功能的是系统调用sbrk函数。这个时候，如果我们对库函数不满意，完全可以用sbrk来实现一个自己的malloc函数。总的来说也就是，库函数可以替代，但是系统调用不可以。</p>
+
+<p>系统调用函数提供给我们的往往是原始的功能，如sbrk就是分配一块内存空间，那么具体按什么方式分配甚至是如何管理这段内存空间，都是在库函数中处理的。类似一些返回系统时间的库函数也是一样，系统调用可能只返回一个从1970年1月1日到现在的秒数，至于如何解析这些秒数是库函数来决定的。所以从这两个例子可以看出，系统调用一般提供一个核心的功能，吐给库函数基本的数据，至于这些数据以何种方式使用则由库函数决定。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

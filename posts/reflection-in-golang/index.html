@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reflection in golang (1) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Reflection in golang (1)</span></h1>
+
+<h2 class="date">2017/03/05</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/golang">Golang</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<blockquote>
+<p>工作当中需要用到go的反射相关功能，实话说，这还是第一次接触我所学语言当中的反射机制。我觉得这对我来说是一个好的现象，一个是证明了自己之前做的东西技术含量是比较低的，给自己一个警醒，另外一个是证明我现在做的东西和之前做的东西已经有很大的不同了。本次工作当中对反射的应用，我会另写一篇博文，并且将部分源码up到github上面。这篇文章就先讲一讲我学习的go反射相关的知识。</p>
+</blockquote>
+
+<h1 id="0x001">0x001</h1>
+
+<p>go语言在reflect包中为我们提供了反射的功能，那么具体什么是反射功能呢？反射功能其实就是在程序运行时可以对一个变量进行一些操作，如查询，更新，但是实际上在程序的编译时期我们是并不知道这个变量的类型是什么的。这就和我们之前写golang程序的思路不太一样。golang本身是一个强类型的语言，它和js和py不同，golang所产出的程序需要编译，并且在编译的时候就会做一些静态类型的检查工作。之前写代码的时候，对于变量类型的要求也是很高的，比如类型断言，类型转换的时候。不同类型的变量有不同的方法，可以进行不同的操作，但是变量所做的操作都是在已知类型的基础上完成的。golang提供的reflect包却可以在不知道变量具体类型的前提下正确的进行它能够执行的操作。</p>
+
+<h1 id="0x002">0x002</h1>
+
+<p>一个能体现go反射存在意义的最好的例子就是fmt.Fprintf函数，他接收任意类型的值，包括用户自定义的。然后根据传递进来的值的类型进行格式化，最终返回一个字符串。我们先可以按照它的例子也实现一个简单的Sprint格式化函数。</p>
+
+<pre><code>    type Stringer struct {
+        String() string
+    }
+    
+    func Sprint(x interface{}) string { 
+        switch x := x.(type){
+            case Stringer:
+                return x.String()
+            case bool:
+                if x {
+                    return &quot;true&quot;
+                }else {
+                    return &quot;false&quot;
+                }
+            case int:
+                return strconv.Itoa(x)
+            default:
+                return &quot;???&quot;
+        }
+    }
+</code></pre>
+
+<p>我们实现的函数接收一个interface的值，进入函数的逻辑之后，首先x.(type)得到x变量所包含值的具体的动态类型是什么。如果是Stringer类型，那么说明这个类型实现了String方法，可以直接调用。但是对于其他的类型，我们就需要自己来做转换。但是上面函数一个很大的缺陷，就是我们需要去维护那个switch语句，因为只要我们需要去处理不同类型的数据，我们就要在这个switch里面加入相应的case。并且，如果需要处理的类型是我们自定义，亦或是其余第三方包定义的类型，虽然他们的底层类型可能都是一些基础的数据类型，但是case里面的基础类型是不会匹配到底层类型的，而且，如果匹配的是自定义的类型，那么势必这个函数会对很多包产生不必要的依赖。</p>
+
+<p>在使用反射之前，我们貌似没有任何办法去查看未知类型变量的表示。</p>
+
+<h1 id="0x003-reflect-type">0x003 reflect.Type</h1>
+
+<p>go语言的reflect当中定义了两种非常重要的类型，reflect.Value, reflect.Type。其中reflect.Type可以表示一个具体的go的类型，它实现了很多的方法，可以区分reflect.Type具体包含的是哪种类型的变量，并且还可以检查对应类型一些更详细的信息。reflect.Type的实现细节和Interface类型实现相同，其内部包含了所存储数据具体的动态类型。</p>
+
+<p>reflect包还提供了一个TypeOf方法，这个方法可以接受一个interface的参数，并且以reflect.Type的形式返回这个interface值内所保存数据的动态类型到底是什么。</p>
+
+<pre><code>   t := reflect.TypeOf(3)
+   fmt.Println(t.String()) “int”
+   fmt.Println(t) &quot;int&quot;
+
+</code></pre>
+
+<p>在上面代码中，我们将3以隐式转换的形式赋值给TypeOf的interface类型的参数，通过调用TypeOf函数，我们可以得出所传参数具体的golang类型是什么。当我们将3转换成一个interface值的时候，这个interface类型的参数实际上包含了两个重要的信息：</p>
+
+<ol>
+<li>传递给他数据的具体数据类型&mdash;&ndash;&gt; int (动态类型)</li>
+<li>传递给他数据的值是&mdash;-&gt; 3 (动态值)</li>
+</ol>
+
+<p>这也就提醒了我们，当我们把一个具体类型的数据赋值给一个Interface类型的变量的时候，它内部实际会生成这两种信息。</p>
+
+<h1 id="0x004-reflect-value">0x004 reflect.Value</h1>
+
+<p>reflect.Value是reflect包中另外一个非常重要的类型,其实reflect.Value和reflect.Type是一样的，reflect.Value可以保存任何类型的数据，
+对应的reflect.ValueOf方法也接受一个Interface{}的值(任意类型的数据)，最后以reflect.Value的形式返回interface变量内包含的动态值。这里需要注意的是，reflect.Value虽然可以从其他任意类型的值转换而来，但是需要通过valueOf这种方法才行，上面说的意思并不代表你可以把任意类型的值直接赋值给reflect.Value类型的变量。</p>
+
+<pre><code>        s := 3
+        fmt.Println(reflect.ValueOf(s)) // 3
+        fmt.Println(reflect.ValueOf(s).String()) &lt;int value&gt;
+</code></pre>
+
+<p>上面代码通过valueOf得到了s被转换为Interface类型变量后的动态值。第一行直接输出了动态值3，第二行调用String方法却并没有输出3，那是因为int类型并没有实现Stringer接口中的String方法，所以reflect包就返回了这个动态值的类型。
+reflect.Type和refletc.Value虽然都包含了很多的方法，但是这些方法并不是对他们所包含的所有的类型和值都适用。上面的代码就表现了，reflect.Value包含的具体的值并不支持String这个方法。</p>
+
+<p>reflect.ValueOf还有一个相反的方法是reflect.Value.Interface, valueof方法本身已经得到某个interface变量内包含的动态值了，但是在此之上调用interface方法就又把结果转换回了interface类型。本质上来说，reflect.Value类型和interface类型的变量都保存任意类型的值，但是他们的区别在于。interface类型的变量隐藏了其内部包含值的动态类型以及它能做的相关的操作。只有在知道其内部包含值的动态类型是什么的前提下，我们才能够通过类型断言的方式得到其内部存储的数据。reflect.Value就和它有很大的不同，reflect.Value本身就提供了很多的方法，让我们能够了解其内部包含值的一些信息，无论它的类型是什么。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/QQ20170309-163323@2x.png" alt="" /></p>
+
+<p>最后关于reflect.Value还要提到的一点是，它支持一个名做kind的方法，这个方法将返回一个reflect.Kind的类型值。Kind类型对golang中已有的基础类型做了归类，虽然我们可以在golang使用无数的新类型(这些新类型大多是基础类型的组合)，但是一些基础的类型目前确实有限的，恰恰kind对此做了一层包装。</p>
+
+<p>比如在我们之前实现的sprint函数中，我们可能担心无法处理[]float64,[]string这种类型的变量，但是实际上他们都有一个共同的特点就是使用了slice这种引用类型。kind就把无限的数据类型，归纳到了有限的几个大家公用的基础类型上面。kind内包装的基础类型增长缓慢，即使用了switch也不会造成频繁改动case的问题。</p>
+
+<pre><code>    const (
+        Invalid Kind = iota
+        Bool
+        Int
+        Int8
+        Int16
+        Int32
+        Int64
+        Uint
+        Uint8
+        Uint16
+        Uint32
+        Uint64
+        Uintptr
+        Float32
+        Float64
+        Complex64
+        Complex128
+        Array
+        Chan
+        Func
+        Interface
+        Map
+        Ptr
+        Slice
+        String
+        Struct
+        UnsafePointer
+)
+</code></pre>
+
+<p>所以有了它，我们可以将我们之前实现的sprint函数改动一下</p>
+
+<pre><code>    func Sprint(x relect.Value) string { 
+        switch x := x.kind(){
+            case reflect.Int, reflect.Int8:
+                ...
+            case reflect.Bool:
+                ...
+            case reflect.Array, reflect.Slice:
+                ...
+        }
+    }
+</code></pre>
+
+<p>改动之后的版本就非常的清晰了，Kind的出现可以将我们从处理具体类型的泥潭中解救出来，根据一切具体类型都是通过对基本类型的聚合甚至就是基本类型的前提，我们可以对基本类型进行分类，只处理有限的情况。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

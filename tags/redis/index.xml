@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Redis on LittleDriver</title>
+    <link>http://littledriver.net/tags/redis/</link>
+    <description>Recent content in Redis on LittleDriver</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 01 Apr 2018 19:49:35 +0000</lastBuildDate>
+    
+	<atom:link href="http://littledriver.net/tags/redis/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Redis Sentinel 详解 （1）</title>
+      <link>http://littledriver.net/posts/redis-sentinel-explanation-1/</link>
+      <pubDate>Sun, 01 Apr 2018 19:49:35 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/redis-sentinel-explanation-1/</guid>
+      <description>什么是 Sentinel? Sentinel 这个词在 Redis 中有很多不同的含义，它可以代表 Redis 的一种高可用的方案，也可以代表一个以 Sentinel 模式启动的 Redis 实例，甚至是可以代表你的 Redis 集群中，多个以 Sentinel 模式启动的 Redis 实例集合。我们可以这样来理解和定义 Sentinel：
+ Sentinel 是一套方案。它在集群模式下为我们的 Redis 集群提供了「高可用」的保证。 Sentinel 也是一个小型的分布式系统，在多个 Sentinel Process 的协同作战下，保证了 Redis 集群的「高可用」。减少故障误报率，在部分 Sentinel Process 异常的情况下，仍能够为集群提供可靠的服务。
+ Sentinel 都有哪些功能？ 上面说到，Sentinel 为我们的 Redis 提供「高可用」的保证。那么，他提供了哪些措施去实现「高可用」呢？让我们首先来看一下，在没有 Sentinel 的时候，使用一主一从的模式部署我们的 Redis 集群，可能会在使用上遇到哪些问题：
+ 健康检测（monitor）：我们需要一个可靠的检测机制去观察 Redis 实例的健康状态 通知（notification）：当 Redis 实例发生故障的时候，我们需要一个可靠的通知机制来告知集群的管理者 故障自动处理（failover）：一些简单的，处理方式可以被固化的故障能够自动被修复。一方面，能够最大限度的保证集群对用户的可用性，另外一方面，能够加快故障处理速度，减轻维护者的负担 负载均衡（LB）：当集群发生故障的时候，如果进行了主从切换，那么要把最新可用的 Master 节点地址通知给用户 服务发现（Service discovery）：自动的查找并监控集群内所有的实例，不需要人工去配置所有的监控关系  Sentinel 基本上是从以上五个维度对 Redis 做了「高可用」的保证。相对于 Mysql 来说，Redis 的「高可用」方案采取了和集群本身的实例分离的方式来做。也就是说，「高可用」的逻辑并没有和数据节点的逻辑混杂在一起。这一点在部署使用 Sentinel 方案的 Redis 集群就可以看出来：数据节点和 Sentinel 节点是需要分开部署的，使用的配置文件也是不一样的。</description>
+    </item>
+    
+  </channel>
+</rss>

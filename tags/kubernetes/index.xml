@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Kubernetes on LittleDriver</title>
+    <link>http://littledriver.net/tags/kubernetes/</link>
+    <description>Recent content in Kubernetes on LittleDriver</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 17 Apr 2018 14:34:48 +0000</lastBuildDate>
+    
+	<atom:link href="http://littledriver.net/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Kubernetes pod schedular strategy</title>
+      <link>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</link>
+      <pubDate>Tue, 17 Apr 2018 14:34:48 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</guid>
+      <description>概述 在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需要将 Pod 调度到一些特定的 Node 上面，比如一些挂在了 SSD 硬盘的 Node。因为有这样的需求，k8s 可以让我们自己控制 Pod 调度至 Node 的策略。这些策略是通过 labelSelector 来实现的。
+最简单的方式-NodeSelector NodeSelector 是PodSpec 中的一个 Field。它是一个 key-value 的 pair。key 对应了 Node 中的 label，value 对应了Node 中的 labelValue。当这个 Pod 被创建之后，k8s 会按照这个 nodeSelector 的规则在集群中进行匹配，找到合适的 Node 进行调度。否则，这个 Pod 将不会被成功调度并且会报错： No nodes are available that match all of the following predicates&amp;hellip;
+Affinity and anti-affinity Affinity 是什么？相对于 NodeSelector 来说它有哪些优点？ Affinity（anti-affinity） 是对 NodeSelector 的一种功能上的扩展，NodeSelector 可以做到的东西，它一样可以做到。功能上的加强有以下几个方面：</description>
+    </item>
+    
+    <item>
+      <title>k8s 之 StatefulSets</title>
+      <link>http://littledriver.net/posts/k8s-%E4%B9%8B-statefulset/</link>
+      <pubDate>Sat, 24 Feb 2018 17:13:44 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/k8s-%E4%B9%8B-statefulset/</guid>
+      <description>Q： 什么是 StatefulSets？
+A: StatefulSets 是一种 workload。k8s 中的一个 workload 通常由 CRD 和 controller 两部分构成，CRD 交由用户使用，创建资源实例，描述对资源期望的状态。而 controller 主要负责保证资源的状态与用户的期望是一致的。StatefulSets 和 deployment 有着相似的作用，提供了 pod 的部署操作和相应的扩缩容操作。但是与 deployment 不同的是：statefulsets可以保证 pod 的操作顺序，这些操作包括创建，终止，更新。在 StatefulSets 中每一个 Pod 都有一个唯一的标识符，即使内部的容器运行的 app 相同，两个 pod 也是不能够互换的。这也是 StatefulSets 可以保证 pod 启停顺序的一个原因。
+Q: StatefulSets有哪些特性？他们是通过什么来保证这些特性正常的？
+A:
+ 网络方面：通过 headless service来提供 StatefulSets 中 pod 的访问
+ 存储方面：通过 PersistentVolume Provisioner 来提供静态存储，最大限度保证 pod 数据的安全，即使 pod 或者 statefulsets 被删除或者更新，其中的数据也并不会丢失
+ 业务方面：通过 Ordinal Index + Stable Network ID + Stable Storage 来唯一的标识一个 Pod。 标识一个 Pod 的组成元素，也侧面反映了 StatefulSets 的特性。</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 之 Operator(一)</title>
+      <link>http://littledriver.net/posts/kubernetes-%E4%B9%8B-operator-%E4%B8%80/</link>
+      <pubDate>Wed, 24 Jan 2018 22:19:11 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/kubernetes-%E4%B9%8B-operator-%E4%B8%80/</guid>
+      <description>Q: 什么是 Operator? A: Operator 在 k8s 系统中可以认为他是一个集 resource 和 controller 的结合体。他是对 resource 和 controller 的一个高度的抽象。通过扩展 Kubernetes API来达到这一效果。
+Q: Operator 是如何工作的？ A: 在 k8s 组件的架构中，可以将 Operator 理解为用户和 resource 之间的一个桥梁。而用户想对 resource 做什么操作的话，需要先通过调用 API Server，将请求转发到 Operator 的身上（这里可能说的不准确， operator 是通过监听 API Server 上对于其创建的资源所做的操作来进行响应的）。通过这样的理解，我们就可以看出，operator 一方面需要管理部署在集群 node 中的应用，另外一方面需要与 API Server 进行交互，以便响应用户的需求。在 CoreOS 的官网上，同样给出了这样一个文档，里面以 etcd 这个 operator为例，描述了 operator 具体的工作模式。 Kubernetes Operators，总结下来无非就是三个步骤：
+ 观察资源目前的状态 对比资源期望的状态 将资源目前的状态 Fix 到期望的状态  Q: Operator 存在的意义是什么？ A: 笔者认为，从 Operator 的使用角度来讲，它最大的意义就是代替操作手册，代替人工去维护部署在集群上面的多个应用。应用的个数越多，运维这些应用的成本越高(如特定的领域知识)，越能够体现出一个 Operator 的价值。Operator 是基于 controller 的，也就是说，Operator 提供的功能会比 controller 本身更加强大，甚至是融合了一些特定业务场景的知识。</description>
+    </item>
+    
+  </channel>
+</rss>

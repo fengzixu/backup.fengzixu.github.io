@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TCP/IP 协议 traceroute 程序(1) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">TCP/IP 协议 traceroute 程序(1)</span></h1>
+
+<h2 class="date">2017/11/07</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/network">Network</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<h1 id="什么是-traceroute-程序">什么是 traceroute 程序</h1>
+
+<p>traceroute从字面意思上来看，他是一个有着追踪功能，并且可以查看具体追踪路径的这么一个程序。实际上它的功能的确也很类似，它为我们提供了一个仔细观察 IP 数据报从一台主机到达另外一台主机所经过的所有路由。对于网络层而言，这就是一次通信的整体的路径。</p>
+
+<p>其实早在了解 IP 协议的时候，IP 数据报首部字段中，有一个选项字段，这个选项字段大概有40个字节长（IP 固定首部长度为20个字节，最大60个字节），选项字段里面其实是是可以存储 IP 数据报所经过的路由信息的。比如使用<code>ping -r 1.1.1.1</code> 就可以开启这个功能。但是由于 IP 数据报首部选项字段长度有限，因此如果一个 IP 数据报经过的路径太长，是没办法全部存储起来的。并且，RR 选项是单向的一个功能，发送端至接收端通信路径上面的路由信息，最后都需要接收端发给发送端一个数据报携带上这些信息。这样一来一回，IP 首部的选项字段所能够存储的有效路由信息就更少了。</p>
+
+<h1 id="traceroute-程序核心武器">traceroute 程序核心武器</h1>
+
+<p>traceroute 程序功能的实现依赖于以下几个元素：
+1. ICMP 超时报文
+2. ICMP端口不可达差错报文
+3. IP 数据报首部的 TTL 字段</p>
+
+<h1 id="traceroute-工作原理">traceroute 工作原理</h1>
+
+<p>当 traceroute 为了探测其运行的主机与目的主机之间的路由情况时，通常会发送一个数据报，初始的情况下，这个数据报在网络层被包装之后 TTL 值是被设为1的，那此时当到达第一个路由的时候（如果源主机没有和目的主机在同一个以太网内），TTL 值变为0，该数据报被丢弃，路由器会发送给源主机一份 ICMP 超时报文，报文中 IP 首部字段里源主机的 IP 地址就是该路由的地址。因此，traceroute 也就知道了通往目的主机路径上面的第一个路由的信息。</p>
+
+<p>以此类推，IP 数据报首部的 TTL 时间逐渐增大，当到达目的主机的时候，并不会再向源主机发送 ICMP 超时报文，而是发送一个 ICMP 端口不可达报文来通知源主机，现在已经到达目的主机了。</p>
+
+<p>看完 traceroute 程序大致的工作原理，相信大家是有一些疑惑的，比如：</p>
+
+<ol>
+<li>traceroute 在发送数据报的时候，为什么使用了 UDP 协议而不是 TCP 协议</li>
+<li>端口不可达的 ICMP 报文究竟是怎么产生的</li>
+</ol>
+
+<p>首先我们来说第一个, 其实在使用 traceroute 程序的时候，我们是可以指定传输层的协议的，通过-P的参数就可以指定 TCP 协议，traceroute 默认使用 UDP 协议。使用 TCP 协议通常主要想去诊断，源主机和目的主机上的某一个具体的服务连接是否有问题。因为如果你指定了—P 参数去运行 traceroute 的时候，还是会通过 TCP 三次握手建立连接的。Tranceroute 程序最主要的作用是观察源主机与目的主机之间的路由路径，应该尽可能的把数据发送出去，因为数据报本身也是探测性质的，TCP 的性能也相对来说比较差，如果没有特殊的需求，UDP 确实是一个比较好的选择</p>
+
+<p>第二个和 Tranceroute 本身的发送的数据报是有关的，默认情况下使用 UDP 协议，会指定一个介于33434 to 33534之间的端口号。这个端口号通常是不可用的，或者不会使用的。这样一来目的主机才可以返回一个差错报文以不影响其他任何环节的方式来通知源主机。</p>
+
+<h1 id="traceroute-在局域网内的工作过程">traceroute 在局域网内的工作过程</h1>
+
+<p>笔者在自己家里面的局域网中以 mbp 和手机作为两台主机对 traceroute 的功能进行测试，由于环境限制，traceroute 工作过程中的超时 ICMP 报文可能看不到，因为在同一个没有物理隔离的局域网中，是不需要经过任何路由器的。但是 ICMP 的端口不可达的差错报文还是可以看出来的。</p>
+
+<p>首先，我们把 ARP 缓存通过 <code>sudo arp -ad</code> 来清理掉。手机在局域网的 IP 地址是<code>192.168.2.100</code> ,mbp最后一个字节是102。现在从 mbp 上运行<code>traceroute 192.168.2.100</code>,通过抓包工具，我们可以看到这一次的网络通信过程。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/hehe.png" alt="" /></p>
+
+<p>首先，如果要发送数据报给目的主机，那么需要获得目的主机的 IP 地址。这个时候以广播的形式发送 ARP 数据包，可以得到目的主机(手机)的 ARP 应答报文，通知源主机(mbp)其 IP 地址是什么.</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/udp.png" alt="" />
+<img src="http://o6sfmikvw.bkt.clouddn.com/Ip.png" alt="" />
+其次，从上图中可以看出，应用层上发送的数据报内容为24B。然后再传输层进行包装，源端口为63236，目的端口是33437，使用的是 UDP 协议。到了网络层，数据报被再次包装，首先指定了源地址和目的地址。然后指定整个 IP 数据报总长度为52B，其中首部长度为20B，最重要的一个信息是，TTL 字段被指定为1.之后再通过链路层，最终被包装为一个以太网帧，发送到物理链路上。</p>
+
+<p>在这个场景下，当数据报发送给了目的主机并且 TTL 值为0的时候，目的主机会回应给源主机一个 ICMP 端口不可达的差错报文。
+<img src="http://o6sfmikvw.bkt.clouddn.com/icmp.png" alt="" /></p>
+
+<p>ICMP 报文通常分为三个部分：
+1. ICMP 首部
+2. 引起这个 ICMP 报文的 IP 数据报首部
+3. UDP 首部</p>
+
+<p>让我们来仔细的观察一下 ICMP 报文的内部结构
+<img src="http://o6sfmikvw.bkt.clouddn.com/icmp1.png" alt="" />
+首先我们可以看到的是，ICMP 报文的代码和类型两个字段，这两个字段联合在一起可以唯一的确定一个报文的类型。从图中可以看出这是一个目的端口不可达的差错报文。接下来我们可以看到的是， 占了20个字节大小的引起 ICMP 报文的 IP 数据报首部，这个数据报首部很显然就是刚刚源主机发送给目的主机的那一个。
+最后是一个 UDP 数据报的首部。看到这里大家可能会为，为啥要加这么一个 UDP 数据报的首部啊？如果你有这个异或，那么得先想清楚 UDP 数据报中有什么内容如此的重要。答案是源端口号和目的端口号。目的端口号就是引起这个 ICMP 报文的不可达的端口号。而源端口号的作用在于，当这个 ICMP 报文被源主机接收之后，我们以什么来识别这个 ICMP 报文该交由谁处理了，答案就是端口号，因为 traceroute 程序说白了也是一个用户进程，这个进程想要在传输层使用 UDP 协议通信的时候，就必须要有 socket，那么也就必须要有 IP 地址和端口号，所以这个端口号可以唯一的标识一个通信的进程，以便我们可以将这个 ICMP 数据报交由对应的用户进程来处理。
+ICMP 数据报显然是存储在 IP 数据报中的数据部分的。那么接下来我们看到的就是一个 IP 数据报的头部，源 IP 地址和目的 IP 地址对比我们之前的数据报已经反转了过来。最后通过链路层被包装成以太网帧，进入物理链路传输。</p>
+
+<p>通过抓包观察 tranceroute 在局域网内工作的过程，我们可以真正的了解到，以这种办法来去探测源主机与目的主机之前的路由路径是可行的。下一篇文章，我们会尝试在广域网中运行 tranceroute 来观察超时 ICMP 报文的传输情况。</p>
+
+<h1 id="traceroute-的注意事项">traceroute 的注意事项</h1>
+
+<p>traceroute既然记录的是通信过程中的路由记录，那么不可避免的它的运行结果会收到 IP 选路策略的影响。很有可能发生以下两种情况
+1. 两次运行 tranceroute 的路由记录不同
+2. 正向 UDP数据传输经过的路由和 ICMP 端口不可达差错报文传输经过的路由可能是不一样的
+3. 同一个路由器或者主机，可能有多个 IP 地址</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>MQ on LittleDriver</title>
+    <link>http://littledriver.net/tags/mq/</link>
+    <description>Recent content in MQ on LittleDriver</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 03 Jan 2017 10:10:25 +0000</lastBuildDate>
+    
+	<atom:link href="http://littledriver.net/tags/mq/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>RabbitMq的数据持久化</title>
+      <link>http://littledriver.net/posts/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</link>
+      <pubDate>Tue, 03 Jan 2017 10:10:25 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>初识RabbitMq</title>
+      <link>http://littledriver.net/posts/rabbitmq-learning-nodes-1/</link>
+      <pubDate>Sat, 17 Dec 2016 15:11:59 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/rabbitmq-learning-nodes-1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

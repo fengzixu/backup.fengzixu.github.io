@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Python 中的变量、对象、引用 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Python 中的变量、对象、引用</span></h1>
+
+<h2 class="date">2017/07/30</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/python">Python</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>很多编程语言都有所谓的引用，对象，变量等概念。这些概念在强类型的语言中貌似并不是那么的重要，但是在动态类型的语言中，还是值得去仔细思考一下的</p>
+
+<p></p>
+
+<h1 id="什么是变量">什么是变量</h1>
+
+<p>对于变量，在数学中我们已经了解过，就是一个值可能会改变的量。在C++中，我们对变量的认识应该相当于一个标识符，创建一个变量，即开辟一块内存然后给这块内存起个名字，那么这个名字就是“变量”，当然，这个变量的含义和内存地址以及指针都是不相同的。</p>
+
+<p>那么在Python中，变量意味着什么呢？按照我的理解，一言蔽之，就是一个指针。这确实和之前学过的强类型语言是有不同的。为什么这么说呢？首先，python中的变量是没有类型的，有类型的是“对象”，而不是变量。变量没有类型，那么就意味着它可以随意指向任何对象。在强类型语言中，变量其实都是有具体的类型来限制的，规定一个类型的变量只能被赋值与该类型相同或兼容的值。但是在python中，显然变量的自由度更大。其次，之前学过体系结构的同学都应该了解，指针的内存空间大小是与类型无关的，其内存空间只是保存了所指向数据的内存地址。之所以说指针也有类型，是因为在计算偏移量的时候，确实需要类型相关的信息。所以，从深层次的含以上来理解，python中的变量与强类型语言中的指针非常相似。</p>
+
+<pre><code>In [1]: a = 3
+
+In [2]: a = &quot;abc&quot;
+
+In [3]: a
+Out[3]: 'abc'
+</code></pre>
+
+<p>从上述代码中也可以明显的印证我们上面对python中变量行为的总结是正确的，与指针的行为非常相似。</p>
+
+<h1 id="什么是对象">什么是对象</h1>
+
+<p>我的理解是：对象=确定内存空间+存储在这块内存空间中的值。这一点其实和java有些相似。&lt;<java编程思想>&gt;这本书前面第一章，就对对象和引用这两个概念做了很清晰的区分。Java中，对象是分配在堆上的，存储真正的数据，而引用是在堆栈中开辟的内存空间用于引用某一个对象。抛开java中引用的概念不谈，两种语言对于对象这个概念的理解，我认为还是可以等价的，都是数据+内存空间感觉。Python中，对象才有类型，不同的对象可以拥有不同类型的数据。</p>
+
+<h1 id="什么是引用">什么是引用</h1>
+
+<p>引用在Python中的语义应该是一种关系，即变量和对象之间的关系，其实也就是指针指向某一块内存空间的关系。既然是变量和对象之间的关系，那么其实就意味着，对于一个对象来说，和不同的变量可能存在着多个“引用”关系。因为变量是无类型的，他想关联谁就可以指向谁，这也就牵扯到了一个“引用计数”的概念，python中的gc大体上就是使用这种原理在做的。</p>
+
+<p>既然说到多个变量可以引用同一个对象，那么就不得不说一下，如果其中一个引用改变了值，会影响到其他指向这个对象的变量么？</p>
+
+<pre><code>In [4]: a = 2
+
+In [5]: b = a
+
+In [6]: a
+Out[6]: 2
+
+In [7]: b
+Out[7]: 2
+
+In [8]: b =3
+
+In [9]: a
+Out[9]: 2
+
+In [10]: b
+Out[10]: 3
+
+</code></pre>
+
+<p>从上面的代码结果来看，答案应该是否定的。如果了解清楚变量和对象的语义就能对这个问题很容易做出判断，变量值的改变，就相当于指针变量内存空间内值的改变，也就是指向的对象换了一个，但其实之前所指向对象的内容是并没有收到影响的。</p>
+
+<p>但是也有特例，比如列表，指向列表的变量通过索引访问的方式，可以直接改动列表在该索引处存储的值。这个时候，如果有两个变量同时引用一个列表对象，那么其中任何一个变量利用这种方式对列表的修改，都会影响到另外一个。</p>
+
+<p>为了能够避免这种情况，可以对列表单独拷贝一份。两个变量互不干涉，而拷贝列表最直接的方式，莫过于“切片”操作了。</p>
+
+<h1 id="变量的比较">变量的比较</h1>
+
+<p>对于变量的比较，见得最多的，莫过于“==”和“is”。前者比较的是对象所存储的数据的值是否相等，后者则比较的是两个变量是否都引用了同一个对象。这些显而易见的东西，很多人应该不以为然，但是一些因语言内部优化的小细节，可能会打破你之前的认识。</p>
+
+<pre><code>In [12]: a = 3
+
+In [13]: b = 3
+
+In [14]: a == b
+Out[14]: True
+
+In [15]: a is b
+Out[15]: True
+</code></pre>
+
+<p>按照我们之前所讲的，a和b两个变量应该是引用了两个不同的对象，但是这两个对象内存中的值都是3。但是，a is b得到的结果却是True。原因有如下两点：</p>
+
+<p>Python在底层做了一定的优化，对于使用过整数以及字符串都会被缓存起来。所以上述b引用的应该是被缓存过的3
+之所以采用这种优化的方式，是因为python中数字和字符串一经创建都是不可修改的。所以不会出现，因使用了缓存的对象值造成“脏读”的问题</p>
+
+<h1 id="结尾">结尾</h1>
+
+<p>任何一种语言或是一种知识，表面上看起来都是有很多相似的地方的。这也是计算机相关知识的一个比较大的特点。但是很多东西，稍微的往底层走一点，其实还是差别很大的。接触了c++, golang, java, python这几种语言，仅仅是在对象，变量，引用这种最基本的概念上还是有挺多细节上的不同的，这也恰恰能够体现了每种编程语言的设计哲学。所以现在想想，多接触几门语言，并不是一件坏事。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

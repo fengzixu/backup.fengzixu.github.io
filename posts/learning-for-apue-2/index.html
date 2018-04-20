@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning for APUE(2)--文件 I/O | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Learning for APUE(2)--文件 I/O</span></h1>
+
+<h2 class="date">2017/03/19</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/linux">Linux</a> <a href="/tags/apue">APUE</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<h1 id="文件描述符">文件描述符</h1>
+
+<p>对于内核而言，任何对文件的操作都需要文件描述符，因为这个文件描述符唯一标识了这个文件。文件描述符的有效性是针对某一个进程的，内核对不同的进程维护着不同的文件描述符。</p>
+
+<h1 id="open函数">open函数</h1>
+
+<pre><code>	 int
+     open(const char *path, int oflag, ...);
+     
+     int
+     openat(int fd, const char *path, int oflag, ...);
+</code></pre>
+
+<p>open函数的作用是按照用户指定的模式去打开一个文件。在模式的选择上，unix系统采用了一系列具有特定意义的常量参数进行或运算的结果来表示。还有一个和open函数相似的函数我们也应该知道，它就是openat。openat和open函数唯一的区别，就是在path参数的指定上。如果传给两个函数的path参数是绝对路径的话，openat和open两个函数的行为是一样的。但是如果path参数表示的文件名是一个相对路径名的话，openat函数与open函数相比较多出来的一个参数fd可以指出我们传递的相对路径名在文件系统中的起始地址，fd一般来说可以根据打开相对路径名所在的目录获取。openat函数中的fd参数有一个特殊值AT_FDCWD，它表示path存储的相对路径名的起始地址是当前目录，当指定了这个参数的时候，其行为和open函数是一致的。</p>
+
+<h1 id="create函数">create函数</h1>
+
+<pre><code>	 int
+     creat(const char *path, mode_t mode);
+</code></pre>
+
+<p>create函数用来创建一个新文件。在一些老版本的系统中，由于当时open函数还没有打开一个不存在的文件则创建的功能，想要使用一个新的文件，得先调用create，然后close，最后在通过open打开这个文件获得其文件描述符进行操作。现在新的版本中，只要在open函数的oflag字段指定一个O_CREAT常量即可。</p>
+
+<h1 id="close函数">close函数</h1>
+
+<pre><code>	 int
+     close(int fildes);
+</code></pre>
+
+<p>close函数接收一个文件描述符的参数，然后将这个文件关闭。需要注意的是，当一个进程结束的时候，内核会自动关闭这个进程打开的所有文件。</p>
+
+<h1 id="lseek函数">lseek函数</h1>
+
+<p>每一个打开的文件都有一个叫做当前文件偏移量的东西，它类似指针一样，标识了文件当中的某个位置。文件偏移量以从文件开始处到其所在位置的字节数来表明它所指向的文件的位置。对文件的读，写等操作都是从该文件的文件偏移量指向的位置开始的。如果我们不是以追加的模式打开某一个文件，一般来说，文件偏移量在文件打开的时候都会被赋值为0。</p>
+
+<pre><code>	 off_t
+     lseek(int fildes, off_t offset, int whence);
+</code></pre>
+
+<p>函数接收三个参数，第一个参数是将要操作的文件描述符，第二个参数是将要设置的文件偏移量的值，第三个参数最为重要，表明了我们应该怎样解释offset的值。</p>
+
+<ul>
+<li>SEEK_SET: 此时offset被解释为设置文件的偏移量为从文件的起始处加上offset个字节的位置</li>
+<li>SEEK_CUR: 设置该文件的偏移量为其当前值加上offset个字节</li>
+<li>SEEK_END: 设置该文件的偏移量为文件的长度加上offset个字节</li>
+</ul>
+
+<p>函数的第一个参数代表了一个文件描述符，但是并不是所有的文件描述符指向的对象都可以通过lseek设置文件偏移量，如管道和网络套接字在调用lseek的时候就会报错。使用lseek函数的时候要注意，其返回的值代表了设置后的文件偏移量，但是文件偏移量有可能是负值，所以，在检测lseek是否调用成功的时候，只需要校测其返回值是否为-1即可。</p>
+
+<h3 id="seek-end">SEEK_END</h3>
+
+<p>上面提到的whence参数的三个预设值，SEEK_END值得仔细研究一下，为什么一个文件的偏移量可以设置为比其文件长度还大的值呢。其实按我自己的理解，文件偏移量就是一个用字节数来表示其当前位置的一个指针而已，它决定了下一次对文件的读或者写的操作从何处开始。那么这个偏移量完全就可以指向任何位置，一旦使用SEEK_END,那么就代表，lseek返回的文件偏移量是从文件当前的长度开始，向后移动offset个字节的位置。</p>
+
+<p>很容易想象出来，这样的一次lseek函数的调用，在当前文件偏移量的位置和原文件长度的位置之间留出了一块空地，而至于这块空地占不占用实际的磁盘存储区，要看文件系统的具体实现。</p>
+
+<pre><code>char buf1[] = &quot;1234567890&quot;;
+char buf2[] = &quot;0987654321&quot;;
+
+int main(void)
+{
+    int f = 0;
+    if ((f = open(&quot;lseek.txt&quot;, O_RDWR | O_CREAT | O_TRUNC)) &lt; 0)
+    {
+        err_sys(&quot;open file error&quot;);
+    }
+
+    if (write(f, buf1, strlen(buf1)) != strlen(buf1))
+    {
+        err_sys(&quot;write file error&quot;);
+    }
+
+    if (lseek(f, 2333, SEEK_END) == -1)
+    {
+        err_sys(&quot;lseek error&quot;);
+    }
+
+    if (write(f, buf2, strlen(buf2)) != strlen(buf2))
+    {
+        err_sys(&quot;write file error&quot;);
+    }
+	
+    exit(0);
+}
+</code></pre>
+
+<p>通过上面的demo，我们实际使用了lseek函数。执行完该程序之后，我们可以在终端中看到lseek.txt文件的情况：</p>
+
+<pre><code>👉  ls -l
+total 112
+-rwxr-xr-x  1 xuran  staff  13692  3 19 21:58 a.out
+-rw-r--r--  1 xuran  staff   4642  8 14  2016 apue.h
+-rw-r--r--@ 1 xuran  staff   2021  8 14  2016 apueerror.h
+-rw-r--r--  1 xuran  staff    926  3 19 01:30 control.c
+-rw-r--r--@ 1 xuran  staff   1969  8 14  2016 errorlog.c
+-rw-r--r--  1 xuran  staff    352  3 18 18:17 input.c
+-rw-r--r--@ 1 xuran  staff    575  3 19 21:58 lseek.c
+-r-xr-x---  1 xuran  staff   2353  3 19 21:58 lseek.txt
+-rw-r--r--  1 xuran  staff   2197  3 19 00:14 tags
+-rw-r--r--  1 xuran  staff    143  3 19 10:08 test.c
+
+</code></pre>
+
+<p>lseek.txt文件现在的大小是2353B，对应上面程序可以看出，首先我们向该文件写入了10个字节，然后将当前文件的偏移量从文件的末尾开始移动了2333个字节，此时文件的偏移量应该在2343字节处。最后又向文件写入了10个字节的数据，才导致了lseek.txt文件现在的长度是2353个字节。</p>
+
+<p>一般来说，unix系统中不会为移动文件偏移量造成的空地分配存储空间，但是我在mac os上面跑了如下demo，发现是会分配存储空间的。</p>
+
+<pre><code>#include &quot;apue.h&quot;
+#include &quot;apueerror.h&quot;
+#include &lt;fcntl.h&gt;
+
+char buf1[] = &quot;1234567890&quot;;
+char buf2[] = &quot;0987654321&quot;;
+
+int main(void)
+{
+    int f = 0;
+    if ((f = open(&quot;lseek.txt&quot;, O_RDWR | O_CREAT | O_TRUNC)) &lt; 0)
+    {
+        err_sys(&quot;open file error&quot;);
+    }
+
+    if (write(f, buf1, strlen(buf1)) != strlen(buf1))
+    {
+        err_sys(&quot;write file error&quot;);
+    }
+
+    if (lseek(f, 1600, SEEK_END) == -1)
+    {
+        err_sys(&quot;lseek error&quot;);
+    }
+
+    if (write(f, buf2, strlen(buf2)) != strlen(buf2))
+    {
+        err_sys(&quot;write file error&quot;);
+    }
+
+    int f2 = 0;
+    if ((f2 = open(&quot;ff&quot;, O_RDWR | O_CREAT | O_TRUNC)) &lt; 0)
+    {
+        err_sys(&quot;open file error&quot;);
+    }
+
+    for (int i = 1; i &lt;= 1620; i++)
+    {
+        if (write(f2, &quot;w&quot;, 1) != 1)
+        {
+            err_sys(&quot;write file error&quot;);
+        }
+    }
+
+    if (lseek(f, 1000, SEEK_SET) == -1)
+    {
+        err_sys(&quot;lseek error&quot;);
+    }
+
+    if (write(f, buf1, strlen(buf1)) != strlen(buf1))
+    {
+        err_sys(&quot;write file error&quot;);
+    }
+
+    close(f);
+    close(f2);
+    exit(0);
+}
+</code></pre>
+
+<p>终端显示文件信息如下:</p>
+
+<pre><code>👉  ls -sl ff lseek.txt
+8 -r-xr-x---  1 xuran  staff  1620  3 19 22:44 ff
+8 -r-xr-x---  1 xuran  staff  1620  3 19 22:44 lseek.txt
+
+</code></pre>
+
+<p>可以看出ff和lseek.txt两个文件占用的磁盘块数量是相同的。这和apue书中写的demo结果是不一样的，我觉得是和文件系统具体的实现有关。或许在mac os的系统上，移动当前文件偏移量也是会占用磁盘空间的。后来，我再次写demo验证，向ff写入一个字节，发现两者占用的磁盘块数量也是一样的，这就让我不得不怀疑，上面ls出现的结果和最小磁盘分配空间是有关联的。于是我加大文件偏移量的数值为1000000，在mac系统上面仍然是同样的结果。</p>
+
+<p>So，我马上找来一台装了ubuntu的机器来进行实验。再次执行上面的demo，终于发现了空洞文件不占用磁盘空间的情况.</p>
+
+<pre><code>mac下
+ls -ls ff lseek.txt
+1960 ------x---  1 xuran  staff  1000020  3 19 23:07 ff
+1960 -r-xr-x---  1 xuran  staff  1000020  3 19 23:07 lseek.txt
+
+ubuntu下
+ls -ls lseek.txt ff
+980 --w---x--x 1 xuran xuran 1000020 Mar 19 23:09 ff
+  8 -r----x--- 1 xuran xuran 1000020 Mar 19 23:09 lseek.txt
+</code></pre>
+
+<p>Bingo，看来确实是因为文件系统的实现不同导致结果不同。ubuntu系统中的文件系统，并没有对文件中的空洞部分分配磁盘空间而只分配了前面10个字节和后面10个字节的空间。</p>
+
+<blockquote>
+<p>以下内容来自网上摘录</p>
+</blockquote>
+
+<p>空洞文件作用其实很大，例如迅雷下载文件，在未下载完成时就已经占据了全部文件大小的空间，这时候就是空洞文件。下载时如果没有空洞文件，多线程下载时文件就都只能从一个地方写入，这就不是多线程了。如果有了空洞文件，可以从不同的地址写入，就完成了多线程的优势任务。</p>
+
+<p>不同命令对文件空洞的处理</p>
+
+<ul>
+<li>ls下的数据大小是统计文件空洞的。</li>
+<li>vim下可以看到^@^@^@^@^@^@^@，之后才是我们写入的ASCII数据。</li>
+<li>cat自动跳过文件空洞，只显示正常的数据。</li>
+<li>od下可以看到，文件空洞部分数据都是0x00。</li>
+<li>cp复制文件时也会复制相同的文件空洞。</li>
+</ul>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

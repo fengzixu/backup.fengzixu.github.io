@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>工作中踩过的的坑之golang的临时变量 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">工作中踩过的的坑之golang的临时变量</span></h1>
+
+<h2 class="date">2017/03/05</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/workingexperience">WorkingExperience</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<blockquote>
+<p>在使用golang的时候，经常在一些比较小的地方被绊倒，这些“坑”并不是什么难以理解和运用的技术，而是一些语言的细节我们没有了解清楚。这类的问题我将他统一称为golang中的“坑”。这些细小的问题容易遗漏，特此记录，以便随时翻看。</p>
+</blockquote>
+
+<h1 id="golang中的临时变量">golang中的临时变量</h1>
+
+<p>在使用golang的时候，我们都遇到过遍历一个集合的情况，如遍历Slice，Map等。golang遍历Slice格式如下：</p>
+
+<pre><code>	for _, item := range s {
+		fmt.printfln(item)
+	}
+</code></pre>
+
+<p>在循环的过程当中，并不是每一次循环都申请一个不同的临时变量item，而且整次循环只声明一个临时变量，在循环结束后这个变量会被gc回收。每次循环都会把Slice中的一个值赋值给item，然后输出出来。如上面代码实例中使用是没有问题的，下面来看看两种异常情况。</p>
+
+<h2 id="多个goroutine并发得到了同一个值">多个goroutine并发得到了同一个值</h2>
+
+<pre><code>	
+import &quot;fmt&quot;
+
+func main() {
+	doneChan := make(chan int)
+	for i := 0; i &lt; 10; i++ {
+		go func() {
+			fmt.Printf(&quot;Address: %#v Value: %d\n&quot;, &amp;i, i)
+		}()
+	}
+
+	&lt;-doneChan
+}
+</code></pre>
+
+<p>上述代码的本意是每一个goroutine读取一个i值，随着goroutine的增加，读取到的i的地址以及i的值也会随之变化。我们期待的结果是这样的</p>
+
+<pre><code>	Address: (*int)0x11111 Value: 0
+	Address: (*int)0x22222 Value: 1
+	Address: (*int)0x33333 Value: 2
+	Address: (*int)0x33333 Value: 3
+	...
+</code></pre>
+
+<p>但是实际上，得到的结果却是这样的:</p>
+
+<pre><code>Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+Address: (*int)(0x1040a124) Value: 10
+</code></pre>
+
+<p>得到现在这种异常结果的原因，在于我们没有正确理解golang的遍历机制。我们以为golang在循环遍历的过程当中，每一次遍历都会新定义一个临时变量i来存储值，这样在多个goroutine中我们读取i的值是不一样的。但是实际上，在整个循环当中golang只会定义一个临时变量i，内存空间只有一份，每次遍历的值都会放在这个内存的空间中，所以，才会出现上述的异常结果。在最后一次循环的时候，i是为10的，循环中启动的10个goroutine都读取的是同一个i值。</p>
+
+<p>如果想实现我们预期的效果，需要在每次循环中都新定义一个变量。</p>
+
+<pre><code>package main
+
+import &quot;fmt&quot;
+
+func main() {
+	doneChan := make(chan int)
+	for i := 0; i &lt; 10; i++ {
+		j := i
+		go func() {
+			fmt.Printf(&quot;Address: %#v Value: %d\n&quot;, &amp;j, j)
+		}()
+	}
+
+	&lt;-doneChan
+}
+
+</code></pre>
+
+<p>修改后的结果为</p>
+
+<pre><code>Address: (*int)(0x1040a148) Value: 9
+Address: (*int)(0x1040a124) Value: 0
+Address: (*int)(0x1040a128) Value: 1
+Address: (*int)(0x1040a12c) Value: 2
+Address: (*int)(0x1040a130) Value: 3
+Address: (*int)(0x1040a134) Value: 4
+Address: (*int)(0x1040a138) Value: 5
+Address: (*int)(0x1040a13c) Value: 6
+Address: (*int)(0x1040a140) Value: 7
+Address: (*int)(0x1040a144) Value: 8
+</code></pre>
+
+<h2 id="取集合中多个元素的地址却得到的是同一个">取集合中多个元素的地址却得到的是同一个</h2>
+
+<pre><code>package main
+
+import &quot;fmt&quot;
+
+func main() {
+	s := []int{1, 2, 3}
+	for _, item := range s {
+		fmt.Printf(&quot;Addr: %#v, Item: %+v\n&quot;, &amp;item, item)
+	}
+}
+</code></pre>
+
+<p>上面这段程序的结果如下</p>
+
+<pre><code>Addr: (*int)(0x1040a124), Item: 1
+Addr: (*int)(0x1040a124), Item: 2
+Addr: (*int)(0x1040a124), Item: 3
+</code></pre>
+
+<p>从程序的结果上我们可以看出，在遍历的过程当中访问值是没问题的，因为是同步的，不涉及到多线程访问。但是访问变量的地址确实有问题的。假设当你实现的一个函数接收的是一个int类型的指针，如果你想把循环过程当中的变量的地址传递进去，然后在函数中访问不同的变量值，就是不可行的。解决办法也很简单，就是每次循环的时候，都创建一个新的临时变量。以遍历map举例：</p>
+
+<pre><code>	for k, v := range abilityMap {
+ 		enableValue := v.Enable
+  		ability := fusion.AbilityQueryArgs{
+  			Domain:       domain,
+  			AbilityType:  k,
+  			AbilityValue: fusion.AbilityValueStringToInt[v.AbilityValue],
+  			Config:       v.Config,
+ 			Enable:       &amp;enableValue,
+  		}
+</code></pre>
+
+<p>这与第一个遇到的问题其实是类似的，总结下来, 在遍历的过程当中，如果是同步逻辑，那么使用值没问题，但是使用地址不行。如果是异步逻辑，使用地址和值都是不行的。</p>
+
+<p>所以，在遍历集合类型数据的过程当中，要注意使用的是变量的地址还是值，并且要注意是在同步场景还是异步场景下。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Redis Sentinel 详解 （1） | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Redis Sentinel 详解 （1）</span></h1>
+
+<h2 class="date">2018/04/01</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/redis">Redis</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<h1 id="什么是-sentinel">什么是 Sentinel?</h1>
+
+<p>Sentinel 这个词在 Redis 中有很多不同的含义，它可以代表 Redis 的一种高可用的方案，也可以代表一个以 Sentinel 模式启动的 Redis 实例，甚至是可以代表你的 Redis 集群中，多个以 Sentinel 模式启动的 Redis 实例集合。我们可以这样来理解和定义 Sentinel：</p>
+
+<blockquote>
+<p>Sentinel 是一套方案。它在集群模式下为我们的 Redis 集群提供了「高可用」的保证。
+Sentinel 也是一个小型的分布式系统，在多个 Sentinel Process 的协同作战下，保证了 Redis 集群的「高可用」。减少故障误报率，在部分 Sentinel Process 异常的情况下，仍能够为集群提供可靠的服务。</p>
+</blockquote>
+
+<h1 id="sentinel-都有哪些功能">Sentinel 都有哪些功能？</h1>
+
+<p>上面说到，Sentinel 为我们的 Redis 提供「高可用」的保证。那么，他提供了哪些措施去实现「高可用」呢？让我们首先来看一下，在没有 Sentinel 的时候，使用一主一从的模式部署我们的 Redis 集群，可能会在使用上遇到哪些问题：</p>
+
+<ol>
+<li>健康检测（monitor）：我们需要一个可靠的检测机制去观察 Redis 实例的健康状态</li>
+<li>通知（notification）：当 Redis 实例发生故障的时候，我们需要一个可靠的通知机制来告知集群的管理者</li>
+<li>故障自动处理（failover）：一些简单的，处理方式可以被固化的故障能够自动被修复。一方面，能够最大限度的保证集群对用户的可用性，另外一方面，能够加快故障处理速度，减轻维护者的负担</li>
+<li>负载均衡（LB）：当集群发生故障的时候，如果进行了主从切换，那么要把最新可用的 Master 节点地址通知给用户</li>
+<li>服务发现（Service discovery）：自动的查找并监控集群内所有的实例，不需要人工去配置所有的监控关系</li>
+</ol>
+
+<p>Sentinel 基本上是从以上五个维度对 Redis 做了「高可用」的保证。相对于 Mysql 来说，Redis 的「高可用」方案采取了和集群本身的实例分离的方式来做。也就是说，「高可用」的逻辑并没有和数据节点的逻辑混杂在一起。这一点在部署使用 Sentinel 方案的 Redis 集群就可以看出来：数据节点和 Sentinel 节点是需要分开部署的，使用的配置文件也是不一样的。</p>
+
+<h1 id="部署-sentinel-须知">部署 Sentinel 须知</h1>
+
+<p>在使用 Sentinel 方案部署你的 Redis 集群之前，你需要注意以下几点：</p>
+
+<ol>
+<li>以 Sentinel 模式启动的节点必须不少于三个，且这三个节点部署在物理机或者虚拟机的时候，需要采用反亲和性的配置（两个 Sentinel 节点不能部署在同一台机器上）</li>
+<li>如果你在 Docker 中部署 Redis，或者是使用了某些特殊的网络方案，就需要额外的注意，因为这可能会影响 Sentinel 的 Service discovery 机制（后面会详细介绍）。</li>
+</ol>
+
+<p>一个最基本的 Sentinel 节点启动配置文件如下：</p>
+
+<pre><code>sentinel monitor mymaster 127.0.0.1 6379 2
+sentinel down-after-milliseconds mymaster 60000
+sentinel failover-timeout mymaster 180000
+sentinel parallel-syncs mymaster 1
+</code></pre>
+
+<pre><code>sentinel monitor mymaster 127.0.0.1 6379 2
+</code></pre>
+
+<p>你需要为你的 Sentinel 节点指定集群中 Master 节点的地址，端口号，还有一个 quorum 值。这个 quorum 值是和 Sentinel 的健康监测，故障自动处理的功能息息相关的，它的值取决于在你的集群中部署了多少个 Sentinel 节点。具体的作用，我们在之后介绍健康监测和故障自动处理时再来说，此时，你只需要知道，当你最少部署了3个 Sentinel 节点的时候，这个 quorum 值应该为2。</p>
+
+<pre><code>sentinel down-after-milliseconds mymaster 60000
+</code></pre>
+
+<p>你需要告知 Sentinel 节点，多少时间之后，它监控的实例没反应了，才认为这个实例已经 down 掉了。时间单位为毫秒。Sentinel 通过 Redis 中的 PING 命令去探测其他的 Redis 实例是否正常。当在down-after-milliseconds时间内，对方没有回复 PING 命令，或者回复报错，那么都会认为这个实例已经 down 了。</p>
+
+<blockquote>
+<p>这个值的设置其实还是很关键的，笔者目前没有找到什么最佳实践。因为这个值直接取决于 Sentinel 对故障的敏感度，如果设置的过大，那么可能一些故障要过很久才会被发现，如果设置的过小，那么可能会出现误报的现象。</p>
+</blockquote>
+
+<pre><code>sentinel failover-timeout mymaster 180000
+</code></pre>
+
+<p>Sentinel 在进行故障自动处理的时候，会设置一个超时时间。也就是说，如果故障自动处理的过程没有在 failover-timeout 规定的时间内完成的话，就认为本次的故障处理已经超时失败了。虽然看起来这是一个全局性的参数，但是它实际上会对 Sentinel 故障转移的各个阶段都会有用。
+首先来梳理一下，Sentinel 发起一个故障转移，都有哪些过程：</p>
+
+<ol>
+<li>选出合适的从节点</li>
+<li>提升该从节点为主节点</li>
+<li>命令其他从节点与新的主节点进行数据同步</li>
+<li>待旧的主节点重新启动为从节点时，命令其与新的主节点进行数据同步</li>
+</ol>
+
+<p>「故障转移超时」参数针对这几个阶段的作用如下：</p>
+
+<ol>
+<li>如果在超时时间内无法选出合适的从节点，则判定本次故障转移失败</li>
+<li>如果在超时时间内没有对选举出来的从节点提升为主节点，则判定本次故障转移失败</li>
+<li>提升从节点为主节点后，Sentinel 还会使用 INFO 命令去确认，它所提升的这个从节点是否真正已经成为了主节点。如果在超时时间内，这个检查没有通过，则判定本次故障转移失败</li>
+<li>如果在超时时间内，其他从节点与主节点的数据同步没有完成，则判定本次故障转移失败</li>
+</ol>
+
+<p>最重要的一点：当本次故障转移失败之后，下一次 Sentinel 的故障转移超时时间将会是当前的两倍。</p>
+
+<pre><code>sentinel parallel-syncs mymaster 1
+</code></pre>
+
+<p>parallel-syncs 值是同一时刻，向 master 节点进行数据同步的 slave 节点个数。parallel-syncs 值的大小，会直接影响到两个方面：
+1. 故障自动处理的时间
+2. 主节点机器的资源负载，从节点的可用性
+当发生了故障处理的时候，主从切换之后，新的 slave 节点要向新的 master 节点进行数据同步，只要等到所有的slave 节点的数据同步操作完成之后，才认为故障自动处理完成。所以，该值设置的越大，故障处理的时间就会越短，反之，故障处理的时间就会边长。</p>
+
+<p>如果从数据复制的层面上来考虑，Redis 数据库在做数据同步的时候，采用的是异步的方式。虽然不会阻塞master，但是多个 slave 同时向 master发起数据同步请求，对 master 所在机器的资源开销是非常大的一个压力。同时，slave 在 load 大量数据的时候，可能会停止对正常命令的响应，外部表现会不可用。所以，parallel-syncs我们一般都设置为1。</p>
+
+<p>最终在启动 Sentinel 的时候，我们使用如下的命令：</p>
+
+<pre><code>redis-server /path/to/sentinel.conf --sentinel
+</code></pre>
+
+<h1 id="总结">总结</h1>
+
+<ol>
+<li>Sentinel 是一套为 Redis 量身定制的「高可用」方案，它采用单独的节点即外部方案来实现，并没有把实现「高可用」的逻辑和主要数据逻辑放在一起。</li>
+<li>从Sentinel 的启动方式上来看，一个 Sentinel 进程只不过是一个用了特殊配置的 Redis-server。它和 master, slave 的 redis-server 没有任何的区别，只不过由于配置文件不同，启用了不同的功能。这样理解，一个一主一从的 redis 集群，是由至少5个 redis-server 构成的。</li>
+<li>Sentinel 判断其他 Redis 实例故障和我们平时开发过程中手动判断的方法一样，都是使用 PING 命令。</li>
+<li>Sentinel 提供了一套服务发现机制，自动的去获取集群中所有实例的情况并加以监控。但是在 docker 以及特殊的网络方案下，这个机制可能会受到影响，使用的过程中需要额外的注意</li>
+</ol>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

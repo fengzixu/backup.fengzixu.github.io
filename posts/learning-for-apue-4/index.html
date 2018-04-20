@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning for APUE(4) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Learning for APUE(4)</span></h1>
+
+<h2 class="date">2017/06/27</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/linux">Linux</a> <a href="/tags/apue">APUE</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<h1 id="刷新缓存">刷新缓存</h1>
+
+<p>操作系统内核在写入和读取数据的时候，从cpu到硬盘，还有很长的一段路。这段路上，为了减少数据传输的延迟，操作系统采取的很多的措施。如：就近原则的读取，内存，寄存器的使用，甚至是高速缓存，多级cache。这些办法都能够有效的提高数据传输的速率。当内核想向一个文件写入数据的时候，它并不会直接将数据写入文件所在的硬盘块，而是先将数据写入高速缓存当中，当高速缓存满了，或者说需要重用高速缓存的时候，就将高速缓存的数据写入到磁盘中。但是这个动作也不是立即发生的，写入磁盘的任务会进入一个队列中进行排队，等待处理。</p>
+
+<p>为了保持高速缓存和硬盘上面的数据的一致性，就需要提供一定的接口，使得用户可以主动的发起写入数据到磁盘的这种行为。为此，linux上面提供了三个api可以实现这种效果：</p>
+
+<ol>
+<li>sync</li>
+<li>fsync</li>
+<li>fdatasync</li>
+</ol>
+
+<p>三个系统调用均可以实现上面所说的功能，但是fsync是对特定的文件起作用，而fdatasync只会将文件的“数据”部分写入至磁盘，文件类型等信息是不会写入的。相反，其他两个方法是会把文件所有的信息以及数据都会写入。</p>
+
+<h1 id="操纵文件描述符-fcntl">操纵文件描述符&ndash;fcntl</h1>
+
+<p>fcntl这个函数的作用，就是通过参数中传递进来的文件描述符来修改文件相关的描述符标志和状态标志信息。不过一般修改标志位的方式，都是先获取目前的标志位，然后根据位或运算增加新的标志位。</p>
+
+<p>首先是对于文件描述符标志位的设定，其中有一个标志位在介绍dup函数的时候也出现过，就是FD_CLOSEXEC。这个标志位设定的效果在于，此文件描述符所在进程，如果通过execl函数执行了另外一个子进程的话，那么在execl执行的这个进程中，此文件描述符即使被传递过去也无法使用了，但是如果是使用fork的话，那么在子进程中还是可以使用的。相关的一个例子，可以看看这篇文章<a href="http://blog.csdn.net/ustc_dylan/article/details/6930189">http://blog.csdn.net/ustc_dylan/article/details/6930189</a>。</p>
+
+<p>按照之前说明的设置文件描述符标志位的规则，首先可以调用fcntl函数，使用F_GETFD命令来获取相应的标志位，使用位或运算计算之后，再使用F_SETFD命令来设置新的标志位即可。</p>
+
+<p>文件描述符的信息应该是属于某一个进程的，所以它应该存在于进程表项中。除了文件描述符之外，还和进程打开文件相关的一个指标就是文件的状态标志。内核为操作系统中打开的文件维护了一张表，这张表内就存储着被打开文件的状态标志信息。之前在讨论文件共享的时候就说过，文件状态标志信息应该是和文件描述符绑定的。也就是说，进程，文件描述符，文件状态标识三者是1对多，1对1的关系。一个进程可以同时打开很多文件，所以是一对多。但是每打开一个文件，获得一个文件描述符，都和唯一的一个文件状态标识所绑定，所以是1对1的关系。</p>
+
+<p>文件状态标志之前在open函数中有过说明，其中一个很重要的标志就是访问方式标志。如只读，只写，读写等等。访问方式标志的取值为0-5，每一个值代表了一种访问方式。但是他们并不是按位来排列的。所以在确定一个文件描述符对应的文件状态标识中到底是使用了何种访问标志，需要使用一个屏蔽字通过按位与的方式来取出访问标志的值到底是多少。</p>
+
+<p>除了文件访问标志之外，另外一个重要且常见的标志就是O_SYNC，同步标志。这个标志可以在调用open函数的时候对文件进行设置，也可以通过fcntl函数来进行设置。但是后者在某些操作系统上面设置之后也并不会生效，所以一般都是在open函数的时候就设置好。该标志被设置之后，在想文件写入数据的时候，就不会采用系统原有的，先写入缓存，然后进队列，适当的时候再写入磁盘这套机制。而是直接采用同步I/O的形式，直到写入的数据已经落在磁盘上了，那么这次写入的操作才会返回。</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

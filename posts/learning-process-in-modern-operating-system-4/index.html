@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning-Process-In-Modern-Operating-System(4) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Learning-Process-In-Modern-Operating-System(4)</span></h1>
+
+<h2 class="date">2017/05/30</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/operatingsystem">OperatingSystem</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<h1 id="进程间通信-ipc">进程间通信(IPC)</h1>
+
+<h2 id="竞争条件">竞争条件</h2>
+
+<p>在多个进程同时运行的情况下，如果他们都需要使用某一块共享内存中的数据，那么最后的结果取决于这些进程精确的执行顺序。这种情况就叫做竞争条件。日常开发中，这类的情况也是非常常见的。如两个进程都会使用某一个存储于共享内存中的变量，A进程先读到这个值，但是由于时间片用完等原因被切换到另一个进程B运行，B在运行期间改变了共享内存中那个变量的值。此时A再被调度执行的时候，显然它读到的变量的值就是不对的。尤其是算数操作，对这个变量做+1操作，那么这种情况将会导致错误的结果。</p>
+
+<h2 id="临界区">临界区</h2>
+
+<p>产生上述所说的竞争条件的原因是因为多个进程能够同时读取共享的资源，并且没有一定的先后顺序。为了阻止这种情况，就需要在一个进程访问共享资源的同时，另外一个进程在一旁等候。也就是说，同一时间只能有一个进程来访问某一块共享的资源。
+进程中，访问这种共享资源的代码被称为临界区。在这里需要特别注意的是，临界区指的是代码而不是某个共享资源。要保证同一时间某个共享资源只能被一个进程访问，就需要调整多个进程不能在同一之间执行临界区内的代码。</p>
+
+<h2 id="忙等待的互斥">忙等待的互斥</h2>
+
+<p>要实现进程之间临界区的互斥，有以下几种方式：</p>
+
+<h3 id="屏蔽中断">屏蔽中断</h3>
+
+<p>这种做法是很暴力的。即在进程进入临界区之后，立刻屏蔽来自外界的所有中断。这样一来，cpu就无法依靠中断来切换进程的执行了。除非进入临界区进程自己打开中断或者主动退出。但是，这种情况只能是在单cpu下才能够成立的。因为多cpu的情况下，即使是屏蔽中断也只是屏蔽了执行diable指令的那个cpu，其他的cpu并不知道该进程屏蔽中断的事实，因此他们所调度的进程仍然可以访问共享内存。其次，就算是在单核下面这种办法是有效的，但是它的危险性也会很高。如果一个进程屏蔽中断但是恶意的不打开中断，那么这个进程就会一直执行，操作系统有可能因为这种原因被卡死。</p>
+
+<h3 id="锁变量">锁变量</h3>
+
+<p>这里所说的锁变量和我们之前在写程序的时候说的锁变量是不一致的。日常开发中所说的互斥锁，用于同一个进程中的不同的线程上面。锁住的也是进程内的共享资源。但是这里说的锁变量是进程级别的，因为进程之间本身就是独立的，所以要想所有的进程都能够访问一个变量，那么这个变量就是共享的。既然是共享的，那么该锁变量本身的互斥性又有谁来保证呢？显然是没办法的，这么想的话，就进入了无限递归了。</p>
+
+<h3 id="严格轮换法">严格轮换法</h3>
+
+<p>严格轮换法也是依靠某一个共享变量，这个共享变量有一个初始值。多个不同的进程在可以进入临界区之前都会读取这个共享变量，如果这个共享变量的值指示当前进程可以进入临界区，那么该进程就可以正常访问，并且在离开临界区之前将此共享变量置为另外一个值。想用这种办法的一个前提就是，共享变量的取值集合数对应了共享它的进程数。每一个进程在想进入临界区之前都要忙等待轮训这个变量的值是否属于自己的那个。当离开临界区之前也要把响应的共享变量置为其他进程所需要的值才行。</p>
+
+<pre><code>//process 0
+
+enter_region{
+	while(1){
+	while(turn != 0) continue;
+	...
+	turn = 1;
+	break;
+	}
+}
+
+//process 1
+enter_region{
+	while(1){
+		while(turn != 1) continue;
+		...
+		turn = 0;
+		break;
+	}
+}
+</code></pre>
+
+<p>如上面的伪代码所示，如果现在有两个进程需要进入同一块临界区。共享变量初始值为0，那么0号进程将首先获得该临界区的访问权限，1号进程由于检查turn的值并不是属于自己可以获取权限的值，就进入循环，使用忙等待的方式，不断的访问turn变量。当0号进程执行完毕，离开临界区的时候，会将turn置为1，此时将锁的使用权限给了process1，process1得到锁之后便可以访问临界区。</p>
+
+<p>目前还只有两个进程，使用起来还不是特别的麻烦。但是如果有多个进程的时候，其中一个进程执行完毕，接下来这个锁的权限给谁，看起来是依靠当前的这个进程来决定的。那么这就有一定的几率是会成环的。</p>
+
+<p>另外一个缺点就是，如果0号进程把锁的权限给了1号，但是1号还没有进入临界区。那么0号就得一直等到1号进入临界区并执行完毕，然后再把锁的权限给0号。此时0号将会经历相当长一段忙等待的时间。忙等待是非常消耗cpu资源的，它也被成为是自旋锁。如果两个多个进程之间不是严格的轮换，那么这种效率是非常低的。解决临界区互斥方案的一个重要的原则，就是保证处于临界区外部的进程不应该阻止想要进入临界区执行的进程。轮换法的方案，显然在多个进程执行步调不一致的时候，违反了这一原则。并且，多个线程的情况下，锁权限传递成环也违反了不能使某些进程无限期等待进入临界区的原则。</p>
+
+<h3 id="tsl指令">TSL指令</h3>
+
+<p>TSL指令已经属于硬件层面上的互斥措施了。该指令首先将内存中的一个字lock读入到寄存器内，并且在该内存地址上插入一个非零值。读和写的操作保证是原子性的，指令结束之前，都会锁住内存总线，以此来避免其他cpu来访问这块内存。锁住内存总线和屏蔽cpu中断不同，屏蔽cpu中断只是针对执行disable指令的那个cpu而言，但是对于其他的cpu并没有影响。但是锁住内存总线就不一样了。</p>
+
+<p>tsl指令在用于解决竞争条件的问题上，有以下处理方式：</p>
+
+<ol>
+<li>将内存中的lock的值复制到寄存器中并且将内存中的lock值置为非零值</li>
+<li>将寄存器中的lock值与0进行对比，如果相等则证明临界区可以进入。否则继续第一步，直到寄存器中的lock值为0</li>
+<li>退出临界区的时候，将内存中lock的值用move指令变为0即可释放临界区的访问权限。</li>
+</ol>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

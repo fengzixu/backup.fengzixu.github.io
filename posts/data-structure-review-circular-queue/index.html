@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Data Structure Review - Circular Queue | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Data Structure Review - Circular Queue</span></h1>
+
+<h2 class="date">2017/09/28</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/datastructure">DataStructure</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<h1 id="0x01-为什么需要循环队列">0x01 为什么需要循环队列</h1>
+
+<p>普通的队列结构无论在逻辑上还是在物理存储上，都是一个连续的线性结构。队列的插入和弹出操作符合「FIFO」原则。我们一般在操作队列的时候，都会有两个指针，一个指向队列头部，另外一个指向队列尾部。当我们想弹出一个元素的时候，可以清空队列头部指针所指向的元素，然后将指针向队列尾部移动一个元素的长度。当我们想插入一个元素的时候，可以在队尾指针所指向的位置放入我们想要插入的元素，然后队尾指针向后移动一个元素的长度。</p>
+
+<p>一个队列初始的时候，队头和队尾指针都是指向同一个位置的，一般来说就是底层线性结构的第一个元素的位置(如数组)。如果现在只有十个元素的空间可以用于实现队列，但是我们却要求插入20个元素，中间会不定的弹出元素，这样是否可以实现呢？</p>
+
+<p>乍一看10个位置想要插入20个元素是不现实的，不过中间会不定的弹出一些元素，只要是在插入一个元素之前，有一个或一个以上的元素被弹出了，就是有可能实现的。那么问题来了，插入元素的位置和弹出元素的位置是由两个不同的指针来控制的，队尾指针如果移动到了底层线性结构的边界应该怎么办？队头指针同样也会遇到这个问题。答案是要使用循环队列。</p>
+
+<h1 id="0x02-循环队列长什么样">0x02 循环队列长什么样</h1>
+
+<p>循环队列是一个在逻辑上成环，但是物理上还是线性的一种数据结构。底层存储队列元素的结构没有变，只不过在使用这些空间上面使用了一些小的技巧。</p>
+
+<blockquote>
+<p>Circular Queue is a linear data structure in which the operations are performed based on FIFO (First In First Out) principle and the last position is connected back to the first position to make a circle.</p>
+</blockquote>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/Circular%20Q.png" alt="" /></p>
+
+<h1 id="0x03-循环队列的实现">0x03 循环队列的实现</h1>
+
+<h1 id="0x031-enqueue">0x031 enqueue</h1>
+
+<pre><code class="language-python">In [10]: def enqueue(item):
+    ...:     # queue 为空/一直插入元素到没有可用空间/循环插入后没有可用空间
+    ...:     if queue and ((rear == len(queue) - 1 and front == 0) or (rear + 1 == front)):
+    ...:           raise Exception(&quot;No has a avalible space&quot;)
+    ...:
+    ...:     # 发生循环插入
+    ...:     if front != 0 and rear == len(queue) -1:
+    ...:         rear = -1
+    ...:     rear = rear + 1
+    ...:     queue[rear] = item
+    ...:
+    ...:     # 插入第一个元素，改变 front 的值
+    ...:     if front == -1:
+    ...:         front = 0
+</code></pre>
+
+<h1 id="0x032-dequeue">0x032 dequeue</h1>
+
+<pre><code class="language-python">In [97]: def dequeue():
+    ...:     global front, rear
+    ...:     print queue
+    ...:     if not queue or (front == -1  and rear == -1):
+    ...:         raise Exception('queue is null')
+    ...:     queue[front] = '#'
+    ...:     front = front + 1
+    ...:     # 弹出的元素为队列中最后一个
+    ...:     if front - 1 == rear:
+    ...:         front = rear = -1
+    ...:     # 循环弹出
+    ...:     if front == len(queue):
+    ...:         front = 0
+</code></pre>
+
+<p>对于「出队」和「入队」两个操作的实现，其实最重要的只有一点：如何在一个线性结构已经被循环利用的情况下判断出它的状态是满还是空。从上面的实现中我们可以看到，当判断一个队列是满状态的时候有以下两个条件：</p>
+
+<ol>
+<li>未循环使用的情况下, rear == len(queue) - 1, front == 0</li>
+<li>循环使用的情况下, rear + 1 == front</li>
+</ol>
+
+<p>未循环使用肯定是一个指向队头，另外一个指向队尾。循环使用的情况下，front 和 rear 之间应该是差值为1的关系，但是 rear 的位置比 front 靠前。之所以这么判定，也是因为一个比较自然的原因，无论是插入元素还是弹出元素，顺序都是从左向右的。</p>
+
+<p>当判断一个队列是空的状态的时候，只需要判断 front, rear 是否同时等于-1即可。因为弹出元素和插入元素都是从左向右进行的，当 front 大于 rear 的时候，就证明 rear 之前插入的元素，front 都已经遍历过了，也就是弹出过了，这个时候会将两个指针同时置为 -1。如果上述情况没有出现，而只是 front 到了边界，那么就会进行循环的弹出。</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

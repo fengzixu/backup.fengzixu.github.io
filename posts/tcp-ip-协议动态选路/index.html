@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TCP/IP 协议动态选路 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">TCP/IP 协议动态选路</span></h1>
+
+<h2 class="date">2017/11/18</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/network">Network</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<h1 id="what-is-dynamic-routing">What is dynamic routing?</h1>
+
+<p>在之前的文章中，我们已经讲过静态选路的概念以及相应的行为。简单来说，静态选路，主要是路由表内容生成的方式是静态的，也就是选路策略，因为之前我们提到过，选路分为选路机制和选路策略。比如，通过 route 命令添加，通过配置文件添加，抑或是通过 ICMP 重定向报文来学习。这种静态选路适用于不同的网络之间只有单点链接并且网络本身很小的情况。</p>
+
+<p>当网络的规模变大，不同的网络之间通过多个路由互联，且通信的路径也不唯一的时候，我们很自然的就需要网络之间的路由器也能够进行通信。让我们来看一张网络层的工作示意图。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/09fig01.gif" alt="" /></p>
+
+<p>这个图中很多的通信路径以及节点，相信我们都比较熟悉了。现在我们要注意图中左上角的的一个节点：routing daemon。它代表了路由的守护进程。什么是守护进程，可以戳这里了解一下<a href="https://zh.wikipedia.org/wiki/%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B">守护进程-维基百科</a>，这里面有一个比较有意思的概念叫「脱壳」。无论是具有路由功能的主机，还是路由器，在他们内部都有一个这样的 routing daemon 程序，来通过 RIP（路由信息协议）来进行通信，RIP 是内部网关协议的一种。通过告知对方路由器或者具有路由器功能的主机，自己所连接的网络情况，从而可以让接收此信息的路由器或者主机更新路由表。既然是通过别人告知信息的方式来更新路由表，那么路由表中的信息就可能会发生变动。这样一来，我们其实也就可以理解，动态选路中的「动态」也是和选路策略相关的。</p>
+
+<h1 id="rip-选路信息协议">RIP 选路信息协议</h1>
+
+<p>对于 RIP 信息协议，我们首先要了解的是，RIP 数据报的内容是包含在 UDP 数据报中的。它和 ICMP  差错报文被包含在 IP 数据报中是相似的形式。只不过 ICMP差错报文中的 UDP 首部是属于 ICMP 数据报的一部分，但是 RIP 报文显然是 UDP 数据报的一部分。
+<img src="http://o6sfmikvw.bkt.clouddn.com/ripFmt.gif" alt="" />
+通过 RIP 的报文格式我们可以看出，首部大概有4个字节，其中command 字段是比较有用的，表明了该报文是一个请求报文还是一个应答报文。比较重要的就是图中所标识的20个字节的位置，它代表了要插入到路由表中的某一条记录的目的地址。至于一个 RIP 数据报最多可以携带多少个路由信息，其实TCP/IP 协议这本书上说的25个已经有点过时了。它采用20*25+4=504B 的计算方式，并且假定一个UDP 数据报的大小应该是512B。其实我们在今天我们携带的路由信息条数可以远不止25，但是，由于网络中的环境比较复杂，之所以规定一个标准的 UDP 数据报是512B，还是有道理的：</p>
+
+<blockquote>
+<p>以太网(Ethernet)数据帧的长度必须在46-1500字节之间,这是由以太网的物理特性决定的.这个1500字节被称为链路层的MTU(最大传输单元).但这并不是指链路层的长度被限制在1500字节,其实这个MTU指的是链路层的数据区.并不包括链路层的首部和尾部的18个字节.所以,事实上,这个1500字节就是网络层IP数据报的长度限制.因为IP数据报的首部为20字节,所以IP数据报的数据区长度最大为1480字节.而这个1480字节就是用来放TCP传来的TCP报文段或UDP传来的UDP数据报的.又因为UDP数据报的首部8字节,所以UDP数据报的数据区最大长度为1472字节.这个1472字节就是我们可以使用的字节数。:)
+当我们发送的UDP数据大于1472的时候会怎样呢？这也就是说IP数据报大于1500字节,大于 MTU.这个时候发送方IP层就需要分片(fragmentation).把数据报分成若干片,使每一片都小于MTU.而接收方IP层则需要进行数据报的重组.这样就会多做许多事情,而更严重的是,由于UDP的特性,当某一片数据传送中丢失时,接收方便无法重组数据报.将导致丢弃整个UDP数据报。
+因此,在普通的局域网环境下，我建议将UDP的数据控制在1472字节以下为好.
+进行Internet编程时则不同,因为Internet上的路由器可能会将MTU设为不同的值.如果我们假定MTU为1500来发送数据的,而途经的某个网络的MTU值小于1500字节,那么系统将会使用一系列的机制来调整MTU值,使数据报能够顺利到达目的地,这样就会做许多不必要的操作.鉴于 Internet上的标准MTU值为576字节,所以我建议在进行Internet的UDP编程时.最好将UDP的数据长度控件在548字节 (576-8-20)以内.</p>
+</blockquote>
+
+<p>上面的这段对于数据报大小的解释，相信大家可以领会到一点就是，首先，在当今的网络环境下，我们完全可以传输数据大于等于1472B，但是这样首先会造成在网络层进行分片，其次就是即使发送的源主机所在的链路质量较高没有分片，但是通信过程中质量较低的线路往往会遇到这样的瓶颈。并且，还有一点非常重要，就是 UDP 数据报的通信是不可靠的，因为不是面向连接的，只要其中的某一个分片丢失了，那么整个 UDP 数据报都会被接收方丢弃，消耗的网络资源相当于浪费了，如果发送端应用层也会做重试处理，对网络造成的负担应该可想而知。</p>
+
+<p>另外一个不可忽略的因素就是，RIP 协议在提出来的时候，时间还比较早，使用的网络也都是以低速链路为主，MTU 可能只有500B-600B，所以，去掉各种协议的头部之外，规定一个默认的 RIP 数据报大小，也是合情理的。</p>
+
+<h1 id="rip-协议的工作方式">RIP 协议的工作方式</h1>
+
+<p>路由器之间使用 RIP 协议在交换路由表信息的时候，通常分为主动和被动两种形式。
+其中，主动是指我们向其他路由器发送 RIP 请求报文，其他路由器同样使用 RIP 协议发送给我们一个应答报文。被动则是指，我们在没有发送请求的情况下，接收到的其他在同一网络上的路由器发来的 RIP 报文。RIP 报文内部包含的每一条路由记录信息中，都有一个叫做度量的字段，这个字段表明发送该 RIP 报文的路由器距离这个路由地址有多远，它和 TTL 一样，采用「跳数」来计数。RIP 协议中规定，度量最大为15，也就是说，如果发现RIP 协议的应答报文中有度量超过15的路由记录，则可视为这条路由是无效的。这也是 RIP 的一个重大的缺陷。由于有多个相邻路由发来其路由表的信息，所以在 RIP 响应报文到达的时候，可以根同一目的地址但是度量值小的为优先条件，从而筛选出最优的选路信息。</p>
+
+<h1 id="无类型域间选路-cidr">无类型域间选路(CIDR)</h1>
+
+<p>无类型域间选路其实是为了解决路由表规模过大的问题而出现的。无类型域间路由选路机制与普通选路机制最大的不同就是，在进行路由匹配的时候，不会再考虑网络地址的类别。如之前在有子网的时候，我们还会先去找目的地址属于哪一类型的，然后先匹配网络号再匹配子网号。CIDR 其实和子网划分的原理是相同的，都是对多个具有共同特征的 IP 地址进行聚合，与此同时，使用 CIDR 选路机制的路由器和选路算法，必须支持根据32bitip 地址和32bit 掩码做出选路决策，路由信息中也不仅仅需要有目的地址了，还需要相应的子网掩码，这个时候上面提到的 RIP 显然就不能用了，可以使用 RIP-2和 OSPF 两种协议来代替。其实到目前为止，笔者理解 CIDR，觉得他就是一个把全世界网络都当成一个巨大的子网在划分的过程，因为没有类别之分，我们可以划分和聚合的空间就更多，进而可以急剧的缩小路由表的规模。</p>
+
+<p>假设分配给整个欧洲的 C 类地址范围是194.0.0.0~195.255.255.255, 在这个范围内一共有65536个 C 类的网络地址。但是这么多的 C 类网络地址有一个共同的特点，就是他们的网络地址的高7位是相同的。那也就是说，整个欧洲的 C 类网络地址的主机，都可以对欧洲以外的路由器映射为一条统一的路由：网络地址为194.0.0.0, 子网掩码为254.0.0.0。而194之后的比特位，也可以根据这样的方式再做层次的分级。例如，我们现在对欧洲所有的高校网络做一次划分，规定194.1.0.0~194.1.255.255为高校范围的网络地址，该域的子网掩码为255.255.0.0。如果这条路由和欧洲整体的路由同时出现在外部网络的某台主机的路由表中，某分数据报如果要通过该路由发送给欧洲内的某台主机，此时，CIDR 在进行选路决策的时候，会按照路由信息所对应的子网掩码的最大长度来进行优先匹配。根据上面我们所提到的两种域的划分，肯定会优先匹配学校的网络地址。</p>
+
+<p>遗憾的是，CIDR 这种好东西，对于之前已经存在的 IP 地址是没有任何用途的，如果依据这个选路机制对全球所有的 IP 地址进行重新划分，会很大程序上缩小路由表的规模。</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

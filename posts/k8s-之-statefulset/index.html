@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>k8s 之 StatefulSets | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">k8s 之 StatefulSets</span></h1>
+
+<h2 class="date">2018/02/24</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/kubernetes">Kubernetes</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>Q： 什么是 StatefulSets？</p>
+
+<p>A:    StatefulSets 是一种 workload。k8s 中的一个 workload 通常由 CRD 和 controller 两部分构成，CRD 交由用户使用，创建资源实例，描述对资源期望的状态。而 controller 主要负责保证资源的状态与用户的期望是一致的。StatefulSets 和 deployment 有着相似的作用，提供了 pod 的部署操作和相应的扩缩容操作。但是与 deployment 不同的是：statefulsets可以保证 pod 的操作顺序，这些操作包括创建，终止，更新。在 StatefulSets 中每一个 Pod 都有一个唯一的标识符，即使内部的容器运行的 app 相同，两个 pod 也是不能够互换的。这也是 StatefulSets 可以保证 pod 启停顺序的一个原因。</p>
+
+<p>Q: StatefulSets有哪些特性？他们是通过什么来保证这些特性正常的？</p>
+
+<p>A:</p>
+
+<ul>
+<li><p>网络方面：通过 headless service来提供 StatefulSets 中 pod 的访问</p></li>
+
+<li><p>存储方面：通过 PersistentVolume Provisioner 来提供静态存储，最大限度保证 pod 数据的安全，即使 pod 或者 statefulsets 被删除或者更新，其中的数据也并不会丢失</p></li>
+
+<li><p>业务方面：通过 Ordinal Index + Stable Network ID + Stable Storage 来唯一的标识一个 Pod。 标识一个 Pod 的组成元素，也侧面反映了 StatefulSets 的特性。</p></li>
+</ul>
+
+<p>Q: 如何使用StatefulSets？它包含哪几部分？</p>
+
+<p>A:  以 yaml 文件的方式举例，当我们想创建一个 nginx 的 StatefulSets 的时候，需要填充以下几部分信息</p>
+
+<ol>
+<li><p>HeadlessService：创建 headless 类型的 Service 进行服务发现, 负责解析请求到具体的 Pod 上</p></li>
+
+<li><p>Container Sepc：指定 StatefulSets 内 pod 中容器的相关设置</p></li>
+
+<li><p>volumeClaimTemplates：指定用于 StatefulSets 中 pod 的存储设置</p></li>
+</ol>
+
+<pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  serviceName: &quot;nginx&quot;
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: nginx
+        image: gcr.io/google_containers/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ &quot;ReadWriteOnce&quot; ]
+      storageClassName: my-storage-class
+      resources:
+        requests:
+          storage: 1Gi
+
+</code></pre>
+
+<p>Q: 在一个 StatefulSets 中，如何按照顺序操作 Pod？</p>
+
+<p>A: 按顺序操作一系列对象的时候，最直接的办法就是给这些被操作对象加上序号。处理的时候，按照序号的顺序即可。不过在 StatefulSets 中不仅仅只用0， 1， 2这样的序号来标识 Pod。而是通过序号+hostname+pod 所使用的存储路径。为什么要这么麻烦呢？这和上面提到的 StatefulSets 的特性是相关的。首先，StatefulSets 中的 Pod 是不可被随意替换的，即使一个 Pod 发生了终止，更新等对Pod 状态有影响的操作，当 k8s将它恢复的时候，它的标识并没有改变。沿着这个思路接着思考，可以发现，因为 Pod 是不稳定的，随时会发生变化，只要pod 一变化，那么它的 IP 就有可能会变。各个 pod 之前的启停本来就是有顺序的，像 Redis 这种 app，用户可能操作的就必须是主节点，也就是说，操作的 pod 是特定的。基于对这些情况的考虑，我们加入一个 headless service，使用 k8s 中的 dns 相关功能，通过不变的pod 标识符，即可找到对应的 pod。最后一点，StatefulSets 为其内部的 pod 在 node 上提供了稳定的存储，使得数据不会轻易丢失。即使对应的 pod 或者 statefulsets 被删除了，这些存储依然不会被回收。综上所述，通过序号+hostname+存储地址，在 StatefulSets 中表示一个 Pod 是完全可以的。有了可靠的序号生成方式之后，排序和按序处理的问题也就迎刃而解了。</p>
+
+<p>Q: 在一个 StatefulSets 中, 按照什么顺序操作 Pod?</p>
+
+<p>A: 操作 Pod 分为以下几种情况：</p>
+
+<pre><code>部署：按照[0, N)的顺序进行部署。部署当前一个 Pod 的时候，其所有前序 Pod 必须是部署完成且可用的状态，它才能够被正常部署。如现在部署 C，但是在 B 成功部署之后 A 挂了，这个时候 C 是不能部署的。
+终止：按照[N-1, 0]的顺序进行终止。终止和部署的不同之处在于，在终止当前 Pod 的时候，它需要观察前后的 Pod 状态是否都是符合「预期」的。比如现在要终止 B，那么 B 成功被终止的条件就是 C 已经处于终止状态，A 现在是健康的可用状态。A 和 C 有任何一个状态不满足预期，B 都是不能够正常进行被终止的操作的。
+</code></pre>
+
+<p>Q: 如果 Pod 的配置有变化，StatefulSets 如何更新其包含的 Pod?</p>
+
+<p>A: StatefulSets中更新 Pod 的策略，大致分为几种类型：</p>
+
+<pre><code>全自动： RollingUpdate，当 spec.template 中的配置发生变化，会自动对 pod 进行更新
+半自动： Partition，功能上类似 NodeSelector，可以指定一个partition阈值，所有 pod 的序号大于等于这个阈值的都会被自动更新，否则，剩余的 Pod 不但不会被自动处理。手动终止掉某个 Pod，StatefulSets 在重启这个 pod 之后也会维持之前的版本。
+手动：OnDelete，在 sepc.template 的配置被修改之后，手动结束掉 pod，StatefulSets 在重启这个 pod 的时候会使用最新的配置
+</code></pre>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -1,14 +1,477 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>LittleDriver</title>
+    <title>Home on LittleDriver</title>
     <link>http://littledriver.net/</link>
-    <description>Recent content on LittleDriver</description>
+    <description>Recent content in Home on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <lastBuildDate>Thu, 19 Apr 2018 23:56:41 +0000</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>记一次追查 gRPC Server 报错的过程</title>
+      <link>http://littledriver.net/posts/the-process-of-resolving-a-bug-for-grpc-server/</link>
+      <pubDate>Thu, 19 Apr 2018 23:56:41 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/the-process-of-resolving-a-bug-for-grpc-server/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Kubernetes pod schedular strategy</title>
+      <link>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</link>
+      <pubDate>Tue, 17 Apr 2018 14:34:48 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</guid>
+      <description>概述 在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需要将 Pod 调度到一些特定的 Node 上面，比如一些挂在了 SSD 硬盘的 Node。因为有这样的需求，k8s 可以让我们自己控制 Pod 调度至 Node 的策略。这些策略是通过 labelSelector 来实现的。
+最简单的方式-NodeSelector NodeSelector 是PodSpec 中的一个 Field。它是一个 key-value 的 pair。key 对应了 Node 中的 label，value 对应了Node 中的 labelValue。当这个 Pod 被创建之后，k8s 会按照这个 nodeSelector 的规则在集群中进行匹配，找到合适的 Node 进行调度。否则，这个 Pod 将不会被成功调度并且会报错： No nodes are available that match all of the following predicates&amp;hellip;
+Affinity and anti-affinity Affinity 是什么？相对于 NodeSelector 来说它有哪些优点？ Affinity（anti-affinity） 是对 NodeSelector 的一种功能上的扩展，NodeSelector 可以做到的东西，它一样可以做到。功能上的加强有以下几个方面：</description>
+    </item>
+    
+    <item>
+      <title>Redis Sentinel 详解 （1）</title>
+      <link>http://littledriver.net/posts/redis-sentinel-explanation-1/</link>
+      <pubDate>Sun, 01 Apr 2018 19:49:35 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/redis-sentinel-explanation-1/</guid>
+      <description>什么是 Sentinel? Sentinel 这个词在 Redis 中有很多不同的含义，它可以代表 Redis 的一种高可用的方案，也可以代表一个以 Sentinel 模式启动的 Redis 实例，甚至是可以代表你的 Redis 集群中，多个以 Sentinel 模式启动的 Redis 实例集合。我们可以这样来理解和定义 Sentinel：
+ Sentinel 是一套方案。它在集群模式下为我们的 Redis 集群提供了「高可用」的保证。 Sentinel 也是一个小型的分布式系统，在多个 Sentinel Process 的协同作战下，保证了 Redis 集群的「高可用」。减少故障误报率，在部分 Sentinel Process 异常的情况下，仍能够为集群提供可靠的服务。
+ Sentinel 都有哪些功能？ 上面说到，Sentinel 为我们的 Redis 提供「高可用」的保证。那么，他提供了哪些措施去实现「高可用」呢？让我们首先来看一下，在没有 Sentinel 的时候，使用一主一从的模式部署我们的 Redis 集群，可能会在使用上遇到哪些问题：
+ 健康检测（monitor）：我们需要一个可靠的检测机制去观察 Redis 实例的健康状态 通知（notification）：当 Redis 实例发生故障的时候，我们需要一个可靠的通知机制来告知集群的管理者 故障自动处理（failover）：一些简单的，处理方式可以被固化的故障能够自动被修复。一方面，能够最大限度的保证集群对用户的可用性，另外一方面，能够加快故障处理速度，减轻维护者的负担 负载均衡（LB）：当集群发生故障的时候，如果进行了主从切换，那么要把最新可用的 Master 节点地址通知给用户 服务发现（Service discovery）：自动的查找并监控集群内所有的实例，不需要人工去配置所有的监控关系  Sentinel 基本上是从以上五个维度对 Redis 做了「高可用」的保证。相对于 Mysql 来说，Redis 的「高可用」方案采取了和集群本身的实例分离的方式来做。也就是说，「高可用」的逻辑并没有和数据节点的逻辑混杂在一起。这一点在部署使用 Sentinel 方案的 Redis 集群就可以看出来：数据节点和 Sentinel 节点是需要分开部署的，使用的配置文件也是不一样的。</description>
+    </item>
+    
+    <item>
+      <title>k8s 之 StatefulSets</title>
+      <link>http://littledriver.net/posts/k8s-%E4%B9%8B-statefulset/</link>
+      <pubDate>Sat, 24 Feb 2018 17:13:44 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/k8s-%E4%B9%8B-statefulset/</guid>
+      <description>Q： 什么是 StatefulSets？
+A: StatefulSets 是一种 workload。k8s 中的一个 workload 通常由 CRD 和 controller 两部分构成，CRD 交由用户使用，创建资源实例，描述对资源期望的状态。而 controller 主要负责保证资源的状态与用户的期望是一致的。StatefulSets 和 deployment 有着相似的作用，提供了 pod 的部署操作和相应的扩缩容操作。但是与 deployment 不同的是：statefulsets可以保证 pod 的操作顺序，这些操作包括创建，终止，更新。在 StatefulSets 中每一个 Pod 都有一个唯一的标识符，即使内部的容器运行的 app 相同，两个 pod 也是不能够互换的。这也是 StatefulSets 可以保证 pod 启停顺序的一个原因。
+Q: StatefulSets有哪些特性？他们是通过什么来保证这些特性正常的？
+A:
+ 网络方面：通过 headless service来提供 StatefulSets 中 pod 的访问
+ 存储方面：通过 PersistentVolume Provisioner 来提供静态存储，最大限度保证 pod 数据的安全，即使 pod 或者 statefulsets 被删除或者更新，其中的数据也并不会丢失
+ 业务方面：通过 Ordinal Index + Stable Network ID + Stable Storage 来唯一的标识一个 Pod。 标识一个 Pod 的组成元素，也侧面反映了 StatefulSets 的特性。</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 之 Operator(一)</title>
+      <link>http://littledriver.net/posts/kubernetes-%E4%B9%8B-operator-%E4%B8%80/</link>
+      <pubDate>Wed, 24 Jan 2018 22:19:11 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/kubernetes-%E4%B9%8B-operator-%E4%B8%80/</guid>
+      <description>Q: 什么是 Operator? A: Operator 在 k8s 系统中可以认为他是一个集 resource 和 controller 的结合体。他是对 resource 和 controller 的一个高度的抽象。通过扩展 Kubernetes API来达到这一效果。
+Q: Operator 是如何工作的？ A: 在 k8s 组件的架构中，可以将 Operator 理解为用户和 resource 之间的一个桥梁。而用户想对 resource 做什么操作的话，需要先通过调用 API Server，将请求转发到 Operator 的身上（这里可能说的不准确， operator 是通过监听 API Server 上对于其创建的资源所做的操作来进行响应的）。通过这样的理解，我们就可以看出，operator 一方面需要管理部署在集群 node 中的应用，另外一方面需要与 API Server 进行交互，以便响应用户的需求。在 CoreOS 的官网上，同样给出了这样一个文档，里面以 etcd 这个 operator为例，描述了 operator 具体的工作模式。 Kubernetes Operators，总结下来无非就是三个步骤：
+ 观察资源目前的状态 对比资源期望的状态 将资源目前的状态 Fix 到期望的状态  Q: Operator 存在的意义是什么？ A: 笔者认为，从 Operator 的使用角度来讲，它最大的意义就是代替操作手册，代替人工去维护部署在集群上面的多个应用。应用的个数越多，运维这些应用的成本越高(如特定的领域知识)，越能够体现出一个 Operator 的价值。Operator 是基于 controller 的，也就是说，Operator 提供的功能会比 controller 本身更加强大，甚至是融合了一些特定业务场景的知识。</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议--UDP用户数据报协议</title>
+      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80-udp-%E5%8D%8F%E8%AE%AE/</link>
+      <pubDate>Mon, 27 Nov 2017 08:41:36 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80-udp-%E5%8D%8F%E8%AE%AE/</guid>
+      <description>什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一个进程的输出，都会对应一个 UDP 或者 TCP 的数据报。
+UDP 数据报的组成 UDP 数据报一共可分为5个部分
+ 目的端口号 源端口号 UDP 数据报长度(首部+数据部分，最低为8B) 校验和 数据部分  目的端口号和源端口号都可以视作为对应了发送端和接收端的两个进程。UDP 数据报的长度包含了首部和数据部分，并且最小不能低于8，因为前4部分构成了 UDP 数据报的首部。这四个字段的字节数是8B。换句话说，网络中是可以传输数据部分为0字节的 UDP 数据报的。
+关于校验和字段，UDP 和 TCP 数据报都会有。唯一的区别是，UDP 是可选的，TCP 是必须的。UDP 计算校验和的方式和 IP 数据报计算的校验方式一样。除此之外，为了计算校验和，UDP 或者 TCP 数据报还会包含一个伪首部部分。它包含 IP 数据报的某些内容，通过源 IP 和目的 IP，我们可以知道是否这个数据报不应该由我们这台主机来处理，协议字段可以让我们了解到，这个数据报是应该交由 UDP 端口的进程来处理还是 TCP 端口的进程。
+IP 分片 当 IP 数据报的长度，也就是总长度减去首部长度超过了 MTU 大小的时候，可能就会涉及到分片的操作。分片的标准应该是按照发送端所在网络的 MTU 进行的，但是当数据报流动到了其他的网络，并且两个网络之间的 MTU 是不一样的，很可能再次发生分片操作。因为网络层的 IP 协议并不是可靠的，面向连接的。那么，当接收端的网络层接收到一堆一些被分片了但是又属于同一个数据报的报文的时候，就需要按照一定的规则将他们组装起来，提供给传输层。
+ 标识字段： 在 IP 数据报的首部，通常有一个16bit 的标识字段。它是内存当中维持的一个计数器。每当网络层发送一个 IP 数据报，那么这个标识字段就会被加1。一个比较大的 IP 数据报在分片的时候，原始数据报中的标识字段会被复制到各个分片的数据报中。 标志字段：在标识字段的后面紧接着3bit 的位置，有一个标志字段。当 IP 数据报发生分片的时候，除了最后一份分片的数据报之外，其余的每一片数据报都需要将某一位置为1，标识还有“更多”的分片数据报，相当于告诉接收端的网络层，这不是最后一份分片数据报。 片偏移字段：此字段是紧接着标志字段的，一共有13bit 左右。它标识了分片数据报的起始字节距离原始数据报开始处的位置是多少 总长度值：数据报被分片之后，相应分片的数据报总长度不再为原始数据报的长度，应为该分片数据报的实际长度  IP 数据报因大小问题可能会导致分片，并且在分片之后，对于接收端来说也是可以通过 IP 首部字段将这些分片的数据组装在一起的。但是这里有一个非常严重的问题，IP 分片一旦发生，甚至分片的次数越多，数据报在网络传输的过程中丢失的概率也就越大。由于 IP 协议并不为数据传输提供可靠性，当某一分片的数据报丢失，传输层的 TCP 协议很可能会重传整个数据报。如果这种出错的概率较高但是出错的分片数站总分片数的比例比较低，就会对网络造成很大的负担。并且，很多时候，如果是在通信过程中的某个路由发生分片，我们的发送端甚至都是不知情的，因为它没有任何的超时重传和确认的机制。</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议动态选路</title>
+      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</link>
+      <pubDate>Sat, 18 Nov 2017 21:13:49 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</guid>
+      <description>What is dynamic routing? 在之前的文章中，我们已经讲过静态选路的概念以及相应的行为。简单来说，静态选路，主要是路由表内容生成的方式是静态的，也就是选路策略，因为之前我们提到过，选路分为选路机制和选路策略。比如，通过 route 命令添加，通过配置文件添加，抑或是通过 ICMP 重定向报文来学习。这种静态选路适用于不同的网络之间只有单点链接并且网络本身很小的情况。
+当网络的规模变大，不同的网络之间通过多个路由互联，且通信的路径也不唯一的时候，我们很自然的就需要网络之间的路由器也能够进行通信。让我们来看一张网络层的工作示意图。
+这个图中很多的通信路径以及节点，相信我们都比较熟悉了。现在我们要注意图中左上角的的一个节点：routing daemon。它代表了路由的守护进程。什么是守护进程，可以戳这里了解一下守护进程-维基百科，这里面有一个比较有意思的概念叫「脱壳」。无论是具有路由功能的主机，还是路由器，在他们内部都有一个这样的 routing daemon 程序，来通过 RIP（路由信息协议）来进行通信，RIP 是内部网关协议的一种。通过告知对方路由器或者具有路由器功能的主机，自己所连接的网络情况，从而可以让接收此信息的路由器或者主机更新路由表。既然是通过别人告知信息的方式来更新路由表，那么路由表中的信息就可能会发生变动。这样一来，我们其实也就可以理解，动态选路中的「动态」也是和选路策略相关的。
+RIP 选路信息协议 对于 RIP 信息协议，我们首先要了解的是，RIP 数据报的内容是包含在 UDP 数据报中的。它和 ICMP 差错报文被包含在 IP 数据报中是相似的形式。只不过 ICMP差错报文中的 UDP 首部是属于 ICMP 数据报的一部分，但是 RIP 报文显然是 UDP 数据报的一部分。 通过 RIP 的报文格式我们可以看出，首部大概有4个字节，其中command 字段是比较有用的，表明了该报文是一个请求报文还是一个应答报文。比较重要的就是图中所标识的20个字节的位置，它代表了要插入到路由表中的某一条记录的目的地址。至于一个 RIP 数据报最多可以携带多少个路由信息，其实TCP/IP 协议这本书上说的25个已经有点过时了。它采用20*25+4=504B 的计算方式，并且假定一个UDP 数据报的大小应该是512B。其实我们在今天我们携带的路由信息条数可以远不止25，但是，由于网络中的环境比较复杂，之所以规定一个标准的 UDP 数据报是512B，还是有道理的：
+ 以太网(Ethernet)数据帧的长度必须在46-1500字节之间,这是由以太网的物理特性决定的.这个1500字节被称为链路层的MTU(最大传输单元).但这并不是指链路层的长度被限制在1500字节,其实这个MTU指的是链路层的数据区.并不包括链路层的首部和尾部的18个字节.所以,事实上,这个1500字节就是网络层IP数据报的长度限制.因为IP数据报的首部为20字节,所以IP数据报的数据区长度最大为1480字节.而这个1480字节就是用来放TCP传来的TCP报文段或UDP传来的UDP数据报的.又因为UDP数据报的首部8字节,所以UDP数据报的数据区最大长度为1472字节.这个1472字节就是我们可以使用的字节数。:) 当我们发送的UDP数据大于1472的时候会怎样呢？这也就是说IP数据报大于1500字节,大于 MTU.这个时候发送方IP层就需要分片(fragmentation).把数据报分成若干片,使每一片都小于MTU.而接收方IP层则需要进行数据报的重组.这样就会多做许多事情,而更严重的是,由于UDP的特性,当某一片数据传送中丢失时,接收方便无法重组数据报.将导致丢弃整个UDP数据报。 因此,在普通的局域网环境下，我建议将UDP的数据控制在1472字节以下为好. 进行Internet编程时则不同,因为Internet上的路由器可能会将MTU设为不同的值.如果我们假定MTU为1500来发送数据的,而途经的某个网络的MTU值小于1500字节,那么系统将会使用一系列的机制来调整MTU值,使数据报能够顺利到达目的地,这样就会做许多不必要的操作.鉴于 Internet上的标准MTU值为576字节,所以我建议在进行Internet的UDP编程时.最好将UDP的数据长度控件在548字节 (576-8-20)以内.
+ 上面的这段对于数据报大小的解释，相信大家可以领会到一点就是，首先，在当今的网络环境下，我们完全可以传输数据大于等于1472B，但是这样首先会造成在网络层进行分片，其次就是即使发送的源主机所在的链路质量较高没有分片，但是通信过程中质量较低的线路往往会遇到这样的瓶颈。并且，还有一点非常重要，就是 UDP 数据报的通信是不可靠的，因为不是面向连接的，只要其中的某一个分片丢失了，那么整个 UDP 数据报都会被接收方丢弃，消耗的网络资源相当于浪费了，如果发送端应用层也会做重试处理，对网络造成的负担应该可想而知。
+另外一个不可忽略的因素就是，RIP 协议在提出来的时候，时间还比较早，使用的网络也都是以低速链路为主，MTU 可能只有500B-600B，所以，去掉各种协议的头部之外，规定一个默认的 RIP 数据报大小，也是合情理的。
+RIP 协议的工作方式 路由器之间使用 RIP 协议在交换路由表信息的时候，通常分为主动和被动两种形式。 其中，主动是指我们向其他路由器发送 RIP 请求报文，其他路由器同样使用 RIP 协议发送给我们一个应答报文。被动则是指，我们在没有发送请求的情况下，接收到的其他在同一网络上的路由器发来的 RIP 报文。RIP 报文内部包含的每一条路由记录信息中，都有一个叫做度量的字段，这个字段表明发送该 RIP 报文的路由器距离这个路由地址有多远，它和 TTL 一样，采用「跳数」来计数。RIP 协议中规定，度量最大为15，也就是说，如果发现RIP 协议的应答报文中有度量超过15的路由记录，则可视为这条路由是无效的。这也是 RIP 的一个重大的缺陷。由于有多个相邻路由发来其路由表的信息，所以在 RIP 响应报文到达的时候，可以根同一目的地址但是度量值小的为优先条件，从而筛选出最优的选路信息。</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议 IP 选路</title>
+      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F-2/</link>
+      <pubDate>Thu, 09 Nov 2017 22:41:48 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F-2/</guid>
+      <description>IP 选路通常包含两个部分：选路策略和选路机制。我们平时常说的 IP 选路，大都都指的是一个 IP 数据报如何从路由表中找到一个合适的下一跳机器的 Ip 地址，这属于选路机制的内容，即决定一个 IP 数据报向哪个接口来发送分组。另外一部分是选路策略，策略么，顾名思义就是一些规则，这些规则也就是指的路由表中的条目，即把哪些映射条目放入路由表中。
+在 IP 选路的过程当中，肯定少不了要搜索路由表，它按照以下顺序进行搜索：
+ 搜索主机地址严格匹配的路由记录 搜索网络地址匹配的路由记录（网络号和子网号） 搜索路由表中的默认路由记录  从一个简单的路由表说起 通过 netstat -r 我们可以查看本机的路由表
+路由表的第一列表明目的地址，乍一看目的地址为47.94.38.154/32的这一条可能觉得比较困惑，这是因为我们的路由表中采取 CIDR 的形式来表示 IP 地址。47.94.38.154/32 斜线的前半部分表明一个 IP 地址，后面的32表明了这个地址的前缀长度，它的前缀和它的 IP 地址长度是相同的，主机号和网络号之前的间距为0。也就是说，这一个目的地址记录的是一个主机地址。第二列表明数据报下一跳的地址。
+Flags 这一列的值，大致有以下几种（仅列出与 UNIX 系统重合的部分）：
+ U: 表示可用的路由 G：表示gateway 的路由是一个网关，如果不标识 G，那么说明这个路由是和本机相连在一个网络中的 H：标识该路由是一个主机 S: 表明这条路由记录是通过 route 命令加到路由表中的  在上面的4个标志中，G 是最重要的，它区分了直接路由和间接路由。当 G 出现的时候，说明发送数据报的主机并没有和目的主机直接相连，gateway 列对应的值表明其是一个间接路由。否则，认为发送数据报的主机是和目的主机直接相连的，gateway 列对应的值表明这是一个直接路由。 那么对于目的地址为47.94.38.154/32这条记录来说，它的下一跳地址是一个可用的间接s路由，并且这条路由记录是通过 route 命令条件进来的。所以在向目的主机发送数据报的时候，IP 数据报目的地址为47.94.38.154/32, 而以太网帧中的物理目的地址为192.168.2.1这个路由器的硬件地址。
+通常情况下 H 标志如果被设置，那么对应记录中的目的地址是一个完整的主机地址。否则目的地址是一个网络地址，主机号部分应该为为0. 但是我们可以看到，目的地址为47.94.38.154/32这条记录，其 Flags 列中并没有 H标志，所以在 IP 选路进行路由表匹配的时候，就会匹配网络号和子网号，如果带有 H 标志，那么肯定会优先匹配完整的主机地址。值得注意的是，这条记录的即使是通过匹配网络号和子网号，事实上也会对整个目的地址进行匹配，因为目的地址 CIDR 表示形式的前缀为32，就说明目的地址所对应的子网掩码是255.</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议 traceroute 程序(1)</title>
+      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F-1/</link>
+      <pubDate>Tue, 07 Nov 2017 23:04:36 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F-1/</guid>
+      <description>什么是 traceroute 程序 traceroute从字面意思上来看，他是一个有着追踪功能，并且可以查看具体追踪路径的这么一个程序。实际上它的功能的确也很类似，它为我们提供了一个仔细观察 IP 数据报从一台主机到达另外一台主机所经过的所有路由。对于网络层而言，这就是一次通信的整体的路径。
+其实早在了解 IP 协议的时候，IP 数据报首部字段中，有一个选项字段，这个选项字段大概有40个字节长（IP 固定首部长度为20个字节，最大60个字节），选项字段里面其实是是可以存储 IP 数据报所经过的路由信息的。比如使用ping -r 1.1.1.1 就可以开启这个功能。但是由于 IP 数据报首部选项字段长度有限，因此如果一个 IP 数据报经过的路径太长，是没办法全部存储起来的。并且，RR 选项是单向的一个功能，发送端至接收端通信路径上面的路由信息，最后都需要接收端发给发送端一个数据报携带上这些信息。这样一来一回，IP 首部的选项字段所能够存储的有效路由信息就更少了。
+traceroute 程序核心武器 traceroute 程序功能的实现依赖于以下几个元素： 1. ICMP 超时报文 2. ICMP端口不可达差错报文 3. IP 数据报首部的 TTL 字段
+traceroute 工作原理 当 traceroute 为了探测其运行的主机与目的主机之间的路由情况时，通常会发送一个数据报，初始的情况下，这个数据报在网络层被包装之后 TTL 值是被设为1的，那此时当到达第一个路由的时候（如果源主机没有和目的主机在同一个以太网内），TTL 值变为0，该数据报被丢弃，路由器会发送给源主机一份 ICMP 超时报文，报文中 IP 首部字段里源主机的 IP 地址就是该路由的地址。因此，traceroute 也就知道了通往目的主机路径上面的第一个路由的信息。
+以此类推，IP 数据报首部的 TTL 时间逐渐增大，当到达目的主机的时候，并不会再向源主机发送 ICMP 超时报文，而是发送一个 ICMP 端口不可达报文来通知源主机，现在已经到达目的主机了。
+看完 traceroute 程序大致的工作原理，相信大家是有一些疑惑的，比如：
+ traceroute 在发送数据报的时候，为什么使用了 UDP 协议而不是 TCP 协议 端口不可达的 ICMP 报文究竟是怎么产生的  首先我们来说第一个, 其实在使用 traceroute 程序的时候，我们是可以指定传输层的协议的，通过-P的参数就可以指定 TCP 协议，traceroute 默认使用 UDP 协议。使用 TCP 协议通常主要想去诊断，源主机和目的主机上的某一个具体的服务连接是否有问题。因为如果你指定了—P 参数去运行 traceroute 的时候，还是会通过 TCP 三次握手建立连接的。Tranceroute 程序最主要的作用是观察源主机与目的主机之间的路由路径，应该尽可能的把数据发送出去，因为数据报本身也是探测性质的，TCP 的性能也相对来说比较差，如果没有特殊的需求，UDP 确实是一个比较好的选择</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议卷一之 IP 网际协议初探</title>
+      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</link>
+      <pubDate>Mon, 30 Oct 2017 22:09:54 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</guid>
+      <description> IP 数据报字段  IP 数据报长度（首部长度+数据长度)用一个16位的字段进行标识，最大数据报长度为65535，但是链路层都会对数据报进行分片处理。数据报总长度字段是需要的，链路层会读取这个字段的值，来判断是否数据报的长度达到了链路层封装数据包的最小长度，如果没有达到的话，还需要填充一些字节来保证链路层的传输效 TTL 值标识了数据报可以经过的最大路由个数，也就是这个数据报的生存时间。当 TTL 到达0的时候，该数据报被丢弃，并且向源主机发送 ICMP 报文。 IP 数据报内的首部校验和字段是对首部字段进行计算得到的一个数值。发送方对首部字段每16位进行计算，反码求和，存在校验和字段中。接收方以同样的形式进行计算，最终应该得到的值为1。如果最后值不唯1，那么由上层进行重新发送，不会使用 ICMP 报文进行报错处理。  IP 路由选择 IP 层在内存当中有一个路由表，路由表项基本上是源 IP 到下一跳 IP 映射的一条记录。一台pc 可以作为主机来使用，也可以作为路由器来使用。路由器和主机在功能上最大的区别就是，主机在收到一个 ip 数据报的时候，如果发现目的 ip 不是自己或者广播地址，那么就会直接丢弃。但是路由器会对这个数据报继续进行转发操作。所以说，一般路由器的网络模型都是只有网络层和链路层。
+进行路由选择的时候，大致会遵循以下的顺序 1. 路由表中是否有与目的主机 IP 严格匹配的表项，如果有，直接使用其表项中的目的 IP 进行继续转发 2. 路由表中是否有与目的主机网络号相匹配的表项。这一般出现在有局域的时候，某一个局域网内的所有主机都可以使用某一个网络号来进行标识。这一类特性也极大的缩减了路由表的规模。 3. 路由表中是否有默认跳转的 IP 地址
+IP 数据报在传输的时候，如果接收数据报的机器不是目的主机，那么数据报就不会再向上层传输，也就是说不会经过传输层。并且还有一个需要特别注意的是，在转发的过程中，链路层的硬件地址是一直在变的，唯独IP 数据报内的目的 IP 地址不会变。这一个特性其实也可以反证我们刚说的，在 IP 数据报进行路由的时候，是不会经过上层的。
+带有子网划分的路由选择过程 为了减少内存当中路由表的规模，我们一般都会通过划分子网的方式来解决这个问题。当我们拿到本机(所经过路由) IP，目的主机 IP，以及我们所处的子网掩码的时候，我们的比较过程会按照如下的大致顺序。
+ 目的主机的网络号是否与本机的网络号相同（知道 IP 地址就知道了哪一类的 IP，从而也就知道了网络号的位数） 网络号相同则根据子网掩码分别对本机 IP 和目的 IP 进行与运算，得出的子网号看是否相同，如果相同，那么就证明目的主机就处在本机所在的子网 如果子网号不相同，说明还需要在继续查找路由表 上述过程发生在 IP 路由选择的第二步，也就说在没有找到与目的 IP 严格符合的路由表项的时候。  </description>
+    </item>
+    
+    <item>
+      <title>Python 的函数与作用域</title>
+      <link>http://littledriver.net/posts/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/</link>
+      <pubDate>Sun, 08 Oct 2017 22:24:17 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/</guid>
+      <description>def 是什么 python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数签名。学习Python 的一个很大的误区，就是我们认为 def 也是Python 中定义函数的一个关键字。在Python 中，def 不是一个关键字，而是一个可执行的语句。如果不考虑类，一般来说，函数都实现在某一个模块中，那么当这个模块被导入的时候，def 语句就会自动执行，创建一个函数对象，并且把这个对象赋值给对应的函数名。也就是说，函数的定义和普通变量的定义是没有区别的，函数名仅仅是 def 语句创建出来的函数对象的一个引用而已。
+python 中使用 def 语句创建的函数对象，并不要求每一个都要有返回值或者显式的 return 调用。仅当你需要这个函数的返回值的时候，才使用 return 进行返回，否则，函数默认返回一个 None 对象。既然Python 是一个动态类型的语言且没有所谓的「编译」，「链接」阶段，那么也就是说在一个模块被执行之前，某一个函数变量名具体引用了哪一个函数对象我们是不清楚的，这个关系是在模块运行的时候才能够确定的。并且，如果函数内部有一些明显的运行时的 Bug，在 def 语句执行的时候也不会去检测，只有在调用者调用这个函数发生错误的时候才能够清楚。 å 所以，在Python 中，函数变量和其他任何变量没有区别。def 是一个可执行语句，并不是一个关键字。
+函数中的多态思想 如果是有编程基础的人，对多态这个词应该不难理解。我是这样理解的
+ 多态，就是某一个操作的意义取决于被操作的对象类型
+ 一个最直接的例子就是，C++中，子类和父类有一个函数签名相同的方法。定义一个父类类型的指针，当这个指针指向父类对象或者子类对象的时候，执行的同名方法是两个不同类中所分别定义的；或者在 Java 中，「+」这个操作既可以用于字符串的链接，也可以用于数字的四则运算。python 则比 java 还要方便，因为它是一种动态类型的语言，python 的世界中只有对象和引用的区别，没有数据类型之分，一切事物都是对象，被某个变量引用。所以在编写Python 的函数中，尽量不要去用类似「type」等方法检测参数的类型，这其实就是一种典型的用静态语言的思维在使用动态语言。仔细想想Python 的一个便捷之处就是在编程的时候不需要考虑数据类型，一旦某个函数内的某个操作是传递进来的参数所不具有的，让其抛出一个异常也是正确的选择。
+所以，只要是在函数内部对参数做的操作，被传递进来的对象都支持，这个函数就能够正常工作，这和参数的数据类型是没关系的。
+作用域 作用域这个词，从字面意思上来理解，就是某个事物起作用的区域。在编程语言中，通常指某个变量的生存周期。某个变量的作用域和它第一次被赋值的位置是相关的。
+ 非嵌套函数内部：本地作用域 嵌套函数内部：非本地作用域 模块内部（文件内部，函数外部，包括Python 内置模块）：全局作用域  本地作用域与全局作用域 python 中的全局作用域都是要和模块一起提出才是有意义的，这里的「全局」是指模块内全局，模块和模块之间，也就是文件和文件之间是完全隔离开的。一个我们在开发过程中所常见的现象就是某个模块的全局变量对外是作为这个模块的某个属性被使用的。本地作用域一般指调用函数所构造的一个作用域，本地作用域一般和函数调用相关。从操作系统的层面上来讲，每一个函数的调用都会开辟一块栈的空间用来存放函数调用的上下文或者一些本地变量，再结合我们一般说作用域都是和变量的生命周期联系在一起，就不难发现，每一次对函数调用，都会创建一个新的本地作用域。
+各个作用域之前可能会存在一个作用域屏蔽的问题，比如在某一个函数内定义的某一个变量和函数外部的某一个变量同名，那么在函数内部对这个变量的更改将不会影响到函数外部的变量。这个现象看起来很像是一个「屏蔽」的效果，函数内的变量屏蔽的外部的。但其实这和解析变量的规则是有关的，后面的段落将会介绍相关的细节。
+另外，要谨记的一点就是，只有在发生变量赋值的时候，才会涉及到作用域变化的问题。原地对一个对象的修改是不涉及到任何作用域变更的问题的。原因有以下几点：
+1.Python 中，变量和对象是不同的两个概念。变量通常指的是引用变量，指向内存中实际存在的一个对象 2. 作用域这一概念是针对变量的，而不是针对对象的</description>
+    </item>
+    
+    <item>
+      <title>Data Structure Review - Circular Queue</title>
+      <link>http://littledriver.net/posts/data-structure-review-circular-queue/</link>
+      <pubDate>Thu, 28 Sep 2017 16:39:57 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/data-structure-review-circular-queue/</guid>
+      <description>0x01 为什么需要循环队列 普通的队列结构无论在逻辑上还是在物理存储上，都是一个连续的线性结构。队列的插入和弹出操作符合「FIFO」原则。我们一般在操作队列的时候，都会有两个指针，一个指向队列头部，另外一个指向队列尾部。当我们想弹出一个元素的时候，可以清空队列头部指针所指向的元素，然后将指针向队列尾部移动一个元素的长度。当我们想插入一个元素的时候，可以在队尾指针所指向的位置放入我们想要插入的元素，然后队尾指针向后移动一个元素的长度。
+一个队列初始的时候，队头和队尾指针都是指向同一个位置的，一般来说就是底层线性结构的第一个元素的位置(如数组)。如果现在只有十个元素的空间可以用于实现队列，但是我们却要求插入20个元素，中间会不定的弹出元素，这样是否可以实现呢？
+乍一看10个位置想要插入20个元素是不现实的，不过中间会不定的弹出一些元素，只要是在插入一个元素之前，有一个或一个以上的元素被弹出了，就是有可能实现的。那么问题来了，插入元素的位置和弹出元素的位置是由两个不同的指针来控制的，队尾指针如果移动到了底层线性结构的边界应该怎么办？队头指针同样也会遇到这个问题。答案是要使用循环队列。
+0x02 循环队列长什么样 循环队列是一个在逻辑上成环，但是物理上还是线性的一种数据结构。底层存储队列元素的结构没有变，只不过在使用这些空间上面使用了一些小的技巧。
+ Circular Queue is a linear data structure in which the operations are performed based on FIFO (First In First Out) principle and the last position is connected back to the first position to make a circle.
+ 0x03 循环队列的实现 0x031 enqueue In [10]: def enqueue(item): ...: # queue 为空/一直插入元素到没有可用空间/循环插入后没有可用空间 ...: if queue and ((rear == len(queue) - 1 and front == 0) or (rear + 1 == front)): .</description>
+    </item>
+    
+    <item>
+      <title>Python中的引用与拷贝</title>
+      <link>http://littledriver.net/posts/python%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E4%B8%8E%E6%8B%B7%E8%B4%9D/</link>
+      <pubDate>Sun, 20 Aug 2017 16:48:31 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/python%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E4%B8%8E%E6%8B%B7%E8%B4%9D/</guid>
+      <description>从赋值说起 之前在 python 变量相关的文章中，提到过赋值行为在 python 中和其他语言有何异同。说白了，其实就是默认传递引用，而不会拷贝整个对象。这种做法一个比较好的地方就是避免的在使用大型对象的时候，由于一些使用上的不规范而造成巨大的开销。但是凡事都有两面性，方便的同时，带来的坏处就是，同一个对象的引用可以有多个，那么只要这个对象的数据发生了变化，受影响的将是指向他的所有的引用。这种行为通常是我们不想看到的。
+其实，这种行为，和 c++中的浅拷贝的行为是一直的。c++中也有引用的概念。浅拷贝通常也只是拷贝引用or 指针，而不会真正的拷贝整个对象。依稀记得，如果要在 C++中的自定义类型实现深拷贝，还需要自己实现拷贝构造函数。在 python 中，对于 list，dict 等数据结构，有一些现成的方法可以调用：
+a = [1, 2, 3] b = a //shallow copy c = a[:] //deep copy, get a new object g = list(a) //deep copy. cool! d = {1: 2, 3: 4} e = d //shallow copy f = d.copy()  需要注意的是：列表和字典上面所提到的深拷贝方法，都无法拷贝嵌套结构：
+In [12]: a Out[12]: [1, [2, 3, 4], 5] In [13]: b Out[13]: [1, [2, 3, 4], 5] In [14]: a[1][0] = 10000000 In [15]: a Out[15]: [1, [10000000, 3, 4], 5] In [16]: b Out[16]: [1, [10000000, 3, 4], 5]  其中， a 中的列表，及时通过[:]形式进行拷贝，仍然无法对其中嵌套的列表进行深拷贝操作。这个时候，可以使用 copy 标准库内的 deepcopy 方法，来达到嵌套深拷贝的目的：</description>
+    </item>
+    
+    <item>
+      <title>Python迭代器与解析（1）</title>
+      <link>http://littledriver.net/posts/python%E8%BF%AD%E4%BB%A3%E5%99%A8%E4%B8%8E%E8%A7%A3%E6%9E%901/</link>
+      <pubDate>Sun, 30 Jul 2017 15:33:45 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/python%E8%BF%AD%E4%BB%A3%E5%99%A8%E4%B8%8E%E8%A7%A3%E6%9E%901/</guid>
+      <description>迭代 迭代这个概念，在很多编程语言当中都是存在的。说白了，就是对一个『可迭代对象』进行遍历的过程。如 for 循环，while 循环等等，都是对一个对象进行迭代操作。那么这个『可迭代对象』到底是什么呢？
+可迭代对象 简单来说，可迭代对象就是一个具有 __next__方法的对象。当这个对象被用在 for 循环等一系列迭代的场景的时候，这个方法就会起到相应的作用。如，python 当中的文件对象想按照逐行的顺序来进行迭代的话，有以下几种方式：
+# 1 for line in open(&#39;test.py&#39;): print(line.upper(), end=&#39;&#39;) # 2 for line in open(&#39;test.py&#39;).readlines(): print(line.upper(), end=&#39;&#39;) # 3 while True: line = file.readLine() if not line: beak; print(line.upper(), end=&#39;&#39;)  首先第一种方式，应该是迭代一个文件对象的最优选择：
+ 该对象在循环中自动调用__next__方法，逐行读取文件，不会浪费内存 调用迭代器，在 python 中几乎是以 C 语言的速度在执行的  第二种方式，一个明显的缺点，就是 readlines 方法将文件中所有的内存一次性都加载到了内存中，形成了一个以每一行内容为一个元素的字符串列表。如果文本内容过大超过了机身内存的大小，很可能会出现意想不到的问题。
+第三种，虽然没有内存方面的问题，但是比起在 for 循环使用迭代器进行处理，while 循环是在python 虚拟机当中运行 python 的字节码，所以在速度上，相较第一种中方式，还是差了一些。
+迭代器 关于迭代的第三个概念，我们之前说过，迭代是一种行为，可迭代对象是可以在其上进行迭代行为的一个对象，也就是一个具有__next__方法的对象。之所以对于可迭代对象有这样的一个定义，是因为之前讨论的文件对象比较特殊，文件对象本身是自己的一个迭代器。也就是说，真正具有__next__方法的对象应该是迭代器，而不是我们之前所谓的可迭代对象。可迭代对象的范围应该比迭代器更大，以列表举例，它本身是没有迭代器的，但是列表依然是 python 当中可迭代的对象之一，那么列表这个对象的__next__方法从何而来呢？是通过一个叫做 iter 的方法得到的，该方法接受一个对象，返回一个具有next方法的迭代器，next方法在内部会调用迭代器的__next__方法。
+所以，for 循环在处理列表这类可以迭代但是本身不是迭代器的对象时，都会将列表这个对象传递给内置函数 iter，得到一个具有 next 方法的迭代器，然后每次循环调用next方法来迭代对象。</description>
+    </item>
+    
+    <item>
+      <title>Python 中的变量、对象、引用</title>
+      <link>http://littledriver.net/posts/python-%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8/</link>
+      <pubDate>Sun, 30 Jul 2017 15:31:38 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/python-%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8/</guid>
+      <description>&lt;p&gt;很多编程语言都有所谓的引用，对象，变量等概念。这些概念在强类型的语言中貌似并不是那么的重要，但是在动态类型的语言中，还是值得去仔细思考一下的&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning for APUE(4)</title>
+      <link>http://littledriver.net/posts/learning-for-apue-4/</link>
+      <pubDate>Tue, 27 Jun 2017 11:05:53 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/learning-for-apue-4/</guid>
+      <description>刷新缓存 操作系统内核在写入和读取数据的时候，从cpu到硬盘，还有很长的一段路。这段路上，为了减少数据传输的延迟，操作系统采取的很多的措施。如：就近原则的读取，内存，寄存器的使用，甚至是高速缓存，多级cache。这些办法都能够有效的提高数据传输的速率。当内核想向一个文件写入数据的时候，它并不会直接将数据写入文件所在的硬盘块，而是先将数据写入高速缓存当中，当高速缓存满了，或者说需要重用高速缓存的时候，就将高速缓存的数据写入到磁盘中。但是这个动作也不是立即发生的，写入磁盘的任务会进入一个队列中进行排队，等待处理。
+为了保持高速缓存和硬盘上面的数据的一致性，就需要提供一定的接口，使得用户可以主动的发起写入数据到磁盘的这种行为。为此，linux上面提供了三个api可以实现这种效果：
+ sync fsync fdatasync  三个系统调用均可以实现上面所说的功能，但是fsync是对特定的文件起作用，而fdatasync只会将文件的“数据”部分写入至磁盘，文件类型等信息是不会写入的。相反，其他两个方法是会把文件所有的信息以及数据都会写入。
+操纵文件描述符&amp;ndash;fcntl fcntl这个函数的作用，就是通过参数中传递进来的文件描述符来修改文件相关的描述符标志和状态标志信息。不过一般修改标志位的方式，都是先获取目前的标志位，然后根据位或运算增加新的标志位。
+首先是对于文件描述符标志位的设定，其中有一个标志位在介绍dup函数的时候也出现过，就是FD_CLOSEXEC。这个标志位设定的效果在于，此文件描述符所在进程，如果通过execl函数执行了另外一个子进程的话，那么在execl执行的这个进程中，此文件描述符即使被传递过去也无法使用了，但是如果是使用fork的话，那么在子进程中还是可以使用的。相关的一个例子，可以看看这篇文章http://blog.csdn.net/ustc_dylan/article/details/6930189。
+按照之前说明的设置文件描述符标志位的规则，首先可以调用fcntl函数，使用F_GETFD命令来获取相应的标志位，使用位或运算计算之后，再使用F_SETFD命令来设置新的标志位即可。
+文件描述符的信息应该是属于某一个进程的，所以它应该存在于进程表项中。除了文件描述符之外，还和进程打开文件相关的一个指标就是文件的状态标志。内核为操作系统中打开的文件维护了一张表，这张表内就存储着被打开文件的状态标志信息。之前在讨论文件共享的时候就说过，文件状态标志信息应该是和文件描述符绑定的。也就是说，进程，文件描述符，文件状态标识三者是1对多，1对1的关系。一个进程可以同时打开很多文件，所以是一对多。但是每打开一个文件，获得一个文件描述符，都和唯一的一个文件状态标识所绑定，所以是1对1的关系。
+文件状态标志之前在open函数中有过说明，其中一个很重要的标志就是访问方式标志。如只读，只写，读写等等。访问方式标志的取值为0-5，每一个值代表了一种访问方式。但是他们并不是按位来排列的。所以在确定一个文件描述符对应的文件状态标识中到底是使用了何种访问标志，需要使用一个屏蔽字通过按位与的方式来取出访问标志的值到底是多少。
+除了文件访问标志之外，另外一个重要且常见的标志就是O_SYNC，同步标志。这个标志可以在调用open函数的时候对文件进行设置，也可以通过fcntl函数来进行设置。但是后者在某些操作系统上面设置之后也并不会生效，所以一般都是在open函数的时候就设置好。该标志被设置之后，在想文件写入数据的时候，就不会采用系统原有的，先写入缓存，然后进队列，适当的时候再写入磁盘这套机制。而是直接采用同步I/O的形式，直到写入的数据已经落在磁盘上了，那么这次写入的操作才会返回。</description>
+    </item>
+    
+    <item>
+      <title>Thinking in Java-1</title>
+      <link>http://littledriver.net/posts/thinking-in-java-1/</link>
+      <pubDate>Sun, 25 Jun 2017 17:13:19 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/thinking-in-java-1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning-Process-In-Modern-Operating-System(4)</title>
+      <link>http://littledriver.net/posts/learning-process-in-modern-operating-system-4/</link>
+      <pubDate>Tue, 30 May 2017 11:10:32 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/learning-process-in-modern-operating-system-4/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning-Process-In-Modern-Operating-System(3)</title>
+      <link>http://littledriver.net/posts/learning-process-in-modern-operating-system-3/</link>
+      <pubDate>Tue, 30 May 2017 09:08:08 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/learning-process-in-modern-operating-system-3/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>nginx Learning notes(2)</title>
+      <link>http://littledriver.net/posts/nginx-learning-notes-2/</link>
+      <pubDate>Wed, 03 May 2017 17:50:55 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/nginx-learning-notes-2/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning-Process-In-Modern-Operating-System(2)</title>
+      <link>http://littledriver.net/posts/learning-process-in-modern-operating-system-2/</link>
+      <pubDate>Thu, 27 Apr 2017 22:49:25 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/learning-process-in-modern-operating-system-2/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Lua Learning notes(1)</title>
+      <link>http://littledriver.net/posts/lua-learning-notes-1/</link>
+      <pubDate>Mon, 24 Apr 2017 18:30:28 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/lua-learning-notes-1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>nginx Learning notes(1)</title>
+      <link>http://littledriver.net/posts/nginx-learning-notes-1/</link>
+      <pubDate>Mon, 24 Apr 2017 18:30:13 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/nginx-learning-notes-1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>golang-net-http-package源码分析-4</title>
+      <link>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</link>
+      <pubDate>Mon, 24 Apr 2017 10:34:39 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>golang-net-http-package源码分析(3)</title>
+      <link>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-3/</link>
+      <pubDate>Thu, 06 Apr 2017 23:36:39 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-3/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>golang-net/http-package源码分析(2)</title>
+      <link>http://littledriver.net/posts/golang-net-http%E5%8C%85%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-2/</link>
+      <pubDate>Wed, 05 Apr 2017 19:58:31 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/golang-net-http%E5%8C%85%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-2/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning for APUE(3)--从操作系统的角度来看文件共享</title>
+      <link>http://littledriver.net/posts/learning-for-apue-3/</link>
+      <pubDate>Tue, 04 Apr 2017 22:01:51 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/learning-for-apue-3/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning Process In Modern Operating System (1)</title>
+      <link>http://littledriver.net/posts/learning-process-in-modern-operating-system/</link>
+      <pubDate>Wed, 29 Mar 2017 22:59:50 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/learning-process-in-modern-operating-system/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning for APUE(2)--文件 I/O</title>
+      <link>http://littledriver.net/posts/learning-for-apue-2/</link>
+      <pubDate>Sun, 19 Mar 2017 17:01:23 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/learning-for-apue-2/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning for APUE(1)</title>
+      <link>http://littledriver.net/posts/learning-for-apue-1/</link>
+      <pubDate>Sun, 19 Mar 2017 12:11:38 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/learning-for-apue-1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Reflection in golang (4)</title>
+      <link>http://littledriver.net/posts/reflection-in-golang-4/</link>
+      <pubDate>Sun, 12 Mar 2017 13:00:47 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/reflection-in-golang-4/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Reflection in golang (3)</title>
+      <link>http://littledriver.net/posts/reflection-in-golang-3/</link>
+      <pubDate>Sat, 11 Mar 2017 15:53:31 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/reflection-in-golang-3/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Reflection in golang (2)</title>
+      <link>http://littledriver.net/posts/reflection-in-golang-2/</link>
+      <pubDate>Thu, 09 Mar 2017 19:41:34 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/reflection-in-golang-2/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Reflection in golang (1)</title>
+      <link>http://littledriver.net/posts/reflection-in-golang/</link>
+      <pubDate>Sun, 05 Mar 2017 19:40:29 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/reflection-in-golang/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>工作中踩过的的坑之golang的临时变量</title>
+      <link>http://littledriver.net/posts/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</link>
+      <pubDate>Sun, 05 Mar 2017 11:26:36 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>golang net/http package源码分析(1)</title>
+      <link>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
+      <pubDate>Fri, 17 Feb 2017 15:11:16 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Https通信机制</title>
+      <link>http://littledriver.net/posts/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</link>
+      <pubDate>Thu, 16 Feb 2017 19:45:51 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>RabbitMq的数据持久化</title>
+      <link>http://littledriver.net/posts/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</link>
+      <pubDate>Tue, 03 Jan 2017 10:10:25 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Review 2016</title>
+      <link>http://littledriver.net/posts/%E6%80%BB%E7%BB%93-%E6%9C%9F%E6%9C%9B-2016/</link>
+      <pubDate>Thu, 29 Dec 2016 20:58:59 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/%E6%80%BB%E7%BB%93-%E6%9C%9F%E6%9C%9B-2016/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>初识RabbitMq</title>
+      <link>http://littledriver.net/posts/rabbitmq-learning-nodes-1/</link>
+      <pubDate>Sat, 17 Dec 2016 15:11:59 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/rabbitmq-learning-nodes-1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>乐观锁和悲观锁</title>
+      <link>http://littledriver.net/posts/pessimistic-and-optimistic-locker/</link>
+      <pubDate>Sun, 27 Nov 2016 20:59:27 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/pessimistic-and-optimistic-locker/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>三种基本排序算法</title>
+      <link>http://littledriver.net/posts/three-basic-sort-algorithms/</link>
+      <pubDate>Wed, 09 Nov 2016 19:36:42 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/three-basic-sort-algorithms/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>程序员，你的工作不只有代码</title>
+      <link>http://littledriver.net/posts/programer-work/</link>
+      <pubDate>Fri, 04 Nov 2016 07:48:24 +0000</pubDate>
+      
+      <guid>http://littledriver.net/posts/programer-work/</guid>
+      <description></description>
+    </item>
     
   </channel>
 </rss>

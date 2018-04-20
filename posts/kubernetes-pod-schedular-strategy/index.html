@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kubernetes pod schedular strategy | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Kubernetes pod schedular strategy</span></h1>
+
+<h2 class="date">2018/04/17</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/kubernetes">Kubernetes</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<h1 id="概述">概述</h1>
+
+<p>在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需要将 Pod 调度到一些特定的 Node 上面，比如一些挂在了 SSD 硬盘的 Node。因为有这样的需求，k8s 可以让我们自己控制 Pod 调度至 Node 的策略。这些策略是通过 labelSelector 来实现的。</p>
+
+<h1 id="最简单的方式-nodeselector">最简单的方式-NodeSelector</h1>
+
+<p>NodeSelector 是PodSpec 中的一个 Field。它是一个 key-value 的 pair。key 对应了 Node 中的 label，value 对应了Node 中的 labelValue。当这个 Pod 被创建之后，k8s 会按照这个 nodeSelector 的规则在集群中进行匹配，找到合适的 Node 进行调度。否则，这个 Pod 将不会被成功调度并且会报错： No nodes are available that match all of the following predicates&hellip;</p>
+
+<h1 id="affinity-and-anti-affinity">Affinity and anti-affinity</h1>
+
+<h2 id="affinity-是什么-相对于-nodeselector-来说它有哪些优点">Affinity 是什么？相对于 NodeSelector 来说它有哪些优点？</h2>
+
+<p>Affinity（anti-affinity） 是对 NodeSelector 的一种功能上的扩展，NodeSelector 可以做到的东西，它一样可以做到。功能上的加强有以下几个方面：</p>
+
+<ul>
+<li>不仅支持对单个的 key-value pair进行匹配，还支持逻辑运算的语义。如 AND 等</li>
+<li>设置的调度策略将分为：强制和非强制两种类型。强制类型则和 NodeSelector 的功能一样，如果匹配失败，那么也就意味着调度失败。非强制类型则优先会匹配设置好的策略，如果没有匹配成功，k8s 会自动按照它的默认策略调度 Pod 至 Node 上。</li>
+<li>调度策略可供设置的粒度更细，不但支持 NodeLabel 粒度的，还支持 PodLabel 粒度的。这也就是说，我们不但可以根据 Node 本身的 label 设置调度策略，还可以根据目标 Node 上所运行的 PodLabel 设置。如 RedisAPP 中，主从节点的 Pod 肯定是不能被调度到一个 Node 上的。这个功能的产生，主要是考虑到了同一个 Node 上面运行的 Pod 之间会有业务上的影响</li>
+</ul>
+
+<h2 id="node-affinity">Node affinity</h2>
+
+<p>NodeAffinity 分为两种类型：</p>
+
+<ol>
+<li>requiredDuringSchedulingIgnoredDuringExecution</li>
+<li>preferredDuringSchedulingIgnoredDuringExecution</li>
+</ol>
+
+<p>前者的作用和 NodeSelector 一样，可以认为这是一个强制的策略：如果 Pod 在调度的时候，NodeAffnity 没有成功匹配到任何 Node 的 Label，那么这个 Pod 将会调度失败。而后者则是一个「软性」的策略，虽然会按照 NodeAffinity 设置的策略进行匹配，但是它最终保证的是 Pod 调度成功。如果设置的 NodeAffinity 匹配失败，Pod 会按照 k8s 默认的策略进行调度。</p>
+
+<h2 id="inter-pod-affinity-and-anti-affinity">Inter-pod affinity and anti-affinity</h2>
+
+<p>对于pod affinity and anti-affinity来说，调度策略同样分为两种类型：</p>
+
+<ol>
+<li>requiredDuringSchedulingIgnoredDuringExecution</li>
+<li>preferredDuringSchedulingIgnoredDuringExecution</li>
+</ol>
+
+<p>（其实 Node affinity 也是有 anti-affinty 的，只不过它是通过 matchExpressions 中的 NotIn 等否定的 Operator 来实现的）</p>
+
+<p>Pod 粒度的调度策略，增加了一个新的概念：topologyKey</p>
+
+<h3 id="topologykey">topologyKey</h3>
+
+<p>Pod 粒度的调度策略，是根据 Pod 的 Label来进行制定的。但是Pod本身受到来自两个方面的限制：</p>
+
+<ol>
+<li>namespace</li>
+<li>node</li>
+</ol>
+
+<p>在使用 PodLabel 的时候，必须要限定 Pod 所在的 Namespace，否则匹配是没有意义的。其次，在 Pod 粒度的调度策略中，可以通过topologyKey（通过 NodeLabel 实现）指定一组 Node，这些 Node 上可能每一台都有与调度策略匹配的 Pod，也可能没有。但是 Pod 都可以调度到这一组的任何一个 Node 上。因为这里强调的可调度 Node 单位不再是一台 Node，而是一组 Node。举例来说：</p>
+
+<p>集群中现在有两个 Node（A， B），他们都有一个 Label 为 kubernetes.io/hostname=abc。 现在 A 上有一个 Pod，label 为 app=poda。此时被调度的 Pod 的调度策略为：</p>
+
+<pre><code>podAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+  - labelSelector:
+      matchExpressions:
+      - key: app
+        operator: In
+        values:
+        - poda
+    topologyKey: kubernetes.io/hostname
+</code></pre>
+
+<p>此时这条调度策略可以做如下翻译：</p>
+
+<p>Pod 可以被调度到一组 Node 的任意一个 Node上，当这些 Node 具有 kubernetes.io/hostname Label, 并且与 PodLabel 为 poda 的 Pod 所在 Node 的 kubernetes.io/hostname Label 的值相同。用英文可能更好表述：</p>
+
+<blockquote>
+<p>My Pod should run in the same kubernetes.io/hostname as a poda Pod.</p>
+</blockquote>
+
+<p>如果上面的调度策略换成了 <code>podAntiAffinity</code>, 则翻译成：</p>
+
+<blockquote>
+<p>My Pod should not run in the same kubernetes.io/hostname as a poda Pod</p>
+</blockquote>
+
+<p>也就是说，当一个 Pod 配置了 Affinity 调度策略且指定了 topologyKey 字段的时候，我们可以做如下理解：</p>
+
+<ol>
+<li>先通过 PodAffinity 或者 PodAntiAffinity 中的 labelSelector 找到匹配的 Pod，根据这些 Pod 初步筛选出一部分 Node</li>
+<li>如果指定的是 Affinity，那么可被调度的 Node 中与 topologyKey 同名的 label 的 value 必须和已匹配的 Pod 所在 Node 相应的 Label 值相等</li>
+<li>如果指定的是 AntiAffinity，则正好相反</li>
+</ol>
+
+<p>更详细的关于 topologyKey 的描述，可以看下这篇<a href="https://medium.com/kokster/scheduling-in-kubernetes-part-2-pod-affinity-c2b217312ae1">blog</a>:</p>
+
+<h1 id="example-在具有-redis-实例的-node-上部署-webserver">Example&ndash;在具有 Redis 实例的 Node 上部署 WebServer</h1>
+
+<p>前提：实例中所用集群Node 数量为3</p>
+
+<h4 id="redis">Redis</h4>
+
+<pre><code>apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-cache
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: store
+    spec:
+      containers:
+      - name: redis-server
+        image: redis:3.2-alpine
+
+</code></pre>
+
+<p>首先在集群的三个节点上以 Deployment 的方式部署三个 redis 实例，PodLabel 为 app：store</p>
+
+<h4 id="webserver">webServer</h4>
+
+<pre><code>apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: web-server
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: web-store
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - store
+            topologyKey: &quot;kubernetes.io/hostname&quot;
+      containers:
+      - name: web-app
+</code></pre>
+
+<p>部署 Webserver 的时候，指定 PodAffinity 调度策略，要求目的 Node 与运行 PodLabel 为 app=store 的 Pod的 Node 在同一个分组，分组标准为kubernetes.io/hostname的 NodeLabel。此时，当被调度 Pod 数小于等于集群 Node 数时，会对策略匹配成功的 Node 节点进行轮询选取。否则，可能会出现多个Pod 被调度到同一个 Node 上的情况。</p>
+
+<p>最终调度结果如下：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/image2018-2-26_17-40-16.png" alt="" /></p>
+
+<h1 id="highavailible">HighAvailible</h1>
+
+<p>对于数据库等具有主从关系的 APP 集群来说，在使用 StatefulSets 部署时，一般都不希望多个实例共存至同一个 Node 上。原因很简单，整个集群挂掉的风险比较高。我们可以通过 Inter-Pod Anti-Affinity来实现这一目的。</p>
+
+<p>使用 requiredDuringSchedulingIgnoredDuringExecution 类型的 Anti-Affinity 策略，指定PodLabel 为被调度 Pod 的 Label。这样一来，在 Pod 被调度的过程当中，PodLabel 相同的 Pod 就属于互斥的关系。</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

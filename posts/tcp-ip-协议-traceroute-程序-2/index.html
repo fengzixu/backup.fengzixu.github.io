@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TCP/IP 协议 IP 选路 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">TCP/IP 协议 IP 选路</span></h1>
+
+<h2 class="date">2017/11/09</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/network">Network</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<p>IP 选路通常包含两个部分：选路策略和选路机制。我们平时常说的 IP 选路，大都都指的是一个 IP 数据报如何从路由表中找到一个合适的下一跳机器的 Ip 地址，这属于选路机制的内容，即决定一个 IP 数据报向哪个接口来发送分组。另外一部分是选路策略，策略么，顾名思义就是一些规则，这些规则也就是指的路由表中的条目，即把哪些映射条目放入路由表中。</p>
+
+<p>在 IP 选路的过程当中，肯定少不了要搜索路由表，它按照以下顺序进行搜索：</p>
+
+<ol>
+<li>搜索主机地址严格匹配的路由记录</li>
+<li>搜索网络地址匹配的路由记录（网络号和子网号）</li>
+<li>搜索路由表中的默认路由记录</li>
+</ol>
+
+<h1 id="从一个简单的路由表说起">从一个简单的路由表说起</h1>
+
+<p>通过 <code>netstat -r</code> 我们可以查看本机的路由表</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/WX20171114-220525@2x.png" alt="" /></p>
+
+<p>路由表的第一列表明目的地址，乍一看目的地址为<code>47.94.38.154/32</code>的这一条可能觉得比较困惑，这是因为我们的路由表中采取 CIDR 的形式来表示 IP 地址。<code>47.94.38.154/32</code> 斜线的前半部分表明一个 IP 地址，后面的32表明了这个地址的前缀长度，它的前缀和它的 IP 地址长度是相同的，主机号和网络号之前的间距为0。也就是说，这一个目的地址记录的是一个主机地址。第二列表明数据报下一跳的地址。</p>
+
+<p>Flags 这一列的值，大致有以下几种（仅列出与 UNIX 系统重合的部分）：</p>
+
+<ol>
+<li>U: 表示可用的路由</li>
+<li>G：表示gateway 的路由是一个网关，如果不标识 G，那么说明这个路由是和本机相连在一个网络中的</li>
+<li>H：标识该路由是一个主机</li>
+<li>S: 表明这条路由记录是通过 route 命令加到路由表中的</li>
+</ol>
+
+<p>在上面的4个标志中，G 是最重要的，它区分了直接路由和间接路由。当 G 出现的时候，说明发送数据报的主机并没有和目的主机直接相连，gateway 列对应的值表明其是一个间接路由。否则，认为发送数据报的主机是和目的主机直接相连的，gateway 列对应的值表明这是一个直接路由。
+那么对于目的地址为<code>47.94.38.154/32</code>这条记录来说，它的下一跳地址是一个可用的间接s路由，并且这条路由记录是通过 route 命令条件进来的。所以在向目的主机发送数据报的时候，IP 数据报目的地址为<code>47.94.38.154/32</code>, 而以太网帧中的物理目的地址为192.168.2.1这个路由器的硬件地址。</p>
+
+<p>通常情况下 H 标志如果被设置，那么对应记录中的目的地址是一个完整的主机地址。否则目的地址是一个网络地址，主机号部分应该为为0. 但是我们可以看到，目的地址为<code>47.94.38.154/32</code>这条记录，其 Flags 列中并没有 H标志，所以在 IP 选路进行路由表匹配的时候，就会匹配网络号和子网号，如果带有 H 标志，那么肯定会优先匹配完整的主机地址。值得注意的是，这条记录的即使是通过匹配网络号和子网号，事实上也会对整个目的地址进行匹配，因为目的地址 CIDR 表示形式的前缀为32，就说明目的地址所对应的子网掩码是255.255.255.255, 证明这个目的地址是一个主机地址。</p>
+
+<p>Refs列表明使用这条路由目前活动的进程数。一般面向连接的协议在建立链接并通信的过程当中都会固定某个路由。如两台主机之间通过 telnet 来远程登录，相应的路由表项的引用计数就会增加</p>
+
+<p>Use列表明通过该条路由发送的数据报分组的数量。</p>
+
+<p>整个路由表中还有一个 default 的路由表项，当 IP 数据报进行选路的时候，如果数据报中的目的地址没有和任何一项匹配上的时候，就使用 default 表项所对应的路由器做下一跳的地址。在作者的机器中，当然就只有一个路由器了。</p>
+
+<h1 id="当没有达到目的地的路由">当没有达到目的地的路由</h1>
+
+<p>IP 选路的大致过程我们在第一段以及之前的讲 IP 网际协议的文章中已经都说过了。如果能够找到匹配的项目，那么数据报就会继续呗传递下去。但是当一个路由表中既没有默认路由也没有匹配的项目的时候，会发生什么呢？</p>
+
+<p>我们知道，Ping 程序是通过对某个主机发送一份 ICMP 回显请求报文，然后通过收到的 ICMP 回显应答报文来判断主机是否可达的。因为 ICMP 报文是被包裹在 IP 报文内部被传输的，所以ping 程序发送的报文也是需要进行 IP 选路的。当我们 Ping 一个不可达，或者不存在的主机的时候, 会出现如下的情况：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/1222.png" alt="" /></p>
+
+<p>在上图中我们ping 了一个77.21.2.222这样的一个主机地址，发现从88.134.186.186这个地址的路由那里收到一个 ICMP 目的主机不可达的差错报文。让我们来抓下包，看看整个 IP 寻路的过程是怎样的：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/traceroute11.png" alt="" /></p>
+
+<p>通过上图我们可以看出，traceroute 程序一共发了31*3个数据报。其中 TTL 在20-29之间，所发送的数据报均为得到回复。很有可能是这些 ICMP 超时数据报在回来的路上出了什么问题，导致没有到达我们的主机。但是当发送 TTL 为31的数据报时，到达了一个Ip 地址为88.134.186.186的主机或者路由，发送的三个数据报中有一个没有收到应答，就是最后面标星号的那个。其余两个在 RTT 时间的后面带了一个!H的标志，它表明我们的目的主机是不可达的。也就是说，当报文到达88.134.186.186主机的时候，IP 选路失败了，在这台主机的路由表中，我们没有找到任何匹配的记录，包括默认路由。此时，我们将返回源主机一个 ICMP 主机不可达报文。可见，当我们 ping 一个不存在，或者不可达的主机的时候，我们经过了很多的中间站，大部分原因是由于默认路由的存在，但是最终，还是返回的应有的「错误」。</p>
+
+<h1 id="当发生了一次多余的路由">当发生了一次多余的路由</h1>
+
+<p>什么是一次多余的路由呢？想象一下这样的场景，a,b,c 三台机器在同一个子网上，a 机器中只有 b 机器的默认路由，但是 c 机器才是这个子网链接 Internet 的 gateway，此时，a 机器要给 Internet 上面的某台主机发送数据，此时根据 IP 选路，数据报先到达了 b 机器，b 机器然后再转给 c 机器。很明显，经过 b 的中转其实是没有必要的，a 应该直接发送给 c 才对。当 b 检测到，其收到报文的接口，也就是a 发送报文的接口和 b 要发送报文到达的接口在同一个LAN上，此时，b 机器就会给 a 机器发送一份 ICMP 重定向差错报文。a 机器也就根据这份 ICMP 重定向差错报文来完善自己的路由表，下一次的数据发送会直接路由到 c 机器。当一个 LAN 上有很多机器的时候，如果其中的某个主机只有一个默认路由，那么它完全可以通过 ICMP 重定向差错报文来学习，从而完善路由表。</p>
+
+<p>在这里需要注意的是，如果一个主机是通过ICMP 重定向报文为自己的路由表添加了一条记录，那么这条记录的 flags 字段是多了一个 D 标志的，它就表明该条记录是被重定向报文创建的。并且，ICMP 重定向报文所生成的路由都是和主机相关的，也就是说，当我们去尝试以某种形式访问某台主机的时候，如果发生了 ICMP 重定向报文的发送，那么此时生成的路由记录是带有 H 标志的，也就是说，路由记录中的目的地址是一个明确的主机地址，那么，当下一次在发送数据报给另外一台主机的时候，这条路由记录显然是不会被命中的。所以说，是会发生一次新的路由重定向行为的。</p>
+
+<p>ICMP 重定向报文与主机相关的另外一个原因就是，网络地址，或者说被划分了子网的网络地址，类似网络号+子网号的组合，都是可能随时会变的，但是主机地址基本不会。</p>
+
+<h1 id="如何发现路由">如何发现路由</h1>
+
+<p>通过之前的学习，我们可以知道，如果想写入路由表，有几种已知的形式：</p>
+
+<ol>
+<li>route 命令</li>
+<li>配置文件</li>
+<li>ICMP 重定向报文</li>
+</ol>
+
+<p>除此之外，还有一种机制就是通过 ICMP 路由器发现报文。某台主机在成功隐刀之后，会使用多播或者广播发送 ICMP 路由器发现报文。其他的收到这份报文的机器就会回复一份ICMP 路由器通告报文。通告报文中通常含有很多的发送路由器地址，与其配对的还有一个优先级的字段，标明了它作为默认路由的优先等级。路由发送的 ICMP 路由器通告报文的时间间隔一般要比该报文内容的过期时间要短，这样就可以实现，接受通告报文的主机的默认路由，基本是永远不会过期的。</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

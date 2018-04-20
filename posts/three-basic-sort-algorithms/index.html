@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>三种基本排序算法 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">三种基本排序算法</span></h1>
+
+<h2 class="date">2016/11/09</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/algorithm">Algorithm</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<blockquote>
+<p>学习三种最基本的排序算法思想，文中代码已经经过大量测试。如发现有误，欢迎指正。</p>
+</blockquote>
+
+<h1 id="选择排序算法">选择排序算法</h1>
+
+<h2 id="核心思想">核心思想</h2>
+
+<p>如果以一个不含有重复元素并且元素个数为N的数组为排序对象的话，选择排序将从索引为0的数组元素开始，进行N趟排序，每趟排序都将确定一个元素是有序的。在进行第i趟排序的时候(i&gt;=0)，待排序的元素为array[i],选择排序将会遍历a[i+1&hellip;..N-1]的所有元素，找到i~N-1区间内的最小元素，然后和array[i]交换位置。每一趟排序，在寻找最小元素的时候，只是记录下当前最小元素的索引，直到本趟排序遍历结束才交换array[i]和找到的最小元素。当然，第i趟待排序的array[i]很可能就是当前最小的元素。</p>
+
+<h2 id="实现">实现</h2>
+
+<pre><code>	void sort(int[] a) {
+		for(int i = 0; i &lt; len(a); i++){
+			int min = i;
+			for(int j = i+1; j &lt; len(a); j++) {
+				if (a[min] &gt; a[j]){
+					min = j;
+				}
+			}
+			
+			int temp = a[i];
+			a[i] = a[min];
+			a[min] = temp;
+		}
+	}
+</code></pre>
+
+<h2 id="性能分析">性能分析</h2>
+
+<p>由上面的实现代码可以看书，选择排序最昂贵的操作是元素之间的比较。从索引为i的元素开始(i &gt;= 0)，a[i]这个元素需要N-i-1次比较，依次类推，直到数组当中的最后一个需要排序的元素a[N-2],需要1次比较。由等差数列求合公式可知（1 + 2 + 3 + &hellip; + N-1）= (N^2 - N)/2，所以选择排序的比较次数约为N^2/2。</p>
+
+<h2 id="优点与缺点">优点与缺点</h2>
+
+<ul>
+<li>选择排序最大的优点就是交换数组当中元素的次数少，这一点是其他排序算法都不能够比拟的。由上面的实现代码我们可以看出，交换操作的次数受限于最外层的循环次数，也就是输入数据的规模。因为交换操作可以达到O(N)级别，是线性的。</li>
+<li>选择排序的缺点也很明显，上一趟排序并不能给下一趟排序提供任何的有效信息，每一趟排序都是独立的。设想一下，如果我们输入的数据是一个本身已经有序的数组，或者每个元素都相同的数组，这种情况下选择排序仍然会傻乎乎的一个个比较下去，不会做出任何的优化。但是正常来讲，数据的输入应该有排序算法有影响才是，倒序的数据花时间最长，正序的数据花时间最短。</li>
+</ul>
+
+<h1 id="插入排序算法">插入排序算法</h1>
+
+<h2 id="核心思想-1">核心思想</h2>
+
+<p>插入排序的思想也非常的简单。当我们对索引为i(i &gt; 0)的元素array[i]进行排序的时候，认为array[0&hellip;.i-1]区间内的元素是已经有序的。我们只需要倒序遍历0~i-1区间内的元素，找到一个array[i]合适的位置插入到那里即可。如果是以升序来排的话，从i-1一直遍历到0，发现比array[i]大的元素则记录下这个元素的索引为j，直到发现比array[i]小的元素或到达了数组的边界为止。然后，将array[j&hellip;.i-1]区间内的元素均向后移动一位，把array[i]插入到索引为j的位置。</p>
+
+<h2 id="实现-1">实现</h2>
+
+<pre><code>	void sort(int[] a) {
+		for (int i = 1; i &lt; len(a); i++){
+			int j = i;
+			int tmp = a[i];
+			for(int k = i - 1; k &gt;= 0 &amp;&amp; a[k] &gt; tmp; k++) {
+				j = k;
+				a[k + 1] = a[k];
+			}
+			
+			a[j] = tmp;
+		}
+	}
+</code></pre>
+
+<h2 id="性能分析-1">性能分析</h2>
+
+<p>由上面的实现代码可知，影响插入排序性能的操作插是移动数组内元素的次数以及元素之间的比较的次数。与选择排序不同，插入排序的性能和输入数据的有序性是有关的。假定输入的数组中元素不会重复。</p>
+
+<ul>
+<li>最坏的情况：输入的数据是倒序的。从索引为1的元素开始比较，一直到索引为N-1的元素，移动数组元素的次数为，1+2+3+&hellip;&hellip;+N-1,约为N^2/2。并且每一次的移动都对应着一次比较，比较的次数也约为N^2/2。所以最坏的情况下，插入排序的时间复杂度应为O(1/2N^2).</li>
+<li>最好的情况：输入的数据都是有序的。这种情况下，排序过程是不涉及到元素移动的，只会做比较操作。从索引为1的元素开始直到索引为N-1的元素位置，一共比较了N-1次。所以，最好的情况下，插入排序的时间复杂度为O(N)级别。</li>
+<li>平均的情况：由上面两个分析结果可知。最坏情况下，插入排序的性能由移动次数来决定，因为移动伴随着比较，所以只算一遍，不叠加。最好的情况下，移动次数可以忽略不计，但是比较次数成了决定性能的唯一因素。所以，当处在平均的情况下时，应该有交换次数和比较次数共同来决定。平均状态下，每个元素都向后移动半个数组的长度，也就是移动(N-1)/2次，这样一来，规模为N的数组内的元素只有一半的元素可以移动，(N-1)/2 * (N/2),移动次数约为N^2/4。在这个过程中，有一半的元素不需要移动位置，单纯比较的次数应该也在N/2次。由于在计算时间复杂度的多项式内2次方为最高阶，所以平均状态下，插入排序的时间复杂度为O(1/4N^2)。</li>
+</ul>
+
+<h2 id="优点和缺点">优点和缺点</h2>
+
+<ul>
+<li>优点：在数组元素有序或者是部分有序的情况下，时间复杂度可以达到O(N)或者O(1/4N^2)级别。原始的数组中的元素有序性越强，则插入排序算法的优势就更明显。插入排序最大的优点其实就在于它能够快速的发现已经有序的元素，而不会再做其他的操作。</li>
+<li>缺点：在最坏的情况下和选择排序一样，都是O(1/2N^2)级别</li>
+</ul>
+
+<blockquote>
+<p>Ps: 其实在讨论上述两种算法的性能的时候，还有一个更重要的指标是数据的访问次数。在上面插入排序我给出的实现代码中可以看书，某趟排序中，在将待排序元素与其左侧元素进行比较的时候，并没有立刻交换他们的位置，而只是把较大的元素向后移动。这样一来就可以省去一半的数组访问操作。而比较操作和移动操作本质上来讲也就是对数组的访问。</p>
+</blockquote>
+
+<h2 id="希尔排序-插入排序的升级版">希尔排序&mdash;插入排序的升级版</h2>
+
+<h3 id="改进之处">改进之处</h3>
+
+<p>希尔排序某种意义上来讲是对插入排序的一个升级，设想一下，在插入排序的过程当中，如果最小的元素是在数组的最右端的话，我们想把它移动到正确的位置就需要经过N-1次的移动，因为插入排序在移动数组元素的时候都是相邻元素之间的移动。依次类推，第二小的元素，第三小的元素。。。希尔排序通过改变移动元素之间的间隔，对不相邻的两个元素移动位置，因此在每一趟排序的时候，某个元素可能都会以跳跃的方式尽快的接近它最合适的位置，减少了这其中的移动次数，从而提高了排序性能。</p>
+
+<h3 id="核心思想-2">核心思想</h3>
+
+<p>希尔排序是对插入排序的改进，那么插入排序的瓶颈在哪里呢？就是输入数据的有序性，数据的有序性越高，插入排序算法就越快。想提高数据的有序性，肯定就需要通过一些列的操作来调整数据的顺序。普通的插入排序由于移动元素的步长为1，所以效率较低。希尔排序则选择了提高移动元素的步长，假设步长为h(1 &lt;= h &lt; N)，原始的输入数据就会被分为几个元素之间间隔为h的子数组。此时我们对间隔为h的子数组进行插入排序，子数组的元素较少，而且移动元素的步长也很大，因此速度也会很快,子数组的有序程度取决于我们选择的步长。随后，步长的值会依次递减，直到变为1为止。在这个过程当中，每个元素会以最小的代价向其最合适的位置逼近。整个数组也会变得越来越有序，直到移动元素的步长减为1.希尔排序便退化成插入排序，但此时的数组内元素的有序性已经很符合插入排序的要求了。</p>
+
+<h3 id="实现-2">实现</h3>
+
+<pre><code>	void sort(int[] a) {
+        int h = 1;
+        int N = len(a);
+        while (h &lt; N / 3) h = 3 * h + 1;
+        while (h &gt;= 1) {
+            for (int i = h; i &lt; N; i++) {
+                Comparable min = a[i];
+                int pos = i;
+                for (int j = i; j - h &gt;= 0 &amp;&amp; less(min, a[j - h]); j -= h) {
+                    pos = j - h;
+                    a[j] = a[j - h];
+                }
+
+                a[pos] = min;
+            }
+
+            h = h / 3;
+        }
+	}
+</code></pre>
+
+<h3 id="性能分析-2">性能分析</h3>
+
+<p>希尔排序的性能主要取决于步长h的选择，由上面的分析可知，步长h是一个递增的序列，从1开始。那么如何构造这个递增的序列，肯定会有一个响应的数学公式。对这个递增序列的探讨太过复杂，涉及到的数学知识比较多，我在此就不深追究了。我们的重点是学习算法的思想，而不是过度的拘泥于其中的数学证明部分。</p>
+
+<h1 id="总结">总结</h1>
+
+<p>以上就是我对三种基本排序算法的分析和实现。大学的时候学过数据结构，但是现在回想起来，当初学的可能很机械。不但是数据结构，计算机领域中的所有知识都是一个不断进化的过程，我们要搞清楚它为什么要优化，不优化有什么问题，优化了又能解决多少问题。凡事多问自己几个为什么，用反证法的思想去学习计算机领域的知识可能会让我们对知识本身有更加深刻的理解。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

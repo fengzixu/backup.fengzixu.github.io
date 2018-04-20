@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kubernetes 之 Operator(一) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Kubernetes 之 Operator(一)</span></h1>
+
+<h2 class="date">2018/01/24</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/kubernetes">Kubernetes</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+
+
+<h4 id="q-什么是-operator">Q: 什么是 Operator?</h4>
+
+<h4 id="a">A:</h4>
+
+<p>Operator 在 k8s 系统中可以认为他是一个集 resource 和 controller 的结合体。他是对 resource 和 controller 的一个高度的抽象。通过扩展 Kubernetes API来达到这一效果。</p>
+
+<h4 id="q-operator-是如何工作的">Q: Operator 是如何工作的？</h4>
+
+<h4 id="a-1">A:</h4>
+
+<p>在 k8s 组件的架构中，可以将 Operator 理解为用户和 resource 之间的一个桥梁。而用户想对 resource 做什么操作的话，需要先通过调用 API Server，将请求转发到 Operator 的身上（这里可能说的不准确， operator 是通过监听 API Server 上对于其创建的资源所做的操作来进行响应的）。通过这样的理解，我们就可以看出，operator 一方面需要管理部署在集群 node 中的应用，另外一方面需要与 API Server 进行交互，以便响应用户的需求。在 CoreOS 的官网上，同样给出了这样一个文档，里面以 etcd 这个 operator为例，描述了 operator 具体的工作模式。 <a href="https://coreos.com/operators/">Kubernetes Operators</a>，总结下来无非就是三个步骤：</p>
+
+<ol>
+<li>观察资源目前的状态</li>
+<li>对比资源期望的状态</li>
+<li>将资源目前的状态 Fix 到期望的状态</li>
+</ol>
+
+<h4 id="q-operator-存在的意义是什么">Q: Operator 存在的意义是什么？</h4>
+
+<h4 id="a-2">A:</h4>
+
+<p>笔者认为，从 Operator 的使用角度来讲，它最大的意义就是代替操作手册，代替人工去维护部署在集群上面的多个应用。应用的个数越多，运维这些应用的成本越高(如特定的领域知识)，越能够体现出一个 Operator 的价值。Operator 是基于 controller 的，也就是说，Operator 提供的功能会比 controller 本身更加强大，甚至是融合了一些特定业务场景的知识。</p>
+
+<h4 id="q-开发一个-operator-前需要知道什么">Q: 开发一个 Operator 前需要知道什么？</h4>
+
+<h4 id="a-开发一个-operator-需要基于-kubernetes-中的两个概念">A: 开发一个 Operator 需要基于 Kubernetes 中的两个概念：</h4>
+
+<pre><code>1. resource
+2. controller
+</code></pre>
+
+<p>CoreOs中的文档中简要的概括了一个 Operator 的开发内容：
+An Operator builds upon the basic Kubernetes resource and controller concepts and adds a set of knowledge or configuration that allows the Operator to execute common application tasks。</p>
+
+<h4 id="q-什么是-kubernetes-object">Q: 什么是 Kubernetes Object？</h4>
+
+<h4 id="a-一个-kubernetes-object-是-k8s-系统中的一个实际存在的对象-它包含了三个部分">A: 一个 Kubernetes Object 是 k8s 系统中的一个实际存在的对象。它包含了三个部分：</h4>
+
+<ol>
+<li>运行的容器应用是什么</li>
+<li>容器应用运行所需要的资源</li>
+<li>容器应用各种行为的策略，如重启，更新等
+在官网的文档中提到，Kubernetes Object 实际上是一种「意图的记录」，这个「意图」就是我们想让这些部署在 k8s 集群中的 app 以一个什么样的状态运行。也就是说，当我们创建了一个 Kubernetes Object 的时候，我们就相当于告诉 k8s system，这些应用在集群当中的期望状态（desired state）是什么。其实在之前学习 k8s 的过程当中，我们就已经接触过 k8s object, 那就是 Pod。那么 k8s objects 对应的就是 Pods。通过 kubectl 命令行工具，我们可以操作 Pods，那同理 k8s objects 也同样可以被操作。</li>
+</ol>
+
+<p>一个 Object 通常具有两个必须的属性：a) object spec b) object status。object spec 就是对这个 object 的一些信息进行描述，比如这个 object 将要运行什么应用，这个应用的镜像是什么等等。object status 一般可以表现为该 object 在实际运行过程中的状态，k8s 系统自有的一些机制会不断的更改这个 actual status，直到它和 object spec 中的 desired state 相等为止。</p>
+
+<h4 id="q-什么是-resources-什么是-custom-resources">Q: 什么是 resources？ 什么是 custom resources</h4>
+
+<h4 id="a-3">A:</h4>
+
+<p>A resource is an endpoint in the Kubernetes API that stores a collection of API objects of a certain kind. For example, the built-in pods resource contains a collection of Pod objects. 总结下来就是，一个resource 是一堆 kubernetes object 的集合。例如 Pods 和 Pod 的关系。 那么 custom resource 就是自定义的对 kubernetes API 扩展后的 resource。</p>
+
+<h4 id="q-什么是-custom-controllers">Q: 什么是 custom controllers?</h4>
+
+<h4 id="a-4">A:</h4>
+
+<p>我们都很清楚，在 k8s 中，resource 是要和 controller 一起配合工作的。那么对于 custom controllers 来讲，它可以和任何类型的 resource 一起工作，但是针对 custom resource是尤其高效的。</p>
+
+<h4 id="q-什么是-crd">Q: 什么是 CRD？</h4>
+
+<h4 id="a-5">A:</h4>
+
+<p>CRD 可以认为是我们对自定义资源的描述，或者可以直接把它当做一个自定义资源的模板。这种描述信息即可以体现在 yaml 文件中通过 Kubectl 命令行工具来创建一个 CR，也可以直接通过 k8s的 client library 在代码中创建。</p>
+
+<h4 id="q-开发一个-operator-需要哪些步骤">Q: 开发一个 Operator 需要哪些步骤？</h4>
+
+<h4 id="a-6">A:</h4>
+
+<pre><code>    1. 定义一个 CR（可以使用 yaml 文件也可以使用 kubernetes-client-go 的 library）
+    2. 向 API Server 注册这个 CR
+    3. 提供相应的 handler 用于处理用户对 CR 的 ADU操作
+    4. 监听 CR 的的各种事件，并路由至相应的 handler 进行处理
+</code></pre>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning-Process-In-Modern-Operating-System(2) | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Learning-Process-In-Modern-Operating-System(2)</span></h1>
+
+<h2 class="date">2017/04/27</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/operatingsystem">OperatingSystem</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p></p>
+
+<h1 id="有了进程为啥还要线程">有了进程为啥还要线程</h1>
+
+<p>上一篇和进程相关的文章讲过为啥操作系统需要进程这个概念，其实说白了，就是操作系统要干太多的事了，一个人搞不定，得让多个人一起来搞，多个人的职责不同，需要耗费的时间和资源也就不同，为了把他们的工作时间重叠起来，让他们好好的配合，提升操作系统整体的工作效率，才有了进程这个概念。这么一说，有了进程就万事大吉了啊，为何还需要线程这个概念呢？</p>
+
+<p>线程，是一个轻量级的进程。其实看线程的概念就知道了，明显和进程是一回事，只不过线程本身更加轻量级。操作系统本身看做是一个整体的话，那么他有很多事需要处理，自然要分配给不同的进程。那么对于一个进程来说，它要做的事情也绝对不仅仅是很单一的，同样，在进程这个范围内，也需要有很多的工作一起进行。那么套用上面讲过的概念，一个进程自然也需要很多人帮它来完成一件很大的任务，通过内部的调度让多个人的工作可以准并行的执行，那么整个进程的效率就会非常高。这里的“很多人”指的就是线程，一种轻量级的进程。</p>
+
+<p>线程的优势有以下三点：</p>
+
+<ol>
+<li>一个进程当中可能需要同时做很多事情才能够满足用户对系统工作效率的要求。所以需要一种轻量级进程的概念</li>
+<li>线程比进程更加轻量级，创建，销毁以及频繁的调度在效率上都比进程进行相关的操作高出不少</li>
+<li>在非cpu密集型的进程中，如果有了多线程的帮助，进程整体的效率会有非常大的提升。对i/o密集型的效果尤其明显</li>
+<li>不同进程之间的地址空间是独立的，互不干扰。但是同一个进程里面的不同线程，他们是共享同一块内存地址空间的，在操作同一个文件或者资源的时候，数据一致性的问题很好处理。</li>
+</ol>
+
+<p>一般的进程如果不刻意创建子线程的话，只有一个主线程，也成为控制线程，整个程序也被称作是单线程的程序。举一个例子来说明，多线程工作方式的好处：假设你现在想做饭，这顿饭里面包含一个汤，一碗米饭以及一个炒菜。如果你是一个人来做这些事情的话，假设每一件事情在做的过程当中都要求你全程看护，阻塞了你这个人不能做其他的事情。那么你就必须将这三件事情按照顺序一件一件的完成。其中炒菜是最慢的，不仅要摘菜，洗菜，还要切菜，最后还要炒熟。这浪费了大量的时间。菜做好了发现还有两件事丝毫还没有进展。这个时候你就会想，要是有另外两个人，在我做菜的同时帮我煲汤和做米饭就好了。于是乎，在多个人参与到这件事中之后，每个人有不同的职责。如果厨房可以支持三个人同时使用的话，那么做出这一顿饭就会非常的快。即使同一时间只允许一个人使用，那么也能够保证，在等米饭煮熟的过程当中可以把做菜和煲汤的人换进来做他们应该做的事情，这样一来，同一段时间可以做多件事情，效率也肯定比最原始的方式要高了。</p>
+
+<p>通过上面的例子我们可以知道，做饭就是进程，炒菜，米饭，煲汤就是线程。允许多个人同时使用厨房就是多cpu并行，不允许就是单cpu通过调度线程。</p>
+
+<h2 id="隐藏的boss-有限状态机">隐藏的boss&mdash;有限状态机</h2>
+
+<p>前面说的单线程和多线程的设计模型，其实都基于一点：我们在做一件事情的过程中。无论大小都有可能会被一些系统调用给阻塞住。如果是单线程的设计模型，那么整个cpu就一直处于空转状态，直到这个阻塞的系统调用结束。而多线程设计模型在保证了仍然使用阻塞系统调用的前提下还能够提高整件事情的效率。但是有没有另外一种方案，可以使用非阻塞的系统调用呢？</p>
+
+<p>既然是非阻塞的，那说白了就是异步的，异步的你就肯定的保存上下文，保存状态。一个线程的执行情况会在多种状态下切换，那么我们就必须要把他们保存起来才行。每执行一个线程调用了非阻塞系统调用之后就可以保存下来当前状态，然后去接收新的请求。新进来的请求可能是一个全新的线程，也可能是上一个线程非阻塞系统调用的返回值。无形中，我们就为系统中多线程的执行情况维护了一套堆栈信息。同一个线程在有限的几个状态下切换，直到完成。这一套模型就被称为是有限状态机。</p>
+
+<p>其实说到底，多线程的设计模型在多cpu的系统内才能够发挥出最大的优势,但是也有前提，就是这个线程所在的进程，需要做的i/o密集型的任务占比比较大。单cpu多线程虽然调度线程的开销较小，但是总之还是不能实现真正的并行。</p>
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+
