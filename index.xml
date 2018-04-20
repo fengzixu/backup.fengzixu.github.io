@@ -27,8 +27,9 @@
       
       <guid>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</guid>
       <description>概述 在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需要将 Pod 调度到一些特定的 Node 上面，比如一些挂在了 SSD 硬盘的 Node。因为有这样的需求，k8s 可以让我们自己控制 Pod 调度至 Node 的策略。这些策略是通过 labelSelector 来实现的。
-最简单的方式-NodeSelector NodeSelector 是PodSpec 中的一个 Field。它是一个 key-value 的 pair。key 对应了 Node 中的 label，value 对应了Node 中的 labelValue。当这个 Pod 被创建之后，k8s 会按照这个 nodeSelector 的规则在集群中进行匹配，找到合适的 Node 进行调度。否则，这个 Pod 将不会被成功调度并且会报错： No nodes are available that match all of the following predicates&amp;hellip;
-Affinity and anti-affinity Affinity 是什么？相对于 NodeSelector 来说它有哪些优点？ Affinity（anti-affinity） 是对 NodeSelector 的一种功能上的扩展，NodeSelector 可以做到的东西，它一样可以做到。功能上的加强有以下几个方面：</description>
+NodeSelector NodeSelector 是PodSpec 中的一个 Field。它是一个 key-value 的 pair。key 对应了 Node 中的 label，value 对应了Node 中的 labelValue。当这个 Pod 被创建之后，k8s 会按照这个 nodeSelector 的规则在集群中进行匹配，找到合适的 Node 进行调度。否则，这个 Pod 将不会被成功调度并且会报错： No nodes are available that match all of the following predicates&amp;hellip;
+Affinity and anti-affinity Affinity（anti-affinity） 是对 NodeSelector 的一种功能上的扩展，NodeSelector 可以做到的东西，它一样可以做到。功能上的加强有以下几个方面：
+ 不仅支持对单个的 key-value pair进行匹配，还支持逻辑运算的语义。如 AND 等 设置的调度策略将分为：强制和非强制两种类型。强制类型则和 NodeSelector 的功能一样，如果匹配失败，那么也就意味着调度失败。非强制类型则优先会匹配设置好的策略，如果没有匹配成功，k8s 会自动按照它的默认策略调度 Pod 至 Node 上。 调度策略可供设置的粒度更细，不但支持 NodeLabel 粒度的，还支持 PodLabel 粒度的。这也就是说，我们不但可以根据 Node 本身的 label 设置调度策略，还可以根据目标 Node 上所运行的 PodLabel 设置。如 RedisAPP 中，主从节点的 Pod 肯定是不能被调度到一个 Node 上的。这个功能的产生，主要是考虑到了同一个 Node 上面运行的 Pod 之间会有业务上的影响  Node affinity NodeAffinity 分为两种类型：</description>
     </item>
     
     <item>

@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>NetWork on LittleDriver</title>
+    <title>Network on LittleDriver</title>
     <link>http://littledriver.net/tags/network/</link>
-    <description>Recent content in NetWork on LittleDriver</description>
+    <description>Recent content in Network on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 16 Feb 2017 19:45:51 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 27 Nov 2017 08:41:36 +0000</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/network/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Https通信机制</title>
-      <link>http://littledriver.net/posts/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</link>
-      <pubDate>Thu, 16 Feb 2017 19:45:51 +0000</pubDate>
+      <title>TCP/IP 协议--UDP用户数据报协议</title>
+      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80-udp-%E5%8D%8F%E8%AE%AE/</link>
+      <pubDate>Mon, 27 Nov 2017 08:41:36 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-  </channel>
-</rss>n>什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一个进程的输出，都会对应一个 UDP 或者 TCP 的数据报。
+      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80-udp-%E5%8D%8F%E8%AE%AE/</guid>
+      <description>什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一个进程的输出，都会对应一个 UDP 或者 TCP 的数据报。
 UDP 数据报的组成 UDP 数据报一共可分为5个部分
  目的端口号 源端口号 UDP 数据报长度(首部+数据部分，最低为8B) 校验和 数据部分  目的端口号和源端口号都可以视作为对应了发送端和接收端的两个进程。UDP 数据报的长度包含了首部和数据部分，并且最小不能低于8，因为前4部分构成了 UDP 数据报的首部。这四个字段的字节数是8B。换句话说，网络中是可以传输数据部分为0字节的 UDP 数据报的。
 关于校验和字段，UDP 和 TCP 数据报都会有。唯一的区别是，UDP 是可选的，TCP 是必须的。UDP 计算校验和的方式和 IP 数据报计算的校验方式一样。除此之外，为了计算校验和，UDP 或者 TCP 数据报还会包含一个伪首部部分。它包含 IP 数据报的某些内容，通过源 IP 和目的 IP，我们可以知道是否这个数据报不应该由我们这台主机来处理，协议字段可以让我们了解到，这个数据报是应该交由 UDP 端口的进程来处理还是 TCP 端口的进程。

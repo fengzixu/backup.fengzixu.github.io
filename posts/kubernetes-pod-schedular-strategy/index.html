@@ -71,6 +71,30 @@
 </div>
 
 
+<nav id="TableOfContents">
+<ul>
+<li><a href="#概述">概述</a></li>
+<li><a href="#nodeselector">NodeSelector</a></li>
+<li><a href="#affinity-and-anti-affinity">Affinity and anti-affinity</a>
+<ul>
+<li><a href="#node-affinity">Node affinity</a></li>
+<li><a href="#inter-pod-affinity-and-anti-affinity">Inter-pod affinity and anti-affinity</a>
+<ul>
+<li><a href="#topologykey">topologyKey</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#example-在具有-redis-实例的-node-上部署-webserver">Example&ndash;在具有 Redis 实例的 Node 上部署 WebServer</a>
+<ul>
+<li>
+<ul>
+<li><a href="#redis">Redis</a></li>
+<li><a href="#webserver">webServer</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#highavailible">HighAvailible</a></li>
+</ul>
+</nav>
+
 
 <main>
 
@@ -79,13 +103,11 @@
 
 <p>在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需要将 Pod 调度到一些特定的 Node 上面，比如一些挂在了 SSD 硬盘的 Node。因为有这样的需求，k8s 可以让我们自己控制 Pod 调度至 Node 的策略。这些策略是通过 labelSelector 来实现的。</p>
 
-<h1 id="最简单的方式-nodeselector">最简单的方式-NodeSelector</h1>
+<h1 id="nodeselector">NodeSelector</h1>
 
 <p>NodeSelector 是PodSpec 中的一个 Field。它是一个 key-value 的 pair。key 对应了 Node 中的 label，value 对应了Node 中的 labelValue。当这个 Pod 被创建之后，k8s 会按照这个 nodeSelector 的规则在集群中进行匹配，找到合适的 Node 进行调度。否则，这个 Pod 将不会被成功调度并且会报错： No nodes are available that match all of the following predicates&hellip;</p>
 
 <h1 id="affinity-and-anti-affinity">Affinity and anti-affinity</h1>
-
-<h2 id="affinity-是什么-相对于-nodeselector-来说它有哪些优点">Affinity 是什么？相对于 NodeSelector 来说它有哪些优点？</h2>
 
 <p>Affinity（anti-affinity） 是对 NodeSelector 的一种功能上的扩展，NodeSelector 可以做到的东西，它一样可以做到。功能上的加强有以下几个方面：</p>
 
@@ -171,7 +193,7 @@
 
 <p>前提：实例中所用集群Node 数量为3</p>
 
-<h4 id="redis">Redis</h4>
+<h3 id="redis">Redis</h3>
 
 <pre><code>apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
@@ -192,7 +214,7 @@ spec:
 
 <p>首先在集群的三个节点上以 Deployment 的方式部署三个 redis 实例，PodLabel 为 app：store</p>
 
-<h4 id="webserver">webServer</h4>
+<h3 id="webserver">webServer</h3>
 
 <pre><code>apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
