@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>gRPC Deadline Explanation | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">gRPC Deadline Explanation</span></h1>
+
+<h2 class="date">2018/04/21</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/grpc">gRPC</a> <a href="/tags/workexperience">WorkExperience</a> 
+  
+  
+</p>
+</div>
+
+
+<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#什么是-grpc-deadline">什么是 gRPC Deadline</a></li>
+<li><a href="#为什么要设置-deadline">为什么要设置 Deadline</a></li>
+<li><a href="#什么是一个合适的-deadline-值">什么是一个合适的 Deadline 值</a></li>
+<li><a href="#一些-bestpractice">一些 BestPractice</a>
+<ul>
+<li><a href="#如果你的请求同时具有1-2两个特点-那么对于上面所提出的问题-回答应该是有必要的">如果你的请求同时具有1，2两个特点，那么对于上面所提出的问题，回答应该是有必要的。</a></li>
+<li><a href="#如果你的请求通知具有1-3两个特点-那么对于上面所提出的问题-回答是没有必要的">如果你的请求通知具有1，3两个特点，那么对于上面所提出的问题，回答是没有必要的</a></li>
+<li><a href="#如果你的服务经常在功能上需要变动-那么你应该对你服务中的-grpc-请求增加监控">如果你的服务经常在功能上需要变动，那么你应该对你服务中的 gRPC 请求增加监控</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+
+
+<main>
+
+
+<h2 id="什么是-grpc-deadline">什么是 gRPC Deadline</h2>
+
+<p>gRPC 框架中的 Deadline 的概念主要是针对于客户端而言的。它表明了一个 RPC 请求在完成之前或者被错误终止之前，gRPC client 需要等待多长时间。如果我们在使用 gRPC 框架进行 RPC 请求的时候没有指定这个值，它的默认值是依赖于不同编程语言的实现的。理论上来说， 若不指定，应该是一个非常大的值。</p>
+
+<h2 id="为什么要设置-deadline">为什么要设置 Deadline</h2>
+
+<p>一个 RPC 请求的处理端大部分是我们所实现的一个服务，如果此时客户端请求不设置 Deadline，那么服务端的资源就会一直被占用（如内存，CPU，网络端口等），而且，任意一个客户端请求都可能会达到默认的 Deadline 最大值。</p>
+
+<h2 id="什么是一个合适的-deadline-值">什么是一个合适的 Deadline 值</h2>
+
+<p>对于 Deadline 值的设定，gRPC 官方的文档中并没有给出一个具体的最佳实践。仔细一想，这也是比较正确的。因为使用 gRPC 框架的服务性质各不相同，所以一个「最佳」的值，即使给出来也是没有多的意义的。所以，我们就得出了一个结论：「Deadline 的最佳值是和业务紧密相关的」。</p>
+
+<p>上面在提到「为什么要设置 Deadline 值」的时候，我们举了一个客户端和服务端的例子。但其实在真正的工业环境当中，gRPC 请求的通信双方基本上同时扮演着客户端和服务端的角色。在请求过程中角色的不同，就导致他们是相互独立的两个个体。对于一次请求来说，它是否成功可能在服务端和客户端上的认知上是有差异的。如，一个请求从 A 发送至 B，B 处理完成之后发送 Response。此时 B 会认为本次的 RPC 请求已经成功结束。但是，由于各种各样的问题，该 Response 可能没有按时到达 A 端。那么 A 在等待这个回应的时候很有可能过了它设置的 Deadline 值，或者是默认值。此时，A 会认为本次请求失败。在理解这里的时候，如果联想一些「TCP 三次握手」以及「全双工通信」的原理，迁移一下就会很容易明白了。对于这个问题，gRPC官方的文档中是建议我们能够在 Application Layer 去检查和解决他们。</p>
+
+<blockquote>
+<p>PS: 笔者在使用 gRPC 框架到公司的项目中时，也被这个问题搞得非常的头疼。一开始是觉得官方肯定会给出一个 Deadline 的最佳实践的，然而并没有。这种客户端和服务端对一次 RPC 请求成功与否的认知差别，会在服务刚刚设置这个 Deadline 的时候稳定性会受到一定的影响。由于是和网络请求相关联的值，那么它受到网络环境好坏的影响也是非常大的。所以，笔者觉得这个 Deadline 的值是要定期去审视和修改的。因为随着业务的变动，同一个请求所需要的时间会有所变化，而且这个时间的设置一定程度上还要对网络环境进行容错。目前觉得最好的时间就是对服务的 gRPC 请求增加可视化监控，监测 <code>DEADLINE_EXCEEDED</code>出现的比例。如果发生了陡增的现象，那么就提醒你可能要重新调整 Deadline 的阈值了。</p>
+</blockquote>
+
+<h2 id="一些-bestpractice">一些 BestPractice</h2>
+
+<p>首先是来自官方文档中的一些最佳实践（具体代码不列举了，主要说一些这些实践最佳在哪里）</p>
+
+<p>以 Go 语言举例。对于使用 gRPC 框架创建的服务端来说，都会有一个 <code>context.Context</code> 的参数从客户端的请求中传递过来。服务端可以在这个参数中获取到客户端的有关信息。那么我们想一下这个问题：</p>
+
+<blockquote>
+<p>如果客户端已经主动断开连接取消了这次请求，那么服务端还有必要去执行接下来的处理逻辑么？</p>
+</blockquote>
+
+<p>对于这个问题，简单的考虑有必要和没必要是不正确的。笔者认为正确的思考方式是要去仔细的分析你服务端的方法中处理的请求有哪些特质。比如，你的请求可能有如下的特点：</p>
+
+<ol>
+<li>「资源收割机」，往往是耗费服务端资源的大户</li>
+<li>请求响应内容的时效性不重要，但是稳定性和性能极其重要</li>
+<li>非常要求时效性</li>
+</ol>
+
+<h3 id="如果你的请求同时具有1-2两个特点-那么对于上面所提出的问题-回答应该是有必要的">如果你的请求同时具有1，2两个特点，那么对于上面所提出的问题，回答应该是有必要的。</h3>
+
+<blockquote>
+<p>最佳实践1：当你的请求不要求时效性，且很耗费资源的时候。如果客户端取消了 gRPC 请求，那么服务端仍然可以继续处理这个请求，并把请求的结果缓存起来(如按照 key-value 的形式)。这样下次同样的请求过来就可以更快的进行回复</p>
+</blockquote>
+
+<h3 id="如果你的请求通知具有1-3两个特点-那么对于上面所提出的问题-回答是没有必要的">如果你的请求通知具有1，3两个特点，那么对于上面所提出的问题，回答是没有必要的</h3>
+
+<blockquote>
+<p>最佳实现2： 当你的请求非常要求时效性，且很耗费资源的时候。如果客户端取消了 gRPC 请求，服务端没必要在进行处理。所以正确的做法是在服务端执行处理请求的逻辑之前检测请求带过来的 context 参数是否已经处于异常状态，如：超时，取消等</p>
+</blockquote>
+
+<pre><code>if ctx.Err() == context.Canceled {
+	return status.New(codepb.CANCELLED, &quot;Client cancelled, abandoning.&quot;)
+
+if ctx.Err() == context.DeadlineExceeded {
+	return status.New(codepb.DEADLINEEXCEEDED, &quot;Client deadline exceeded.&quot;)
+}
+</code></pre>
+
+<h3 id="如果你的服务经常在功能上需要变动-那么你应该对你服务中的-grpc-请求增加监控">如果你的服务经常在功能上需要变动，那么你应该对你服务中的 gRPC 请求增加监控</h3>
+
+<p>正如我在「什么是一个合适的 Deadline」 一节中提到的那样。如果我们的服务功能经常会有变化，那我们一定要对 gRPC 的请求增加监控，在功能变化的前后要密切注意各项指标，尤其是 gRPC ErrorCode 出现的比例。因为很可能你之前设置的 Deadline 时间是100ms，但是随着服务功能的复杂化，100ms 显然不够用了，这个时候，客户端对于和这个功能有关的请求可能会出现大量的报错。</p>
+
+<p>针对 go+gRPC 的组合来讲，目前比较推荐的监控方案就是 Prometheus+Grafana+go-grpc—prometheus。</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

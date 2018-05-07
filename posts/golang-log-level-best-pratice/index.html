@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Golang Log Level Best Pratice-1 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Golang Log Level Best Pratice-1</span></h1>
+
+<h2 class="date">2018/05/03</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/golang">Golang</a> <a href="/tags/bestpractice">BestPractice</a> 
+  
+  
+</p>
+</div>
+
+
+<nav id="TableOfContents">
+<ul>
+<li><a href="#写在前面">写在前面</a>
+<ul>
+<li><a href="#warn">Warn</a></li>
+<li><a href="#fatal">Fatal</a>
+<ul>
+<li><a href="#在-library-中">在 Library 中</a></li>
+<li><a href="#在-main-中">在 Main 中</a></li>
+</ul></li>
+<li><a href="#error">Error</a></li>
+<li><a href="#info-debug">Info &amp;&amp; Debug</a></li>
+</ul></li>
+</ul>
+</nav>
+
+
+<main>
+
+
+<h1 id="写在前面">写在前面</h1>
+
+<p>在使用 Golang 语言开发的过程中，被广大开发者广泛使用的 Debug 方式应该就是观测服务输出的关键性日志信息了。这也就是我们俗称的「日志 Debug」 方式。虽然 Golang 也可以通过一些断点调试的方法去 Debug，这种方式在 Demo 阶段或者仅仅做一个 Experiment 的时候可能是比较好的，但是在真正的生产环境中或者说高并发的场景下，断点调试就会显得力不从心了。所以，主流的方式可能仍然是「日志 Debug」。</p>
+
+<p>对于 Log 的使用，可能大多数人都倾向于使用一些第三方的日志工具。毕竟 Golang 官方的 Log 库提供的功能以及对 Log 输出的可定制性都是有限的。主流的日志工具库有以下两个：</p>
+
+<ol>
+<li><a href="https://github.com/sirupsen/logrus">https://github.com/sirupsen/logrus</a></li>
+<li><a href="https://github.com/golang/glog">https://github.com/golang/glog</a></li>
+</ol>
+
+<p>这两个日志工具库都提供了丰富的功能，其中一个共性的功能就是「按照级别输出日志」。因为在输出日志的时候，可能会有以下输出级别给你选择，不同的级别可能代表着这条日志输出的优先级，重要性，作用都是不同的：</p>
+
+<ul>
+<li>Error</li>
+<li>Fatal</li>
+<li>Info</li>
+<li>Warn</li>
+<li>Debug</li>
+</ul>
+
+<p>那么在接下来的两篇关于「Golang Log」的文章当中，将会根据笔者的实践经验，在日志级别的使用以及日志库工具的使用上给出一些我自己的「Best Practice」。</p>
+
+<h2 id="warn">Warn</h2>
+
+<p>Warn 这种日志级别一直让我感觉比较困惑，按照单词的字面意思来理解，它是用来输出警告信息的。那警告这种级别到底是用于什么场景呢？如果是错误的话那应该直接用 Error，如果是简单的输出一些信息的话，那么用 Debug 和 Info 都是可以的。这样看来，Warn 这种级别就很尴尬，和其他的级别没有明显的区别，导致开发者在选择日志输出级别的时候就多了一种令人困惑的选择。如果你一直在使用 Warn 这种日志级别在输出「错误」信息的话，建议还是改成 Error 较好。最主要的原因就是，滥用 Warn 级别可能会给我们的日志造成很大的噪音，因为大家潜意识里就认为 Warn 不重要，Error 才是需要注意的。这样一来，把错误信息放在 Warn 里面输出就是非常不合适的，很有可能让我们忽略一些关键的信息。</p>
+
+<p>日志输出级别上的 Warn 和监控报警级别中的 Warn 显然不是一回事，前者是将输出的日志信息划分等级，以此来帮助我们追查问题和观察程序运行的情况。后者则是用来像我们报告服务的某些指标已经很接近 Error 报警的阈值，提醒我们要注意。并且监控报警中的 Warn 级别也是提倡要善用的，滥用同样会导致噪声。</p>
+
+<p>即使在 logrus 日志工具库中提供了 Warn 日志级别，它的注释中也对这种日志级别定义的比较模糊：</p>
+
+<p><code>// WarnLevel level. Non-critical entries that deserve eyes.</code></p>
+
+<blockquote>
+<p>Best Practice1: 不要在你的服务中使用 Warn 的日志级别。根据日志输出的性质不同，选择更加明确的日志级别</p>
+</blockquote>
+
+<h2 id="fatal">Fatal</h2>
+
+<p>无论是 Golang Standard Library 中的 Log 库，还是 Logrus 这种第三方日志工具库，Fatal 级别的日志输出实现起来都是相同的：</p>
+
+<ol>
+<li>输出日志信息</li>
+<li>调用 <code>os.Exit(1)</code>方法结束程序</li>
+</ol>
+
+<p>有了上面信息，在思索一下 Golang 中内置的一些函数，就会发现，Fatal 和 Panic 只差的了一个输出信息的功能。既然涉及到了 Panic，那么就不得不对 Fatal 的使用场景做出区分了。</p>
+
+<h3 id="在-library-中">在 Library 中</h3>
+
+<p>在对外提供的 Package 中，社区的建议是不应该使用 Panic 的。那么很自然的，使用  Fatal 也是不合适的。道理很简单，任何一个使用你提供的 Package 的程序结束与否，都不应该由你来决定，而是需要调用者来决定。</p>
+
+<h3 id="在-main-中">在 Main 中</h3>
+
+<p>我们通常看到 Fatal 出现频率最高的地方估计就是启动一个 Server 的时候了：</p>
+
+<pre><code>s := &amp;http.Server{
+	Addr:           &quot;:8080&quot;,
+	Handler:        myHandler,
+	ReadTimeout:    10 * time.Second,
+	WriteTimeout:   10 * time.Second,
+	MaxHeaderBytes: 1 &lt;&lt; 20,
+}
+log.Fatal(s.ListenAndServe())
+</code></pre>
+
+<p>然而启动一个 Server 的逻辑也大都出现在 Main 函数中。</p>
+
+<p>所以，如果要使用 Fatal ，也不要在 Library 中进行使用。即使在 Main 函数中，可能还有另外一个问题需要注意&mdash;-「Gracefully Shutdown」。因为直接调用 <code>os.Exit</code> 函数，一些包含在 defer 执行的函数内的「清理」操作就都不会被执行了，所以在使用 Fatal 的时候，要注意一下「Gracefully Shutdown」的问题，尤其是在使用一些第三方的日志工具库的时候。</p>
+
+<blockquote>
+<p>Best Practice2: 出于对 Gracefully Shutdown 问题的考虑，尽量不要使用 Fatal 这种日志级别。若确实在程序中遇到了无法处理的错误且必须要结束程序，可以将错误一直向上抛出，直到 Main 函数中。并且在退出程序之前还需要处理好 resource clearup 的问题。</p>
+</blockquote>
+
+<h2 id="error">Error</h2>
+
+<p>Error 这个日志级别应该是我们在开发过程中最常使用的。但是很多人在使用的过程中可能都存在一个比较大的误区，就是把 「Error Handling」 和 「Error Logging」 混淆了，甚至是将它们合二为一，用 「Error Logging」 作为 「Error Handling」的方式。
+那么当我们在面对一个<code>error</code>的时候，我们有哪几种处理它的选择呢？</p>
+
+<ol>
+<li>Return the caller</li>
+<li>Handle at once</li>
+</ol>
+
+<p>对于第一个选择来说，它绝不意味着下面的代码：</p>
+
+<pre><code>	if err := SayHello(); err != nil {
+		logger.Error(err)
+		return err
+	}
+</code></pre>
+
+<p>仔细想想上面的这段代码，它的目的是非常不清晰的。如果是想将错误抛给调用者，那么应该直接 <code>return err</code>而不是在 return 之前还要用 Error 输出一下错误信息。上面的实现方式，明显是把错误处理和错误返回混合在一起使用了，并且错误处理的方式就是&mdash;-输出错误信息（(⊙﹏⊙)b。</p>
+
+<p>对于第二种选择来说，如果想在调用报错的位置处理错误，如进行重试等，则可以输出错误信息并执行相应的错误处理函数</p>
+
+<pre><code>	if err := SayHello(); err != nil {
+		logger.Error(err)
+		HandleError()
+	}
+</code></pre>
+
+<p>现在看来，除了在能够处理错误的地方可以输出错误信息之外，其余的地方都是不适合的。但是这仅限于 Library 和 Package 中的功能性函数里，如果是在一些对外暴露的 HTTP 接口中，在将错误信息返回给 client 之前，输出错误信息还是非常必要的。不过，如果在你的代码中，error 一直向上抛，结果抛到顶层了还没有处理他的地方，或处理不了退出整个程序的地方，可能就是你的程序有问题了。需要再仔细的检查下你代码。</p>
+
+<blockquote>
+<p>BestPractice3: 只在可以处理 Error 的位置输出 Error 信息，无法处理 Error 就应该把 Error 抛给调用者</p>
+</blockquote>
+
+<h2 id="info-debug">Info &amp;&amp; Debug</h2>
+
+<p>Info 级别应该是除 Error 级别用的最多的一个了，从字面上的意思就可以知道，Info 是用来输出信息的，这些信息不属于 Error。Debug 同样可以用来输出一些我们关心的信息，那么针对这两者在使用上我们应该如何区分呢？</p>
+
+<p>作为一个服务的实现者，应该考虑如下几个问题：</p>
+
+<ol>
+<li>什么样的信息是你关心的？也就是在开发的过程中那些对你有用的信息，在服务运行的过程中能够帮助你观测其运行情况的信息</li>
+<li>什么样的信息是使用你服务的人关心的？也就是你的 Package 开发完成之后的使用者关心的信息</li>
+</ol>
+
+<p>思考过上面的两个问题，相信对于 Info 和 Debug 的使用你已经有了自己的主意。</p>
+
+<blockquote>
+<p>BestPractice4: 输出开发者关心的信息使用 Debug，输出用户关心的信息使用 Info。</p>
+</blockquote>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

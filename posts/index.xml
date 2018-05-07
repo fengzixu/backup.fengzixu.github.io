@@ -6,10 +6,48 @@
     <description>Recent content in Posts on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 19 Apr 2018 23:56:41 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 03 May 2018 13:39:17 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Golang Log Level Best Pratice-1</title>
+      <link>http://littledriver.net/posts/golang-log-level-best-pratice/</link>
+      <pubDate>Thu, 03 May 2018 13:39:17 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/golang-log-level-best-pratice/</guid>
+      <description>写在前面 在使用 Golang 语言开发的过程中，被广大开发者广泛使用的 Debug 方式应该就是观测服务输出的关键性日志信息了。这也就是我们俗称的「日志 Debug」 方式。虽然 Golang 也可以通过一些断点调试的方法去 Debug，这种方式在 Demo 阶段或者仅仅做一个 Experiment 的时候可能是比较好的，但是在真正的生产环境中或者说高并发的场景下，断点调试就会显得力不从心了。所以，主流的方式可能仍然是「日志 Debug」。
+对于 Log 的使用，可能大多数人都倾向于使用一些第三方的日志工具。毕竟 Golang 官方的 Log 库提供的功能以及对 Log 输出的可定制性都是有限的。主流的日志工具库有以下两个：
+ https://github.com/sirupsen/logrus https://github.com/golang/glog  这两个日志工具库都提供了丰富的功能，其中一个共性的功能就是「按照级别输出日志」。因为在输出日志的时候，可能会有以下输出级别给你选择，不同的级别可能代表着这条日志输出的优先级，重要性，作用都是不同的：
+ Error Fatal Info Warn Debug  那么在接下来的两篇关于「Golang Log」的文章当中，将会根据笔者的实践经验，在日志级别的使用以及日志库工具的使用上给出一些我自己的「Best Practice」。
+Warn Warn 这种日志级别一直让我感觉比较困惑，按照单词的字面意思来理解，它是用来输出警告信息的。那警告这种级别到底是用于什么场景呢？如果是错误的话那应该直接用 Error，如果是简单的输出一些信息的话，那么用 Debug 和 Info 都是可以的。这样看来，Warn 这种级别就很尴尬，和其他的级别没有明显的区别，导致开发者在选择日志输出级别的时候就多了一种令人困惑的选择。如果你一直在使用 Warn 这种日志级别在输出「错误」信息的话，建议还是改成 Error 较好。最主要的原因就是，滥用 Warn 级别可能会给我们的日志造成很大的噪音，因为大家潜意识里就认为 Warn 不重要，Error 才是需要注意的。这样一来，把错误信息放在 Warn 里面输出就是非常不合适的，很有可能让我们忽略一些关键的信息。
+日志输出级别上的 Warn 和监控报警级别中的 Warn 显然不是一回事，前者是将输出的日志信息划分等级，以此来帮助我们追查问题和观察程序运行的情况。后者则是用来像我们报告服务的某些指标已经很接近 Error 报警的阈值，提醒我们要注意。并且监控报警中的 Warn 级别也是提倡要善用的，滥用同样会导致噪声。</description>
+    </item>
+    
+    <item>
+      <title>Redis Sentinel Explanation 2</title>
+      <link>http://littledriver.net/posts/redis-sentinel-explanation-2/</link>
+      <pubDate>Sat, 21 Apr 2018 21:24:10 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/redis-sentinel-explanation-2/</guid>
+      <description>前景回顾 在上一篇对 Redis Sentinel 讲解的blog中，我们描述了 Sentinel 启动所需要的配置文件以及它提供的高可用功能的一个概括。看完文章之后，相信你一定有以下几点是比较疑惑的
+ Q: 通过配置文件我们可以看到，Sentinel 在启动之前只需要我们手动指定被其监控的 Master 节点的信息，其余的 Sentinel 节点和 Slave 节点均不需要我们操心，Redis 内部会自己帮我们做这些工作。最终，集群中任意一个 Sentinel 节点都能够拿到整个集群的拓扑结构。那么 Redis 究竟是实现的这个功能呢？ Q: Redis Sentinel 会对集群内部的所有节点都进行健康检测，尤其是对 Master 和 Slave 两个数据节点。健康检测的结果会直接驱动 Redis Sentinel 做出是否要进行「故障转移」的决定。那么，Redis Sentinel 内部是如何定义数据节点状态的健康与否呢？又是通过什么样的方法来判定此时集群需要进行「故障转移」？ Q: Redis Sentinel 节点在一个集群内的数量至少都有三个，在进行故障转移的过程中，Redis Sentinel 会选举出一个 Leader 进行后续的操作。那么他们是通过什么样的机制进行选举的呢？ Q: 当所有的准备工作都做完之后，在Sentinel Leader 执行故障转移的时候，又具体做了些什么能够让集群恢复正常？  接下来，我们就分别根据上面提到的问题来向大家介绍一些关于 Redis Sentinel 内部实现的一些知识，它将会分为以下几个部分：
+ Redis Sentinel 的三个定时任务 什么是主观下线？什么是客观下线？ Sentinel 如何进行 Leader 选举？ 在故障转移的过程中究竟发生了什么？  Redis Sentinel 的三个定时任务 定时任务1：间隔10s Sentinel 有一个每隔10秒就会执行的一个任务：在其监控的主节点上执行 redis-cli info replication 命令，获取 Slave 的信息。 Eg：</description>
+    </item>
+    
+    <item>
+      <title>gRPC Deadline Explanation</title>
+      <link>http://littledriver.net/posts/grpc-deadline-explanation/</link>
+      <pubDate>Sat, 21 Apr 2018 21:23:55 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/grpc-deadline-explanation/</guid>
+      <description>什么是 gRPC Deadline gRPC 框架中的 Deadline 的概念主要是针对于客户端而言的。它表明了一个 RPC 请求在完成之前或者被错误终止之前，gRPC client 需要等待多长时间。如果我们在使用 gRPC 框架进行 RPC 请求的时候没有指定这个值，它的默认值是依赖于不同编程语言的实现的。理论上来说， 若不指定，应该是一个非常大的值。
+为什么要设置 Deadline 一个 RPC 请求的处理端大部分是我们所实现的一个服务，如果此时客户端请求不设置 Deadline，那么服务端的资源就会一直被占用（如内存，CPU，网络端口等），而且，任意一个客户端请求都可能会达到默认的 Deadline 最大值。
+什么是一个合适的 Deadline 值 对于 Deadline 值的设定，gRPC 官方的文档中并没有给出一个具体的最佳实践。仔细一想，这也是比较正确的。因为使用 gRPC 框架的服务性质各不相同，所以一个「最佳」的值，即使给出来也是没有多的意义的。所以，我们就得出了一个结论：「Deadline 的最佳值是和业务紧密相关的」。
+上面在提到「为什么要设置 Deadline 值」的时候，我们举了一个客户端和服务端的例子。但其实在真正的工业环境当中，gRPC 请求的通信双方基本上同时扮演着客户端和服务端的角色。在请求过程中角色的不同，就导致他们是相互独立的两个个体。对于一次请求来说，它是否成功可能在服务端和客户端上的认知上是有差异的。如，一个请求从 A 发送至 B，B 处理完成之后发送 Response。此时 B 会认为本次的 RPC 请求已经成功结束。但是，由于各种各样的问题，该 Response 可能没有按时到达 A 端。那么 A 在等待这个回应的时候很有可能过了它设置的 Deadline 值，或者是默认值。此时，A 会认为本次请求失败。在理解这里的时候，如果联想一些「TCP 三次握手」以及「全双工通信」的原理，迁移一下就会很容易明白了。对于这个问题，gRPC官方的文档中是建议我们能够在 Application Layer 去检查和解决他们。
+ PS: 笔者在使用 gRPC 框架到公司的项目中时，也被这个问题搞得非常的头疼。一开始是觉得官方肯定会给出一个 Deadline 的最佳实践的，然而并没有。这种客户端和服务端对一次 RPC 请求成功与否的认知差别，会在服务刚刚设置这个 Deadline 的时候稳定性会受到一定的影响。由于是和网络请求相关联的值，那么它受到网络环境好坏的影响也是非常大的。所以，笔者觉得这个 Deadline 的值是要定期去审视和修改的。因为随着业务的变动，同一个请求所需要的时间会有所变化，而且这个时间的设置一定程度上还要对网络环境进行容错。目前觉得最好的时间就是对服务的 gRPC 请求增加可视化监控，监测 DEADLINE_EXCEEDED出现的比例。如果发生了陡增的现象，那么就提醒你可能要重新调整 Deadline 的阈值了。</description>
+    </item>
     
     <item>
       <title>记一次追查 gRPC Server 报错的过程</title>
@@ -33,7 +71,7 @@ Affinity and anti-affinity Affinity（anti-affinity） 是对 NodeSelector 的�
     </item>
     
     <item>
-      <title>Redis Sentinel 详解 （1）</title>
+      <title>Redis Sentinel Explanation 1</title>
       <link>http://littledriver.net/posts/redis-sentinel-explanation-1/</link>
       <pubDate>Sun, 01 Apr 2018 19:49:35 +0000</pubDate>
       

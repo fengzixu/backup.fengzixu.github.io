@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Redis Sentinel Explanation 2 | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Redis Sentinel Explanation 2</span></h1>
+
+<h2 class="date">2018/04/21</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/redis">Redis</a> 
+  
+  
+</p>
+</div>
+
+
+<nav id="TableOfContents">
+<ul>
+<li><a href="#前景回顾">前景回顾</a></li>
+<li><a href="#redis-sentinel-的三个定时任务">Redis Sentinel 的三个定时任务</a>
+<ul>
+<li><a href="#定时任务1-间隔10s">定时任务1：间隔10s</a></li>
+<li><a href="#定时任务2-间隔2s">定时任务2：间隔2s</a></li>
+</ul></li>
+</ul>
+</nav>
+
+
+<main>
+
+
+<h1 id="前景回顾">前景回顾</h1>
+
+<p>在上一篇对 Redis Sentinel 讲解的blog中，我们描述了 Sentinel 启动所需要的配置文件以及它提供的高可用功能的一个概括。看完文章之后，相信你一定有以下几点是比较疑惑的</p>
+
+<ul>
+<li>Q: 通过配置文件我们可以看到，Sentinel 在启动之前只需要我们手动指定被其监控的 Master 节点的信息，其余的 Sentinel 节点和 Slave 节点均不需要我们操心，Redis 内部会自己帮我们做这些工作。最终，集群中任意一个 Sentinel 节点都能够拿到整个集群的拓扑结构。那么 Redis 究竟是实现的这个功能呢？</li>
+<li>Q: Redis Sentinel 会对集群内部的所有节点都进行健康检测，尤其是对 Master 和 Slave 两个数据节点。健康检测的结果会直接驱动 Redis Sentinel 做出是否要进行「故障转移」的决定。那么，Redis Sentinel 内部是如何定义数据节点状态的健康与否呢？又是通过什么样的方法来判定此时集群需要进行「故障转移」？</li>
+<li>Q: Redis Sentinel 节点在一个集群内的数量至少都有三个，在进行故障转移的过程中，Redis Sentinel 会选举出一个 Leader 进行后续的操作。那么他们是通过什么样的机制进行选举的呢？</li>
+<li>Q: 当所有的准备工作都做完之后，在Sentinel Leader 执行故障转移的时候，又具体做了些什么能够让集群恢复正常？</li>
+</ul>
+
+<p>接下来，我们就分别根据上面提到的问题来向大家介绍一些关于 Redis Sentinel 内部实现的一些知识，它将会分为以下几个部分：</p>
+
+<ol>
+<li>Redis Sentinel 的三个定时任务</li>
+<li>什么是主观下线？什么是客观下线？</li>
+<li>Sentinel 如何进行 Leader 选举？</li>
+<li>在故障转移的过程中究竟发生了什么？</li>
+</ol>
+
+<h1 id="redis-sentinel-的三个定时任务">Redis Sentinel 的三个定时任务</h1>
+
+<h2 id="定时任务1-间隔10s">定时任务1：间隔10s</h2>
+
+<p>Sentinel 有一个每隔10秒就会执行的一个任务：在其监控的主节点上执行 <code>redis-cli info replication</code> 命令，获取 Slave 的信息。
+Eg：</p>
+
+<pre><code># Replication
+role:master
+connected_slaves:1
+slave0:ip=10.30.0.12,port=6379,state=online,offset=1198611,lag=1
+master_replid:4eae32ef2f6de94b6ff8b41dc24627f4f4f739cb
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:1198611
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:16777216
+repl_backlog_first_byte_offset:1
+repl_backlog_histlen:1198611
+</code></pre>
+
+<p>其中 slave0 即为当前一主一从的 Redis 集群中的 Slave 节点信息。这个定时任务有以下三个作用：
+1. 获取集群中 Slave 的拓扑结构
+2. 随时监控是否有新的 Slave 节点进来
+3. INFO 命令执行的结果无论是成功还是失败，都可以作为 Sentinel 更新集群拓扑结构的依据</p>
+
+<h2 id="定时任务2-间隔2s">定时任务2：间隔2s</h2>
+
+<p>在一个 Redis 集群中，Master 节点的角色不再是一个单纯的数据节点，它还有另外一个身份：「消息集散中心」。除 Master 以外的任何节点，都会通过消息来和对方进行通讯。而这些消息就是通过 Master 节点进行管理的。Redis 在 Master 节点上提供了一套消息的订阅和发布机制（Pub/Sub), 我们要说的第二个定时任务就是基于这个机制。</p>
+
+<p>Sentinel 会每隔2s 向 Master 节点所在的「消息中心」的<code>__sentinel__:hello</code> 频道发送一条消息，该消息包括
+- 当前 Sentinel 节点的信息（也就是消息发送者的信息）
+- 当前 Sentinel 对集群内 Master 节点状态的判断</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Golang on LittleDriver</title>
-    <link>http://littledriver.net/tags/golang/</link>
-    <description>Recent content in Golang on LittleDriver</description>
+    <title>BestPractice on LittleDriver</title>
+    <link>http://littledriver.net/tags/bestpractice/</link>
+    <description>Recent content in BestPractice on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Thu, 03 May 2018 13:39:17 +0800</lastBuildDate>
     
-	<atom:link href="http://littledriver.net/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://littledriver.net/tags/bestpractice/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -23,42 +23,6 @@
  Error Fatal Info Warn Debug  那么在接下来的两篇关于「Golang Log」的文章当中，将会根据笔者的实践经验，在日志级别的使用以及日志库工具的使用上给出一些我自己的「Best Practice」。
 Warn Warn 这种日志级别一直让我感觉比较困惑，按照单词的字面意思来理解，它是用来输出警告信息的。那警告这种级别到底是用于什么场景呢？如果是错误的话那应该直接用 Error，如果是简单的输出一些信息的话，那么用 Debug 和 Info 都是可以的。这样看来，Warn 这种级别就很尴尬，和其他的级别没有明显的区别，导致开发者在选择日志输出级别的时候就多了一种令人困惑的选择。如果你一直在使用 Warn 这种日志级别在输出「错误」信息的话，建议还是改成 Error 较好。最主要的原因就是，滥用 Warn 级别可能会给我们的日志造成很大的噪音，因为大家潜意识里就认为 Warn 不重要，Error 才是需要注意的。这样一来，把错误信息放在 Warn 里面输出就是非常不合适的，很有可能让我们忽略一些关键的信息。
 日志输出级别上的 Warn 和监控报警级别中的 Warn 显然不是一回事，前者是将输出的日志信息划分等级，以此来帮助我们追查问题和观察程序运行的情况。后者则是用来像我们报告服务的某些指标已经很接近 Error 报警的阈值，提醒我们要注意。并且监控报警中的 Warn 级别也是提倡要善用的，滥用同样会导致噪声。</description>
-    </item>
-    
-    <item>
-      <title>Reflection in golang (4)</title>
-      <link>http://littledriver.net/posts/reflection-in-golang-4/</link>
-      <pubDate>Sun, 12 Mar 2017 13:00:47 +0000</pubDate>
-      
-      <guid>http://littledriver.net/posts/reflection-in-golang-4/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Reflection in golang (3)</title>
-      <link>http://littledriver.net/posts/reflection-in-golang-3/</link>
-      <pubDate>Sat, 11 Mar 2017 15:53:31 +0000</pubDate>
-      
-      <guid>http://littledriver.net/posts/reflection-in-golang-3/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Reflection in golang (2)</title>
-      <link>http://littledriver.net/posts/reflection-in-golang-2/</link>
-      <pubDate>Thu, 09 Mar 2017 19:41:34 +0000</pubDate>
-      
-      <guid>http://littledriver.net/posts/reflection-in-golang-2/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Reflection in golang (1)</title>
-      <link>http://littledriver.net/posts/reflection-in-golang/</link>
-      <pubDate>Sun, 05 Mar 2017 19:40:29 +0000</pubDate>
-      
-      <guid>http://littledriver.net/posts/reflection-in-golang/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
     </item>
     
   </channel>
