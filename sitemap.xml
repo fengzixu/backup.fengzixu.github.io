@@ -3,6 +3,16 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>http://littledriver.net/posts/redis-persistence-1/</loc>
+    <lastmod>2018-08-05T20:11:46+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://littledriver.net/posts/a-little-thinking-of-arguments/</loc>
+    <lastmod>2018-08-05T20:11:46+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://littledriver.net/posts/golang-log-level-best-pratice/</loc>
     <lastmod>2018-05-03T13:39:17+08:00</lastmod>
   </url>
@@ -275,7 +285,7 @@
   
   <url>
     <loc>http://littledriver.net/</loc>
-    <lastmod>2018-05-03T13:39:17+08:00</lastmod>
+    <lastmod>2018-08-05T20:11:46+08:00</lastmod>
   </url>
   
   <url>
@@ -334,7 +344,7 @@
   
   <url>
     <loc>http://littledriver.net/posts/</loc>
-    <lastmod>2018-05-03T13:39:17+08:00</lastmod>
+    <lastmod>2018-08-05T20:11:46+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -346,7 +356,7 @@
   
   <url>
     <loc>http://littledriver.net/tags/redis/</loc>
-    <lastmod>2018-04-21T21:24:10+08:00</lastmod>
+    <lastmod>2018-08-05T20:11:46+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -376,19 +386,19 @@
   
   <url>
     <loc>http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/</loc>
-    <lastmod>2018-05-03T13:39:17+08:00</lastmod>
+    <lastmod>2018-08-05T20:11:46+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://littledriver.net/categories/%E7%94%9F%E6%B4%BB/</loc>
-    <lastmod>2016-12-29T20:58:59+00:00</lastmod>
+    <lastmod>2018-08-05T20:11:46+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://littledriver.net/tags/%E9%9A%8F%E7%AC%94/</loc>
-    <lastmod>2016-12-29T20:58:59+00:00</lastmod>
+    <lastmod>2018-08-05T20:11:46+08:00</lastmod>
     <priority>0</priority>
   </url>
   
