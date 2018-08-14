@@ -299,11 +299,11 @@
 
 <p>理论上来说，一个thread 如果完成了它所要做的事情就应该被 OS 销毁，接下来其他进程中的 thread 就可能被 CPU 调度执行。这也就是我们常说的操作系统中线程的「抢占式调度」。考虑上面 syscall 中的情况，如果一个程序现在有两个 M，其中一个因为事情做完而被销毁，另外一个因为 syscall 的原因被 block。此时，被block 的 M 上挂载的 runable goroutines 就必须要等到下一次这个 M 被 OS 调度执行的时候才会机会继续被处理。频繁的线程间的抢占操作不但会使得 OS 的负载升高，对一些对性能要求较高的程序来讲几乎是不可接受的。</p>
 
-<p>golang scheduler 的设计者在考虑了「 OS 的资源利用率」以及「频繁的 thread 抢占给 OS 带来的负载」之后，最终提出了「Spinning Thread」的概念。自旋线程在没有找到可供其调度执行的 goroutine 之后，并不会销毁，而是采取「自旋」的操作，一直将它被分配到的时间片消耗光为止。虽然看起来这是浪费了 CPU 的资源，但是考虑一下 syscall 的情景就可以知道，比起「自旋」，线程间频繁的抢占可能带来的危害会更大。</p>
+<p>golang scheduler 的设计者在考虑了「 OS 的资源利用率」以及「频繁的 thread 抢占给 OS 带来的负载」之后，最终提出了「Spinning Thread」的概念。自旋线程在没有找到可供其调度执行的 goroutine 之后，并不会销毁，而是采取「自旋」的操作保存了下来。虽然看起来这是浪费了一些资源，但是考虑一下 syscall 的情景就可以知道，比起「自旋」，线程间频繁的抢占以及频繁的创建和销毁操作可能带来的危害会更大。</p>
 
-<p>对于一个 go 的程序来说，「Spining Thread」的数量是可以通过<code>runtime. GOMAXPROCS</code>函数设置的。<code>runtime. GOMAXPROCS</code>函数本意是设置最大可用的 CPU 核心数，但是仔细想想就可以明白「Spining Thread」出现的目的就是在其他 M 出现问题的时候，可以直接接管 P 继续处理 G。而 P 的概念在 golang 的调度模型中又相当于是 CPU 的一个核。并且保留多于最大可用的 CPU 核心数的「Spining Thread」对提升效率也没有什么增益。</p>
+<p>对于一个 go 的程序来说，可存在的「Spining Thread」的数量是可以通过<code>runtime. GOMAXPROCS</code>函数设置的。<code>runtime. GOMAXPROCS</code>函数本意是设置最大可用的 CPU 核心数，但是仔细想想就可以明白「Spining Thread」出现的目的就是在其他 M 出现问题的时候，可以直接接管 P 继续处理 G。而 P 的概念在 golang 的调度模型中又相当于是 CPU 的一个核。所以 「Spining Thread」的数量最合适的就是和最大可用的 CPU 核心数保持一致。</p>
 
-<p>举例来说，在具有1个 M和1个 P的一个程序中，如果正在执行的 M 已经被 syscall block 住，那么仍然需要和 P 数量相同的「Spining Thread」才能够让等待的 runable goroutine 继续执行。所以，在此期间， M 的数量是要多余 P 的数量的（一个 Spinning Thread+一个被 block 住的 thread）。这也就是为什么，当<code>runtime. GOMAXPROCS</code>函数设置的可被使用的最大的 CPU 核心数为1的时候，程序仍然是处于多线程运行的状态的。</p>
+<p>举例来说，在具有1个 M和1个 P的一个程序中，如果正在执行的 M 已经被 syscall block 住，那么仍然需要和 P 数量相同的「Spining Thread」才能够让等待的 runable goroutine 继续执行。所以，在此期间， M 的数量是要多余 P 的数量的（一个 Spinning Thread+一个被 block 住的 thread）。这也就是为什么，当<code>runtime. GOMAXPROCS</code>函数设置的值为1的时候，程序仍然是处于多线程运行的状态的。</p>
 
 <p>根据上面的描述，「Spining Thread」是一个特殊的 M，当一个 M 具有以下几个特点中的一个的时候，它就可以被称作是一个「Spining Thread」：</p>
 
@@ -316,7 +316,7 @@
 
 <ol>
 <li>充分提高 thread 利用率是在 runable goroutine 数量足够多的情况下，尽可能的将它们调度到 M 执行。但是当 runable goroutine 数量不会让所有的 M 都处于工作状态的时候，golang scheduler 也并不会直接把它们销毁，而是至多留出<code>runtime. GOMAXPROCS</code>个处于 Spinning 状态的 M，等待被阻塞的 M 下挂载的 runable goroutine。这是为了避免线程间频繁的抢占操作给 OS 带来的压力，同时也尽可能的保证了 runable goroutine 能够快速的被处理</li>
-<li>上面在讨论「Spining Thread」的时候提到了它具有的几个特点</li>
+<li>空闲的 M 但是没有挂载 P 也是「Spining Thread」 中的一类</li>
 </ol>
 
 </main>
