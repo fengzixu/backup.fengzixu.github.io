@@ -6,10 +6,23 @@
     <description>Recent content in Home on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 05 Aug 2018 20:11:46 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 14 Aug 2018 15:45:25 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Head First Scheduler of Golang</title>
+      <link>http://littledriver.net/posts/head-first-scheduler-of-golang/</link>
+      <pubDate>Tue, 14 Aug 2018 15:45:25 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/head-first-scheduler-of-golang/</guid>
+      <description>我们的程序是如何被运行的？ 学习过操作系统的人，应该对进程和线程的模型都是有所了解的。按照我的理解：「进程」是操作系统资源分配的基本单位，它给程序提供了一个良好的运行环境。「线程」则是一个轻量级的进程，一个「进程」中可以有很多线程，但是最终在一个 CPU 的核上只能有一个「进程」的其中一个「线程」被执行。所以，我们的一个程序的执行过程可以粗略的理解为：
+ 程序的可执行文件被 Load 到内存中 创建进程&amp;amp;创建主线程 主线程被 OS 调度到合适的 CPU 执行  goroutine 是什么？ 看了很多文章对于 goroutine 的描述，其中出现最多的一句话就是「The goroutine is a lightweight thread.」。在结合了对操作系统的线程模型的理解之后，我觉得 goroutine 就是一个在用户空间（usernamespace）下实现的「线程」，它由 golang 的 runtime 进行管理。goroutine 和 go runtime 的关系可以直接的类比于线程和操作系统内核的关系。至于它是不是轻量级，这需要和操作系统的线程进行对比之后才能够知道。在此我们先避免「人云亦云」。
+goroutine 和 thread 有什么不同？ 目前看起来 goroutine 和 thread 在实现的思路上是比较相似的。但是为什么说 goroutine 比 thread 要轻量呢？从字面的意思上来理解，「轻量」肯定意味着消耗的系统资源变少了。
+内存消耗 OS 从 OS 的层面来说，内存大致可以分为三个部分：一部分为栈（Stack）另外一部分为堆（Heap），最后一部分为程序代码的存储空间（Programe Text）。既然在逻辑上 OS 已经对内存的布局做了划分，如果栈和堆之前如果没有遵守「分界线」而发生了 overwrite，那么结果将是灾难性的。为了防止发生这种情况，OS 在 Stack 和 Heap 之间设置了一段不可被 overwrite 的区域：Guard Page
+thread 通过对 OS 中线程模型的了解，我们可以知道：同一个进程的多个线程共享进程的地址空间。所以，每一个 thread 都会有自己的 Stack 空间以及一份 Guard Page用于线程间的隔离。在程序运行的过程中，线程越多，消耗的内存也就越多。当一个线程被创建的时候，通常会消耗大概1MB的空间（预分配的 Stack 空间+ Guard Page）。</description>
+    </item>
     
     <item>
       <title>Redis 数据持久化机制</title>

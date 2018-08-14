@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Head First Scheduler of Golang | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Head First Scheduler of Golang</span></h1>
+
+<h2 class="date">2018/08/14</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/golang">Golang</a> 
+  
+  
+</p>
+</div>
+
+
+<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#我们的程序是如何被运行的">我们的程序是如何被运行的？</a></li>
+<li><a href="#goroutine-是什么">goroutine 是什么？</a></li>
+<li><a href="#goroutine-和-thread-有什么不同">goroutine 和 thread 有什么不同？</a>
+<ul>
+<li><a href="#内存消耗">内存消耗</a>
+<ul>
+<li><a href="#os">OS</a></li>
+<li><a href="#thread">thread</a></li>
+<li><a href="#goroutine">goroutine</a></li>
+</ul></li>
+<li><a href="#创建和销毁的性能">创建和销毁的性能</a>
+<ul>
+<li><a href="#thread-1">thread</a></li>
+<li><a href="#goroutine-1">goroutine</a></li>
+</ul></li>
+<li><a href="#上下文切换的消耗">上下文切换的消耗</a>
+<ul>
+<li><a href="#thread-2">thread</a></li>
+<li><a href="#goroutine-2">goroutine</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#goroutine-是如何工作的">goroutine 是如何工作的？</a></li>
+<li><a href="#golang-的-scheduler-是如何工作的">golang 的 scheduler 是如何工作的？</a>
+<ul>
+<li><a href="#golang-的调度模型">golang 的调度模型</a></li>
+<li><a href="#调度过程">调度过程</a>
+<ul>
+<li><a href="#steady">steady</a></li>
+<li><a href="#busy">busy</a></li>
+<li><a href="#idle">idle</a></li>
+<li><a href="#syscall">syscall</a></li>
+</ul></li>
+<li><a href="#为什么会有空闲的-thread-在等待被使用呢-spinning-thread">为什么会有空闲的 thread 在等待被使用呢？（Spinning Thread）</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+
+
+<main>
+
+
+<h2 id="我们的程序是如何被运行的">我们的程序是如何被运行的？</h2>
+
+<p>学习过操作系统的人，应该对进程和线程的模型都是有所了解的。按照我的理解：「进程」是操作系统资源分配的基本单位，它给程序提供了一个良好的运行环境。「线程」则是一个轻量级的进程，一个「进程」中可以有很多线程，但是最终在一个 CPU 的核上只能有一个「进程」的其中一个「线程」被执行。所以，我们的一个程序的执行过程可以粗略的理解为：</p>
+
+<ol>
+<li>程序的可执行文件被 Load 到内存中</li>
+<li>创建进程&amp;创建主线程</li>
+<li>主线程被 OS 调度到合适的 CPU 执行</li>
+</ol>
+
+<h2 id="goroutine-是什么">goroutine 是什么？</h2>
+
+<p>看了很多文章对于 goroutine 的描述，其中出现最多的一句话就是「The goroutine is a lightweight thread.」。在结合了对操作系统的线程模型的理解之后，我觉得 goroutine 就是一个在用户空间（usernamespace）下实现的「线程」，它由 golang 的 runtime 进行管理。goroutine 和 go runtime 的关系可以直接的类比于线程和操作系统内核的关系。至于它是不是轻量级，这需要和操作系统的线程进行对比之后才能够知道。在此我们先避免「人云亦云」。</p>
+
+<h2 id="goroutine-和-thread-有什么不同">goroutine 和 thread 有什么不同？</h2>
+
+<p>目前看起来 goroutine 和 thread 在实现的思路上是比较相似的。但是为什么说 goroutine 比 thread 要轻量呢？从字面的意思上来理解，「轻量」肯定意味着消耗的系统资源变少了。</p>
+
+<h3 id="内存消耗">内存消耗</h3>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/Gocon-2014-40.jpg" alt="" /></p>
+
+<h4 id="os">OS</h4>
+
+<p>从 OS 的层面来说，内存大致可以分为三个部分：一部分为栈（Stack）另外一部分为堆（Heap），最后一部分为程序代码的存储空间（Programe Text）。既然在逻辑上 OS 已经对内存的布局做了划分，如果栈和堆之前如果没有遵守「分界线」而发生了 overwrite，那么结果将是灾难性的。为了防止发生这种情况，OS 在 Stack 和 Heap 之间设置了一段不可被 overwrite 的区域：Guard Page</p>
+
+<h4 id="thread">thread</h4>
+
+<p>通过对 OS 中线程模型的了解，我们可以知道：同一个进程的多个线程共享进程的地址空间。所以，每一个 thread 都会有自己的 Stack 空间以及一份 Guard Page用于线程间的隔离。在程序运行的过程中，线程越多，消耗的内存也就越多。当一个线程被创建的时候，通常会消耗大概1MB的空间（预分配的 Stack 空间+ Guard Page）。</p>
+
+<h4 id="goroutine">goroutine</h4>
+
+<p>对于一个 goroutine 来说，当它被创建的时候，有一个初始的内存使用量。这个使用量在 Go 1.2~1.4 版本的时候发生过几次改变，最终确定为2KB。当一个 goroutine 在运行的过程中如果需要使用更多的内存，那么它将会在 Heap 上申请。</p>
+
+<p>对于 Guard Page 的问题，goroutine 采取了一种「用前检查」的方式来解决：每当一个函数调用的时候，go runtime 都会去检查当前 goroutine 的 stack 空间是否够用，如果不够就在 Heap 上分配一块新的空间，该块空间使用完还会被回收。</p>
+
+<p>这种「用前检查」的动态分配内存的方式使得 goroutine 在内存的消耗上相较于 thread 来说具有明显的优势。所以在写 golang 程序的时候，我们几乎可以对收到的每一个 Request 都开一个 goroutine 处理。但是如果使用 thread这么做的话，你就等着 OOM 吧:)。上面的描述并不代表对于 goroutine 你就可以随意分配使用而不及时回收，如果 goroutine 数量太多它一样会 OOM，只不过 goroutine 相较于 thread 的内存增长率要低很多罢了。在同等的量级下，thread 会引起程序 OOM 但是 goroutine 不会。</p>
+
+<h3 id="创建和销毁的性能">创建和销毁的性能</h3>
+
+<h4 id="thread-1">thread</h4>
+
+<p>线程的创建和销毁都需要通过系统调用来实现，也就是说，这些动作都必须要和 OS 的内核进行交互。</p>
+
+<h4 id="goroutine-1">goroutine</h4>
+
+<p>goroutine 的创建和销毁操作都是由 go runtime 来完成的，在用户空间下直接进行处理。</p>
+
+<p>对于创建和销毁的性能问题，这里不做过多介绍。本质上来说，goroutine 和 thread 就相当于「用户级线程」和「内核级线程」。感兴趣的可以去找下相关资料深入了解下两者的区别。否则，可以简单的理解为「goroutine 的创建和销毁是程序自己做的，但是 thread 得麻烦 OS 的内核，两者的性能当然不一样」</p>
+
+<h3 id="上下文切换的消耗">上下文切换的消耗</h3>
+
+<h4 id="thread-2">thread</h4>
+
+<p>当不同的线程发生切换的时候，如上面提到的创建和销毁操作一样，都需要和 OS 的内核进行交互。调度器将会保存/恢复当时所有寄存器当中的内容：PC (Program Counter), SP (Stack Pointer) 等等一系列的上下文数据。这些操作都是非常「昂贵」的</p>
+
+<h4 id="goroutine-2">goroutine</h4>
+
+<p>多个 goroutine 在发生切换的时候，由于是在同一个 thread 下面，只会保存/恢复三个寄存器当中的内容：Program Counter, Stack Pointer and DX。另外，如果你对 golang scheduler 的调度模型比较熟悉的话，那么你应该知道，同一时刻同一个 thread 只会执行一个 goroutine，未被执行但是已经准备好的 goroutine 都是放在一个 queue 中的，他们是被串行处理的。所以，即使一个程序创建了成千上万的 goroutine 也不会对上下文的切换造成什么影响。最重要的是，golang scheduler 在切换不同 goroutine 的操作上基本上达到了 O(1) 的时间复杂度。这就使得上下文切换的时间已经和 goroutine 的规模完全不相关了。</p>
+
+<h2 id="goroutine-是如何工作的">goroutine 是如何工作的？</h2>
+
+<p>通常来讲，一个 goroutine 运行起来通常需要三个「组件」参与：</p>
+
+<ol>
+<li>golang runtime</li>
+<li>runable goroutine</li>
+<li>thread</li>
+</ol>
+
+<p>golang runtime将会创建一些 thread 以便提供 goroutine 的运行环境。一个可运行的 goroutine 将会被调度到 thread 上执行。当该 goroutine 被 block 住（没有 block 住对应的 thread，如系统中断等）的时候，会从「runable goroutines」中获取一个 goroutine 进行上下文切换以至于这个新的 goroutine 能够被执行</p>
+
+<h2 id="golang-的-scheduler-是如何工作的">golang 的 scheduler 是如何工作的？</h2>
+
+<h3 id="golang-的调度模型">golang 的调度模型</h3>
+
+<p>对于 thread 和 os 内核来说，如果他们彼此的数量关系是1：1，在机器是多核的情况下，其并行计算能力将会被发挥到极致。但是，线程上下文切换的消耗将会对整个 OS 的性能有所影响。如果他们彼此的数量关系是 N:1,  虽然上下文切换的消耗降低了，但是 CPU 的利用率却会下降。</p>
+
+<p>在 golang 的调度模型中，对于 goroutine 和 thread 的数量关系，采取了 M:N 的形式：它可以调度任意数量的 goroutine 到任意数量的 thread 上。在尽可能提高 CPU 利用率的同时，也保证了 goroutine 的上下文切换操作是较为「便宜」的（都是在 usernamespace 下进行，不需要 OS 内核参与）。 golang 对于 goroutine 的调度，设计了三个基本的对象：</p>
+
+<ol>
+<li>machine（M）</li>
+<li>goroutine（G)</li>
+<li>processor（P)</li>
+</ol>
+
+<p>其中 M 代表的是一个可供使用的 thread，它被 OS 内核管理。G 则代表一个 goroutine，它是轻量级的 thread。P 代表一种「资源」，只有它和 M 一起配合才能够运行一段 golang 的代码，所以姑且可以把 P 理解为 goroutine 执行过程中的上下文环境。P 是一个桥梁，他把1：1和1：N 这两种模型结合了起来，最终产出了 M:N 的调度模型。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/in-motion.jpg" alt=" golang schedule model " /></p>
+
+<p>根据上面的模型图可以看出, golang 程序的并发能力除了受到 M（thread）的限制之外，还受到了 P（processor）数量的限制。 Thread 可以通过系统调用进行创建，那么 P 的数量可以通过什么来进行设置呢？在名为 <code>runtime</code>的 package 中有一个<code>GOMAXPROCS</code> 方法，我们可以通过它设置最大可使用的 P 的数量。</p>
+
+<p><code>runtime. GOMAXPROCS</code>这个函数本质上是用来设置最大可用的 CPU 核心数量：</p>
+
+<blockquote>
+<p>GOMAXPROCS sets the maximum number of CPUs that can be executing simultaneously and returns the previous setting. If n &lt; 1, it does not change the current setting. The number of logical CPUs on the local machine can be queried with NumCPU. This call will go away when the scheduler improves.</p>
+</blockquote>
+
+<p>由于 CPU 核心数和 P 是1：1的关系（M 的数量可以多于 P），我们认为设置最大可用的 CPU 核心数就是设置最大可用的 P 的数量（对于一个 go 程序来说）</p>
+
+<h3 id="调度过程">调度过程</h3>
+
+<p>我们将分四种情况来了解 golang scheduler 调度 goroutine 的过程。假设现在有两个 M，两个 P，若干个 G</p>
+
+<h4 id="steady">steady</h4>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/in-motion.jpg" alt=" golang schedule model " /></p>
+
+<p>图中灰色的 G 表示了可被执行但是还未被调度的 goroutine。P 每次从「可被执行的 goroutine 队列」中选取一个 goroutine 调度到 M 执行。当前的 goroutine 被执行完成之后，将从队列中弹出。P 会不断的重复上述的过程处理 goroutine。</p>
+
+<p>值得注意的是，在 golang 1.2之前的版本当中，「可被执行的 goroutine 队列」和 P 并不是 1：1 的关系。整个 go runtime 中只有一个全局的「可被执行的 goroutine 队列」。它通过一个全局的锁来防止并发读写时的「竞争」问题。这种设计无疑是低效的，尤其是在 CPU 核心数较多的机器上。</p>
+
+<p>理论上来说，只要 P 所控制的「可被执行的 goroutine 队列」不为空，那么这个调度过程就是稳定的。</p>
+
+<h4 id="busy">busy</h4>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/in-motion.jpg" alt=" golang busy model" /></p>
+
+<p>Busy 的情况就是指所有的 M 上都有正在运行的 G，没有空闲的 P，也没有空闲的 M。此时整个调度过程如上面 steady 情况所描述的一样。</p>
+
+<h4 id="idle">idle</h4>
+
+<p>通过对上面两种情况下调度过程的了解，我们再次回顾一下，一个「最小的调度单位」都包括哪些元素：</p>
+
+<ol>
+<li>Gs(runable goroutine queue)</li>
+<li>M</li>
+<li>P</li>
+</ol>
+
+<p>Idle 状态即是：部分 P 中挂载的 runable goroutine queue已经没有剩余的 goroutine 可供调度。如下图所示，两个「最小调度单位」中，已经有一个的 runable goroutine queue 为空了。此时，为了能够让所有的 M 的利用率达到最大，golang runtime 会采取以下两种机制来处理 idle 状态：</p>
+
+<ol>
+<li>从 global runable goroutine queue 中选取 goroutine</li>
+<li>若 global runable goroutine queue 中也没有 goroutine，随机选取选取一个 P，从其挂载的 runable goroutine queue 中 steal 走一半的 goroutine</li>
+</ol>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/steal.jpg" alt="golang idle model" /></p>
+
+<p>一个更加通用的调度过程的描述如下：</p>
+
+<pre><code>runtime.schedule() {
+    // only 1/61 of the time, check the global runnable queue for a G.
+    // if not found, check the local queue.
+    // if not found,
+    //     try to steal from other Ps.
+    //     if not, check the global runnable queue.
+}
+</code></pre>
+
+<p>在描述 steady 状态的调度过程的时候，我们提到过老版本的 Go 中没有和 P 绑定的 runable goroutine queue， 而只有一个全局的 gloabl runable goroutine queue。虽然在之后的版本中不再使用锁+全局队列的机制来实现调度器，但它仍然被保存了下来，并且在查找可被调度的 goroutine 时还会被访问到。至于原因，我们会在后面说到。</p>
+
+<h4 id="syscall">syscall</h4>
+
+<p>当我们的 goroutine 逻辑中有使用「系统调用」的代码时，其对应的 M 会被阻塞。此时 P 中挂载的 runable goroutine queue 中的 goroutine 在短时间内将不会被这个 M 调度执行。现在看起来这些「剩余」的 goroutine 进入了一个比较尴尬的状态，它们似乎只能等待其对应的 M 从阻塞状态中释放出来才能够被重新调度执行。</p>
+
+<p>在了解 go scheduler 如何处理这种情况之前，我们可以根据之前的了解先自己思考一下：</p>
+
+<ol>
+<li>将剩余的 goroutine 全部放入 global runable goroutine queue 中等待被调度执行</li>
+<li>进行 context switch 操作，将 P 连同剩下的 runable goroutine queue 切换到一个较为 idle 的 M 上等待被调度执行</li>
+</ol>
+
+<p>第一种办法最简单暴力，但是缺点也很明显，全局队列是需要有锁参与的，效率肯定不高。第二种办法的思路来源于对 idle 状态的讨论。既然不同的 P 之前都可以 steal 彼此的 goroutine，那么为什么不能直接一次性把 P 和整个 runable goroutine queue 都拿过来呢？</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/syscall.jpg" alt="sysCall" /></p>
+
+<p>实际上，golang scheduler 的做法和我们想的第二种比较相似。不同的 P 之间会进行上下文切换。将已经被 block 住的 M 上挂载的 P 连同 runable goroutine queue 全部切换到到一个空闲的 M 上等待被调度执行。而之前那个被 block 住的 M 将会带着一个 G 等待被 unblock。 Unblock 之后，对于一个「最小调度单位」而言，旧的 M 和 G 显然是缺少了一个 P 的。所以它按照「之前别人对付它的方式」看是否有机会能够从其他的 M 上 steal 到一个 P 和其挂载的 runable goroutine queue。如果这个 steal 的行为失败，那么它将会把带着的 G 丢到 global runable queue 中。至于这个 M 如何被进一步处理，那又是一个新的问题了，我们在剩余的篇幅中将会提到。</p>
+
+<p>至此，对于 golang scheduler 调度 goroutine 的执行过程我们就大致的讲完了。对于在讨论 idle 情况的时候，我们留下的那个「为什么 global runable queue 会被保留」的问题，相信在讨论 syscall 情况的时候已经给出了答案。</p>
+
+<h3 id="为什么会有空闲的-thread-在等待被使用呢-spinning-thread">为什么会有空闲的 thread 在等待被使用呢？（Spinning Thread）</h3>
+
+<p>在讨论调度过程中关于 syscall 情况的时候，你会发现，有以下几个比较奇怪的地方：</p>
+
+<ol>
+<li>Golang scheduler 不是会最大限度的提高 thread 的利用率么？为什么还有一个空闲的 M 在那呢？</li>
+<li>那个空闲的 M 为什么没有 P 呢？</li>
+</ol>
+
+<p>理论上来说，一个thread 如果完成了它所要做的事情就应该被 OS 销毁，接下来其他进程中的 thread 就可能被 CPU 调度执行。这也就是我们常说的操作系统中线程的「抢占式调度」。考虑上面 syscall 中的情况，如果一个程序现在有两个 M，其中一个因为事情做完而被销毁，另外一个因为 syscall 的原因被 block。此时，被block 的 M 上挂载的 runable goroutines 就必须要等到下一次这个 M 被 OS 调度执行的时候才会机会继续被处理。频繁的线程间的抢占操作不但会使得 OS 的负载升高，对一些对性能要求较高的程序来讲几乎是不可接受的。</p>
+
+<p>golang scheduler 的设计者在考虑了「 OS 的资源利用率」以及「频繁的 thread 抢占给 OS 带来的负载」之后，最终提出了「Spinning Thread」的概念。自旋线程在没有找到可供其调度执行的 goroutine 之后，并不会销毁，而是采取「自旋」的操作，一直将它被分配到的时间片消耗光为止。虽然看起来这是浪费了 CPU 的资源，但是考虑一下 syscall 的情景就可以知道，比起「自旋」，线程间频繁的抢占可能带来的危害会更大。</p>
+
+<p>对于一个 go 的程序来说，「Spining Thread」的数量是可以通过<code>runtime. GOMAXPROCS</code>函数设置的。<code>runtime. GOMAXPROCS</code>函数本意是设置最大可用的 CPU 核心数，但是仔细想想就可以明白「Spining Thread」出现的目的就是在其他 M 出现问题的时候，可以直接接管 P 继续处理 G。而 P 的概念在 golang 的调度模型中又相当于是 CPU 的一个核。并且保留多于最大可用的 CPU 核心数的「Spining Thread」对提升效率也没有什么增益。</p>
+
+<p>举例来说，在具有1个 M和1个 P的一个程序中，如果正在执行的 M 已经被 syscall block 住，那么仍然需要和 P 数量相同的「Spining Thread」才能够让等待的 runable goroutine 继续执行。所以，在此期间， M 的数量是要多余 P 的数量的（一个 Spinning Thread+一个被 block 住的 thread）。这也就是为什么，当<code>runtime. GOMAXPROCS</code>函数设置的可被使用的最大的 CPU 核心数为1的时候，程序仍然是处于多线程运行的状态的。</p>
+
+<p>根据上面的描述，「Spining Thread」是一个特殊的 M，当一个 M 具有以下几个特点中的一个的时候，它就可以被称作是一个「Spining Thread」：</p>
+
+<pre><code>1. An M with a P assignment is looking for a runnable goroutine.
+2. An M without a P assignment is looking for available Ps.
+3. Scheduler also unparks an additional thread and spins it when it is readying a goroutine if there is an idle P and there are no other spinning threads.
+</code></pre>
+
+<p>针对一开始我们谈到的两个问题现在也不难给出答案：</p>
+
+<ol>
+<li>充分提高 thread 利用率是在 runable goroutine 数量足够多的情况下，尽可能的将它们调度到 M 执行。但是当 runable goroutine 数量不会让所有的 M 都处于工作状态的时候，golang scheduler 也并不会直接把它们销毁，而是至多留出<code>runtime. GOMAXPROCS</code>个处于 Spinning 状态的 M，等待被阻塞的 M 下挂载的 runable goroutine。这是为了避免线程间频繁的抢占操作给 OS 带来的压力，同时也尽可能的保证了 runable goroutine 能够快速的被处理</li>
+<li>上面在讨论「Spining Thread」的时候提到了它具有的几个特点</li>
+</ol>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+
