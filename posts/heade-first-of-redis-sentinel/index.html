@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Heade First Redis Sentinel | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Heade First Redis Sentinel</span></h1>
+
+<h2 class="date">2018/08/27</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/redis">Redis</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+<main>
+<blockquote>
+<p>WARNING: 本篇文章是在阅读了 Redis Sentinel 的<a href="https://redis.io/topics/Sentinel-spec">设计文档</a>之后产出的。但是由于该设计文档已经被官方标识为 draft 且时间也比较久远，笔者在阅读这份文档的时候还是发现了几处与当前新版本实现不同的地方，甚至是有一些错误的。所以本文的目的也就在于：先借助该设计文档对 Sentinel 这套高可用的方案有一个宏观上的了解，具体的实现细节，之后会另写几篇博文对 Sentinel 的源码进行分析。若是有能力直接阅读源码的读者可直接去阅读源码。如果你在阅读这篇文章的时候，发现了一些错误并且愿意帮忙改正的话，请私信联系我。</p>
+</blockquote>
+
+<p>先说明几个这篇 blog 使用的名词</p>
+
+<pre><code>- 「Redis Sentinel」指通过 Sentinel 实现的 Redis 高可用方案
+- 「Sentinel 节点」指 Redis 集群中运行的某一个 Sentinel 节点（redis-server）
+</code></pre>
+
+<p><strong>Q: 什么是「Redis Sentinel」?</strong></p>
+
+<p>Redis Sentinel 是一套「方案」。它能够提升 Redis 集群的可用性，也就是我们常说的「高可用」</p>
+
+<p><strong>Q: Sentinel 通过哪些功能可以实现 Redis 集群的「高可用」？</strong></p>
+
+<p>Redis 集群的「高可用」，在我理解，可以分为「用户」和「服务」两个维度进行讨论</p>
+
+<pre><code>- 用户维度
+    - Sentinel 通过某些命令可以让用户实时获取当前集群的 Master 节点的地址（Sentinel 会进行故障转移操作）
+    - 预设了一些「通知」机制，可以在 Redis 集群内部发生异常的时候通知给集群的维护者或者使用者
+- 服务维度
+    - 监控集群中主从节点以及 Sentinel 节点的健康状态
+    - 集群 Master 发生故障时可自动进行「故障转移」操作来恢复集群
+</code></pre>
+
+<p>总结下来，这套「高可用」方案既可以保证 Redis 集群自身的健康，同时也在发生故障的时候尽量降低对集群使用者的影响。Redis 的作者对这套高可用方案有着更加清晰的概括</p>
+
+<pre><code>	So the three different roles of Redis Sentinel can be  summarized in the following three big aspects:
+	
+	1. Monitoring.
+	2. Notification.
+	3. Automatic failover.
+		
+</code></pre>
+
+<p><strong>Q: 「Redis Sentinel」将以何种方式实现？</strong></p>
+
+<p>「Redis Sentinel」将通过多个 Sentinel 节点一起合作实现。一个 Sentinel 节点也是一个 redis-server。与普通数据节点不同的是，「Sentinel 节点」将会以特殊的 mode 运行，只接受「Redis Sentinel」 相关的命令。在代码层面上，「Sentinel 节点」和数据节点将会共用很多代码，避免重复实现</p>
+
+<p><strong>Q: 一个标准的「一主一从」的 Redis 集群若使用了「Redis Sentinel」，它的服务拓扑是什么样的？</strong></p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%20Redis-Sentinel%201-1.png" alt="" /></p>
+
+<p>从上面的拓扑图中可以看出，任意一个「Sentinel」 节点都监控了集群中除自身之外的所有节点。Master 和 Slave 之间会进行双向通信，在此通信过程中实现的最重要的功能就是「主从数据同步」。「Sentinel 节点」使用<code>Ping</code>命令对其他节点进行监控，并且其自身也能够正常的响应<code>Ping</code> 命令。</p>
+
+<p><strong>Q: 以上的服务拓扑关系是如何建立起来的？</strong></p>
+
+<p>以 Sentinel 为起点来说，它需要与整个集群内部所有的节点都建立链接，这些链接有些是用来监控对方的健康状态，有些则是需要获取一些有用的信息。</p>
+
+<pre><code>- Sentinel-&gt;Master: 这条连接被用作 Sentinel 监控 Master。它可以对 Sentinel 节点执行一条命令来建立： `Sentinel monitor &lt;Master-group-name&gt; &lt;ip&gt; &lt;port&gt; &lt;quorum&gt;`
+- Sentinel-&gt;slaves: 这条连接被用作 Sentinel 监控 slave节点。它通过 Sentinel 节点对 Master 节点执行 `INFO`命令来获取集群中与 mater 节点建立了主从关系的 slave 节点。
+- Master-&gt;slave: Master 和 slave 之间的链接主要用于主从数据同步。这条连接也是通过一条命令建立起来的`SLAVEOF host port`。初始启动时，两个数据节点可能都是以 Master 的身份启动的。此时如果没有特殊需求，可对任意一个 slave 节点执行这条命令，主从节点之间的链接便会成功建立。
+</code></pre>
+
+<p>图中不同 Sentinel 节点之间建立关系的过程要比上面所描述的复杂一些，我们首先来看下 Sentinel 节点之间建立的链接有何作用：</p>
+
+<pre><code>a) 监控除自己之外的 Sentinel 节点 
+b) 在集群发生故障的时候，通过这条连接 Sentinel 节点相互之间要进行通信&amp;合作，从而实现「故障转移」的功能。
+</code></pre>
+
+<p>事实上，Sentinel 节点在启动的时候并不知道它所在的集群中是否还有其他的节点。Sentinel 节点是通过一种消息的「订阅/发布」机制来进行服务发现的。这个 msg 的「集散地」就是 Master 节点，因为在任意一个 Sentinel 节点启动时都只知道 Master 节点的信息（上述监控 Master 节点的 monitor 命令我们一般都会放在 Sentinel 启动的配置文件中）。每一个 Sentinel 在启动之后都会向 Master 节点的一个 channel Pub 一条消息，这条消息的内容包括了 Sentinel 节点自身的信息(runid, IP, port)。除了执行 Pub 操作之外，每个 Sentinel 节点也会订阅（Sub）这个 channel，以便接收其他 Sentinel 节点发送来的消息进行服务发现。</p>
+
+<p><strong>Q: Sentinel 节点是如何监控集群中「其他节点」的呢？</strong></p>
+
+<p>任意一个 Sentinel 节点在对整个集群的「服务拓扑」有了完整的了解之后，会通过<code>PING</code>命令对其他节点进行「健康检测」。如果<code>PING</code>命令的超过「一定的时间」(down-after-milliseconds) 没有被响应或者返回一个错误，那么 Sentinel 节点将会判定这个被监控的节点是不健康的。「一定的时间」是可以自由进行设置的，但是很难给出一个最佳的实践。<code>PING</code>命令响应延迟的长短可能和很多因素都有关系，如果贸然设置的很大，那么「健康检测」将会很迟钝，反之，可能会误报。</p>
+
+<p><strong>Q: Sentinel节点 是以什么标准来判定 Master 节点故障的？</strong></p>
+
+<p>一个 Redis 集群内，往往至少要有三个 Sentinel 节点才能正常的使用它提供的「高可用方案」。通过对上一个问题的了解，我们知道每一个 Sentinel 节点都会对 Master 节点进行监控，从而对他的健康状态做出一个判断。既然是分开判断的，那么肯定会发生判断结果不一致的情况。所以在「Redis Sentinel」 中，将会通过以下几种方式来保证对 Master 节点状态做出的判断是可靠的。</p>
+
+<p>首先，Sentinel 节点将不健康的 Master 状态以较粗的粒度划分为了两类：</p>
+
+<pre><code>- Subjectively Down(aka S_DOWN): 主观下线。顾名思义就是「Master节点已经不健康」的判断仅来源一个 Sentinel 节点，只代表了它自己的观点。
+- Objectively Down(aka O_DOWN): 客观下线。集群中「一定数量」（quorom）的 Sentinel 节点都做出了「Master节点已经不健康」的判断，代表了大部分甚至是全部 Sentinel 节点的观点。
+</code></pre>
+
+<blockquote>
+<p>这里需要提及的一点就是：「一定数量」的 Sentinel 节点到底指的是多少个。它其实是一个参数：quorom，可以由 Redis 集群的创建者进行设置的。之前在<a href="http://littledriver.net/posts/redis-Sentinel-explanation-1/">Redis-Sentinel-Explanation</a>一文中有提到过这个参数的意义。</p>
+</blockquote>
+
+<p>然后，当一个 Sentinel 节点判定 Master 节点处于 S_DOWN 状态之后，它会向集群内其余 Sentinel 节点执行<code>Sentinel is-Master-down-by-addr</code>命令，以便了解其他 Sentinel 节点对于 Master 节点状态的判断。如果该 Sentinel 节点发现集群中已经超过 quorom 个 Sentinel 节点都认为 Master 处于 S_DOWN 状态的话，那么它认为 Master 节点已经处于 O_DOWN 状态。</p>
+
+<p><strong>Q: 这个 quorom 值应该如何设置呢？</strong></p>
+
+<p>首先，根据上面描述的「判断 Master 节点故障」的过程，我们可以知道：触发「故障转移」的灵敏度其实来自于 quorom 这个值的大小。例如，你的 Redis 集群中有5个 Sentinel 节点，当 quorom 设置为2的时候，如果有两个Sentienl 节点都认为 Master 节点处于 S_DOWN 状态，那么这个 Master 就会被判定为 O_DOWN状态。若以上的过程都正常，那么接下来就会进行和「故障转移」相关的步骤。当 quorom 设置为4的时候，就必须要4个 Sentinel 节点对 Master 节点做出 S_DOWN判定才会继续处理。</p>
+
+<p>除了会影响「灵敏度」之外，当集群发生了网络割裂或者大部分 Sentinel 节点都 down 掉的时候，quorom 值设置的越小，你的 Redis 集群就越有可能在发证故障的时候能被「故障转移」正常的恢复。反之，这个「Redis Sentinel」 的高可用方案可能就不起作用了。所以说 quorom 值的设置将是一把双刃剑。需要按照Redis 集群所处的网络环境以及发生故障的类型及频率综合考虑之后给出一个值。</p>
+
+<blockquote>
+<p>这里需要提及的一点就是：对于 Master 节点状态的判断，每一个 Sentinel 都是独立执行的，他们之间可以相互合作（O_DOWN 的判断），但是最终的决策还是靠自己所掌握的信息做出的。</p>
+</blockquote>
+
+<p><strong>Q: 在真正执行「故障转移」操作之前，「Redis Sentinel」 还需要做些什么？</strong></p>
+
+<p>在一个 Redis 集群中，如果有超过 quorom 个 Sentinel 节点 都认为 Master 节点处于 S_DOWN 状态的时候，那么这个 Master 将会被 Sentinel 节点标记为 O_DOWN 状态。除此之外，在真正执行「故障转移」操作之前，多个 Sentinel 节点还将选取出一个 Leader 去做这件事情。那么，Sentinel 节点是如何进行 Leader 选取的呢？</p>
+
+<blockquote>
+<p>为了方便阐述 Leader 的选取过程，我们假设现在的 Redis 集群是一主一从+三个 Sentinel 节点的配置。quorom 值设为2。</p>
+</blockquote>
+
+<p>首先，既然要选取 Sentinel Leader，那么肯定就需要先确定 Candidate。那究竟什么样的 Sentinel 节点才可以作为 Candidate 呢？很简单，只要是可以连通的 Sentinel 节点都可以作为 Candidate。</p>
+
+<p>在明确了 Candidate 之后，「Redis Sentinel」 将会使用一种「投票」的机制，选出一个 Leader。「投票」机制核心内容是很简单的：所有的 Candidate 都把票投给 runid 最小的那个 Sentinel 节点。如果对 Redis 不熟悉的读者可能在这里会对以下三个问题比较疑惑：</p>
+
+<pre><code>* Q1: runid 是什么？
+* Q2: 多个不同的 Sentinel 节点之间是如何知道彼此的 runid 的？
+* Q3: 选举出来的 leader 如何知道它已经被其他 Sentinel 节点认可了呢？
+
+* A1: runid， IP，port 三个元素将会构成一个三元组，唯一的标识一个集群中正在运行的 Sentinel 节点。runid 在每次节点重启之后都会变化，所以它能够标识正在集群中运行的 Sentinel 节点，而不是旧的。因为 Sentinel 节点的 IP 和 port可能都是不变的，尤其是在物理机运行的时候。
+* A2: 回忆一下 Sentinel 节点如何做服务发现的过程就可以知道，Sentinel 节点向 Master 节点的 channel Pub 消息的时候会带上自己的详细信息，而这些详细信息里面就包括：runid， IP， port。
+* A3: 当集群中的每一个 Sentinel 节点都选出了自己的 Subjective Leader（主观 leader）之后，Sentinel 节点之间还是会每隔 1s 中会相互发送一个`Sentinel is-Master-down-by-addr`命令。每个 Sentinel 节点在回复这个 command 的时候都会带上自己选出的 Subjective Leader的 runid。
+</code></pre>
+
+<p>当某一个 Sentinel 节点收到了其他 Sentinel 节点的投票结果之后，它接下来会做如下几个判断：</p>
+
+<pre><code>1. 有没有投自己一票 
+2. 至少有 quorom-1个 Sentinel 节点对 Master 节点的状态做出了 O_DOWN 的判定
+3. 至少有 sum(Sentinels) / 2 + 1 个（也就是半数以上）的 Sentinel 节点将票投给了自己
+</code></pre>
+
+<p>当上述三个条件全部成立的时候，该 Sentinel 节点将作为 Leader 执行接下来的步骤。</p>
+
+<p>截止到目前为止，「Redis Sentinel」已经确认了 Master 的故障状态，且选举出来了一个 Leader。在真正完成「故障转移」操作之前，Leader 还需要在集群中找出一个合适的 Slave 节点。为什么要找一个 Slave 节点呢？要解释这个问题，就必须提前介绍一下「故障转移」操作的的本质：「切主」。</p>
+
+<blockquote>
+<p>「故障转移」其实最终只是为了完成一个目标：在 Redis 集群发生故障的时候，从可用的 Slave 节点当中挑选一个作为新的 Master 节点且重新建立整个集群的拓扑结构。</p>
+
+<p>这种故障处理措施和 Redis 的使用方式是密切相关的。对于一个 Redis 集群，我们可以利用一些技巧提升它的性能，如：读写分离。但是一个始终不变的事实就是：在 Redis 集群中，数据同步都是从 Master 节点同步至 Slave 节点。使用 Redis 集群，其写入操作是必须要作用于 Master 节点上的。由于前面说到的数据同步的方向性，如果写入操作到了 Slave 节点，那么就会有丢失数据的影响。所以，无论是用户还是集群的维护者都不能够忍受一个集群的 Master 节点长时间不可用。</p>
+</blockquote>
+
+<p>可供选择的 Slave Candidate 一般都会具有如下两个条件：</p>
+
+<pre><code>- Slave 节点本身是可正常访问的
+- Slave 节点不能与 Master 节点断开连接时间过长
+</code></pre>
+
+<p>其中第一个条件很容易理解，而第二个条件则是保证「切主」后 Master 节点的数据不会过于陈旧。陈旧的数据对于将 Redis 作为缓存来使用的服务会产生较大的影响。对于符合了上述两个条件的 Slave 节点，我们会根据他们的「priority（优先级）」进行排序，选取一个低优先级的节点。priority 相当于每一个 Slave 节点的权重，priority 越低，证明这个节点在集群中的同类节点里权重越大（priority 可以通过 Slave 节点的启动配置文件中的 slave-priority 进行配置）。若有多个节点的 priority 相同的话，Leader 将会选取runid 较小的一个节点。</p>
+
+<p><strong>Q: 「故障转移」都做了些什么？</strong></p>
+
+<p>「故障转移」主要是由 Leader Sentinel 节点来操作的：</p>
+
+<pre><code>1. 对选取出来的 Slave 节点执行`SLAVEOF NO ONE`命令，将这个 Slave 节点提升为 Master 节点
+2. 对集群中余下的 Slave 节点（如果有）按照顺序依次执行`SLAVEOF NEWMaster PORT`命令，尝试重新建立主从节点之间的链接
+3. 调用「监控脚本」（如果有）通知用户当前正在进行「故障转移」
+4. 开始监控新的 Master 节点，将旧的 Master 节点的相关信息从自己的配置文件中删除
+</code></pre>
+
+<p><strong>Q: Sentinel Leader 在执行「故障转移」的时候，其余的 Sentinel 节点在做什么？</strong></p>
+
+<p>稍微思考一下就可以知道，对于其他的 Sentinel 节点来说，可能需要做的事情有两件：</p>
+
+<pre><code>1. 观察「故障转移」的执行结果
+2. 重新进行服务发现
+</code></pre>
+
+<p>Sentinel 节点不再依靠和 Leader 通信来获取「故障转移」的相关信息。由于「故障转移」最终实现的就是一个「切主」的操作，所以其余的Sentinel 节点将会通过观察 Slave 节点的信息来判断「故障转移」的执行情况。接下来，我们统一把这些扮演观察者角色的 Sentinel 节点称作 Observer Sentinel，并了解一下它们在这期间具体都做了些什么：</p>
+
+<p>当 Leader 选中了一个合适的 Slave 节点并想将其提升为新的 Master 节点的时候，它会为这个 Slave 节点打上一个名为<code>FAILOVER_IN_PROGRESS</code>的 flag。Observer Sentinel 将会持续关注所有的 Slave 节点。当其中一个 Slave 节点被提升为 Master 且其余的 Slave 节点都和其建立了新的主从关系之后，Observer Sentinel就认为此时「故障转移」操作已经完成了。「故障转移」完成之后，Leader 会去掉新 Master 节点上<code>FAILOVER_IN_PROGRESS</code>的 flag。而这一些的操作 Observer Sentinel都是非常清楚的。当 Sentinel 节点已经明确了它所要监控的 Master 节点之后，就会很容易的按照我们之前描述的步骤重新建立集群的拓扑结构。至于故障的旧的 Master 节点，我们可以手动或者使用<code>代码</code>将它启动起来，作为 Slave 节点与新的 Master 节点建立主从关系。</p>
+
+<p><strong>Q: 有哪些因素会影响 Sentinel 节点执行「故障转移」？</strong></p>
+
+<p>在对「Redis Sentinel」 这套高可用方案有了一个简单的了解之后，我们可以粗略的归纳出：影响「故障转移」操作正常执行的因素有两个：</p>
+
+<pre><code>- 网络环境
+- Sentinel 节点本身是否健康
+</code></pre>
+
+<p>因为 Sentinel 节点在执行「故障转移」操作期间会频繁的与其他节点交换信息或者执行一些命令，如果此时网络环境较差，那么将会发生很多不可预期的情况，如脑裂。</p>
+
+<p>除此之外， Sentinel 节点本身的健康状态也是非常重要的。尤其是对于 Leader 节点来说，如果在执行「故障转移」的过程中或者准备执行之前发生了一些异常，那么也将会导致很多非预期的行为。除了 Sentinel 节点间的监控之外，在「Redis Sentinel」 中，每一个 Sentinel 节点会每隔 100ms 运行一个定时任务。这个定时任务主要的内容就是计算一下上一次执行的该任务的时间与目前的时间之间的差值。如果这个差值已经过大或者说已经是负值的话，该 Sentinel 节点将会进入一种「保护模式」——— TILT。在这种模式下，Sentinel 节点除了会执行常规的监控操作之外会暂停所有其他的活动。所以对于「Redis Sentinel」 这套高可用的方案来说，它会尽最大的努力来保证「故障转移」操作的正常执行。</p>
+
+<p>另外，已经进入了 TILT 模式的 Sentinel 节点，上述所提到的「定时任务」还是会正常执行。若在 30s 中之内该定时任务所计算出的时间间隔一直是正常的，那么该 Sentinel 节点将会退出 TILT 模式。</p>
+
+<p><strong>总结</strong></p>
+
+<p>通过对「Redis Sentinel」 Design Doc 的阅读，笔者在较为宏观的层面上了解了这套高可用的方案。在基于 Kubernetes 开发高可靠的 Redis APP 的过程中，不得不说，我对这套方案是又爱又恨的。「爱」是觉得它的设计思路很不错，没有和 Redis 本身提供的「数据库」相关的功能混杂在一起，即使一两个 Sentinel 出问题 down 掉也不会影响集群的正常访问。「恨」是因为这套高可用的方案运行在容器和 k8s 的环境上多多少少有点「水土不服」。所以，我们（其实就我一个人╮(╯▽╰)╭）在开发 APP 的过程中，会针对「Redis Sentinel」 在容器上使用的一些缺陷做出了相应的补足措施。这是一件很不容易的事，不容易的地方在于，我们的「措施」是不能够和他本身的高可用方案发生冲突的。在博客后续的文章中，我将会持续的和大家分享「基于 Kubernetes 开发高可靠 APP」 的经验以及对「Redis Sentinel」 源码学习的过程。</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

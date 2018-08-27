@@ -6,10 +6,25 @@
     <description>Recent content in Posts on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 14 Aug 2018 15:45:25 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 27 Aug 2018 16:00:20 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Heade First Redis Sentinel</title>
+      <link>http://littledriver.net/posts/heade-first-of-redis-sentinel/</link>
+      <pubDate>Mon, 27 Aug 2018 16:00:20 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/heade-first-of-redis-sentinel/</guid>
+      <description>WARNING: 本篇文章是在阅读了 Redis Sentinel 的设计文档之后产出的。但是由于该设计文档已经被官方标识为 draft 且时间也比较久远，笔者在阅读这份文档的时候还是发现了几处与当前新版本实现不同的地方，甚至是有一些错误的。所以本文的目的也就在于：先借助该设计文档对 Sentinel 这套高可用的方案有一个宏观上的了解，具体的实现细节，之后会另写几篇博文对 Sentinel 的源码进行分析。若是有能力直接阅读源码的读者可直接去阅读源码。如果你在阅读这篇文章的时候，发现了一些错误并且愿意帮忙改正的话，请私信联系我。
+ 先说明几个这篇 blog 使用的名词
+- 「Redis Sentinel」指通过 Sentinel 实现的 Redis 高可用方案 - 「Sentinel 节点」指 Redis 集群中运行的某一个 Sentinel 节点（redis-server）  Q: 什么是「Redis Sentinel」?
+Redis Sentinel 是一套「方案」。它能够提升 Redis 集群的可用性，也就是我们常说的「高可用」
+Q: Sentinel 通过哪些功能可以实现 Redis 集群的「高可用」？
+Redis 集群的「高可用」，在我理解，可以分为「用户」和「服务」两个维度进行讨论
+- 用户维度 - Sentinel 通过某些命令可以让用户实时获取当前集群的 Master 节点的地址（Sentinel 会进行故障转移操作） - 预设了一些「通知」机制，可以在 Redis 集群内部发生异常的时候通知给集群的维护者或者使用者 - 服务维度 - 监控集群中主从节点以及 Sentinel 节点的健康状态 - 集群 Master 发生故障时可自动进行「故障转移」操作来恢复集群  总结下来，这套「高可用」方案既可以保证 Redis 集群自身的健康，同时也在发生故障的时候尽量降低对集群使用者的影响。Redis 的作者对这套高可用方案有着更加清晰的概括</description>
+    </item>
     
     <item>
       <title>Head First Scheduler of Golang</title>
@@ -68,17 +83,6 @@ RDB 持久化的大致过程  redis-server 每隔一段时间就执行一次 BGS
  Error Fatal Info Warn Debug  那么在接下来的两篇关于「Golang Log」的文章当中，将会根据笔者的实践经验，在日志级别的使用以及日志库工具的使用上给出一些我自己的「Best Practice」。
 Warn Warn 这种日志级别一直让我感觉比较困惑，按照单词的字面意思来理解，它是用来输出警告信息的。那警告这种级别到底是用于什么场景呢？如果是错误的话那应该直接用 Error，如果是简单的输出一些信息的话，那么用 Debug 和 Info 都是可以的。这样看来，Warn 这种级别就很尴尬，和其他的级别没有明显的区别，导致开发者在选择日志输出级别的时候就多了一种令人困惑的选择。如果你一直在使用 Warn 这种日志级别在输出「错误」信息的话，建议还是改成 Error 较好。最主要的原因就是，滥用 Warn 级别可能会给我们的日志造成很大的噪音，因为大家潜意识里就认为 Warn 不重要，Error 才是需要注意的。这样一来，把错误信息放在 Warn 里面输出就是非常不合适的，很有可能让我们忽略一些关键的信息。
 日志输出级别上的 Warn 和监控报警级别中的 Warn 显然不是一回事，前者是将输出的日志信息划分等级，以此来帮助我们追查问题和观察程序运行的情况。后者则是用来像我们报告服务的某些指标已经很接近 Error 报警的阈值，提醒我们要注意。并且监控报警中的 Warn 级别也是提倡要善用的，滥用同样会导致噪声。</description>
-    </item>
-    
-    <item>
-      <title>Redis Sentinel Explanation 2</title>
-      <link>http://littledriver.net/posts/redis-sentinel-explanation-2/</link>
-      <pubDate>Sat, 21 Apr 2018 21:24:10 +0800</pubDate>
-      
-      <guid>http://littledriver.net/posts/redis-sentinel-explanation-2/</guid>
-      <description>前景回顾 在上一篇对 Redis Sentinel 讲解的blog中，我们描述了 Sentinel 启动所需要的配置文件以及它提供的高可用功能的一个概括。看完文章之后，相信你一定有以下几点是比较疑惑的
- Q: 通过配置文件我们可以看到，Sentinel 在启动之前只需要我们手动指定被其监控的 Master 节点的信息，其余的 Sentinel 节点和 Slave 节点均不需要我们操心，Redis 内部会自己帮我们做这些工作。最终，集群中任意一个 Sentinel 节点都能够拿到整个集群的拓扑结构。那么 Redis 究竟是实现的这个功能呢？ Q: Redis Sentinel 会对集群内部的所有节点都进行健康检测，尤其是对 Master 和 Slave 两个数据节点。健康检测的结果会直接驱动 Redis Sentinel 做出是否要进行「故障转移」的决定。那么，Redis Sentinel 内部是如何定义数据节点状态的健康与否呢？又是通过什么样的方法来判定此时集群需要进行「故障转移」？ Q: Redis Sentinel 节点在一个集群内的数量至少都有三个，在进行故障转移的过程中，Redis Sentinel 会选举出一个 Leader 进行后续的操作。那么他们是通过什么样的机制进行选举的呢？ Q: 当所有的准备工作都做完之后，在Sentinel Leader 执行故障转移的时候，又具体做了些什么能够让集群恢复正常？  接下来，我们就分别根据上面提到的问题来向大家介绍一些关于 Redis Sentinel 内部实现的一些知识，它将会分为以下几个部分：
- Redis Sentinel 的三个定时任务 什么是主观下线？什么是客观下线？ Sentinel 如何进行 Leader 选举？ 在故障转移的过程中究竟发生了什么？  Redis Sentinel 的三个定时任务 定时任务1：间隔10s Sentinel 有一个每隔10秒就会执行的一个任务：在其监控的主节点上执行 redis-cli info replication 命令，获取 Slave 的信息。 Eg：</description>
     </item>
     
     <item>

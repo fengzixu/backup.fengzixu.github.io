@@ -6,10 +6,25 @@
     <description>Recent content in Redis on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 05 Aug 2018 20:11:46 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 27 Aug 2018 16:00:20 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/redis/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Heade First Redis Sentinel</title>
+      <link>http://littledriver.net/posts/heade-first-of-redis-sentinel/</link>
+      <pubDate>Mon, 27 Aug 2018 16:00:20 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/heade-first-of-redis-sentinel/</guid>
+      <description>WARNING: 本篇文章是在阅读了 Redis Sentinel 的设计文档之后产出的。但是由于该设计文档已经被官方标识为 draft 且时间也比较久远，笔者在阅读这份文档的时候还是发现了几处与当前新版本实现不同的地方，甚至是有一些错误的。所以本文的目的也就在于：先借助该设计文档对 Sentinel 这套高可用的方案有一个宏观上的了解，具体的实现细节，之后会另写几篇博文对 Sentinel 的源码进行分析。若是有能力直接阅读源码的读者可直接去阅读源码。如果你在阅读这篇文章的时候，发现了一些错误并且愿意帮忙改正的话，请私信联系我。
+ 先说明几个这篇 blog 使用的名词
+- 「Redis Sentinel」指通过 Sentinel 实现的 Redis 高可用方案 - 「Sentinel 节点」指 Redis 集群中运行的某一个 Sentinel 节点（redis-server）  Q: 什么是「Redis Sentinel」?
+Redis Sentinel 是一套「方案」。它能够提升 Redis 集群的可用性，也就是我们常说的「高可用」
+Q: Sentinel 通过哪些功能可以实现 Redis 集群的「高可用」？
+Redis 集群的「高可用」，在我理解，可以分为「用户」和「服务」两个维度进行讨论
+- 用户维度 - Sentinel 通过某些命令可以让用户实时获取当前集群的 Master 节点的地址（Sentinel 会进行故障转移操作） - 预设了一些「通知」机制，可以在 Redis 集群内部发生异常的时候通知给集群的维护者或者使用者 - 服务维度 - 监控集群中主从节点以及 Sentinel 节点的健康状态 - 集群 Master 发生故障时可自动进行「故障转移」操作来恢复集群  总结下来，这套「高可用」方案既可以保证 Redis 集群自身的健康，同时也在发生故障的时候尽量降低对集群使用者的影响。Redis 的作者对这套高可用方案有着更加清晰的概括</description>
+    </item>
     
     <item>
       <title>Redis 数据持久化机制</title>
@@ -21,17 +36,6 @@
 RDB 持久化的大致过程  redis-server 每隔一段时间就执行一次 BGSAVE 命令 redis-server 的主进程会 Fork 一个子进程进行持久化操作 子进程将此时内存中的数据写入进一个临时文件中 写入成功之后，原子的将旧的 rdb 文件替换为新的并删除旧的备份文件  RDB持久化过程享受了 OS 中 COW （ Copy-on-write ） 机制的优势。早期 Linux 内核的 Fork 过程会无脑的直接将父进程的各种资源 Copy 一份给子进程。这种旧的机制在效率上有很大的问题。但是在有了 COW 机制之后，若父进程的内存段中的内容都没有修改，那么就只会分配给子进程很少的一部分资源，如进程描述符等等。实际上此时父子进程是共享内存地址空间的，达到了资源共享的效果。若父子进程共享的内存中的内容有修改，才会真正的去复制一份内存当中的内容给子进程.
 所以，你会发现，在你的redis-server 没有接受任何写操作的时候，你执行 bgsave 和 save 是非常快的。但是，若你一遍在疯狂的写入数据，一边在执行bgsave或者 save，他们的执行时间就会随着写入速度的增加而增加，且有可能发生 OOM 的现象。
 另外还有一个问题就是：Redis 在执行 bgsave 操作的时候，如果此时还有写操作在执行，那么最新的修改会被同步到新的 RDB 的文件中么？根据 COW 的机制思考一下就可以知道，当发生写入操作之后，父子进程的实际物理内存已经分开了两份，而最终本次 RDB 操作产生的备份文件也是根据子进程内存中的内容来的，所以，可以说 RDB 执行完成后文件中的内容，就是 fork 函数执行那一刻，内存中的内容（此时，父子进程共享内存）</description>
-    </item>
-    
-    <item>
-      <title>Redis Sentinel Explanation 2</title>
-      <link>http://littledriver.net/posts/redis-sentinel-explanation-2/</link>
-      <pubDate>Sat, 21 Apr 2018 21:24:10 +0800</pubDate>
-      
-      <guid>http://littledriver.net/posts/redis-sentinel-explanation-2/</guid>
-      <description>前景回顾 在上一篇对 Redis Sentinel 讲解的blog中，我们描述了 Sentinel 启动所需要的配置文件以及它提供的高可用功能的一个概括。看完文章之后，相信你一定有以下几点是比较疑惑的
- Q: 通过配置文件我们可以看到，Sentinel 在启动之前只需要我们手动指定被其监控的 Master 节点的信息，其余的 Sentinel 节点和 Slave 节点均不需要我们操心，Redis 内部会自己帮我们做这些工作。最终，集群中任意一个 Sentinel 节点都能够拿到整个集群的拓扑结构。那么 Redis 究竟是实现的这个功能呢？ Q: Redis Sentinel 会对集群内部的所有节点都进行健康检测，尤其是对 Master 和 Slave 两个数据节点。健康检测的结果会直接驱动 Redis Sentinel 做出是否要进行「故障转移」的决定。那么，Redis Sentinel 内部是如何定义数据节点状态的健康与否呢？又是通过什么样的方法来判定此时集群需要进行「故障转移」？ Q: Redis Sentinel 节点在一个集群内的数量至少都有三个，在进行故障转移的过程中，Redis Sentinel 会选举出一个 Leader 进行后续的操作。那么他们是通过什么样的机制进行选举的呢？ Q: 当所有的准备工作都做完之后，在Sentinel Leader 执行故障转移的时候，又具体做了些什么能够让集群恢复正常？  接下来，我们就分别根据上面提到的问题来向大家介绍一些关于 Redis Sentinel 内部实现的一些知识，它将会分为以下几个部分：
- Redis Sentinel 的三个定时任务 什么是主观下线？什么是客观下线？ Sentinel 如何进行 Leader 选举？ 在故障转移的过程中究竟发生了什么？  Redis Sentinel 的三个定时任务 定时任务1：间隔10s Sentinel 有一个每隔10秒就会执行的一个任务：在其监控的主节点上执行 redis-cli info replication 命令，获取 Slave 的信息。 Eg：</description>
     </item>
     
     <item>
