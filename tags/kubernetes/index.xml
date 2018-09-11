@@ -6,10 +6,23 @@
     <description>Recent content in Kubernetes on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 17 Apr 2018 14:34:48 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 11 Sep 2018 16:52:58 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Contrain Pod Scheduling</title>
+      <link>http://littledriver.net/posts/contrain-pod-scheduling/</link>
+      <pubDate>Tue, 11 Sep 2018 16:52:58 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/contrain-pod-scheduling/</guid>
+      <description>Overview 当我们创建一个 Pod 之后，Kubernetes 自身的一些调度规则将会根据集群节点的各项指标，为这个 Pod 选出一个合适的 Node 且将其调度上去。我们姑且可以认为这个调度的过程对我们来说是「随机」的。因为在没有了解清楚 Kubernetes 的调度规则之前，我们也不知道创建的一个 Pod 将会被调度到哪台节点上。 但是在日常开发的过程中，尤其是基于 k8s 开发一些数据库相关应用的时候，我们通常对 Pod 被调度的节点是有要求的，比如：我们需要将主节点强制调度到某台机器上，或者我们需要主从节点所在的 Pod 不能调度到同一个 Node 上。
+这些要求在 kubernetes 上是可以实现的，它提供以下几种方式来方便使用者干预 Pod 的调度策略：
+ NodeSelector Taints and Tolerations Anti-Affinity/Affinity  NodeSelector NodeSelector 是依靠 LabelSelector 实现的一种调度策略。若想使用 NodeSelector， 需要分为两部分来考虑
+Node 我们需要在集群中某一个我们想要调度到的 Node 上打上一个label，比如，A Node上的硬盘是 SSD，那我们就可以使用 kubectl 命令将 A Node 打上一个 disktype=ssd 的 Label。 kubectl label nodes &amp;lt;node-name&amp;gt; &amp;lt;label-key&amp;gt;=&amp;lt;label-value&amp;gt;
+Pod 对于 Pod 来说，我们需要在它的 spec 段内，加入 nodeSelector 段。并且在 nodeSelector 段中填入「目的 Node」 所携带的 Label。比如我们想将一个 Pod 强制调度到 Node A 上，那么在构造 Pod 的基本信息的时候，就要相应的做如下修改（以 yaml 文件为例）：</description>
+    </item>
     
     <item>
       <title>Kubernetes pod schedular strategy</title>
