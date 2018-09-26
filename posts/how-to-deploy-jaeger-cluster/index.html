@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>How to Deploy Jaeger Cluster | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">How to Deploy Jaeger Cluster</span></h1>
+
+<h2 class="date">2018/09/26</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/kubernetes">Kubernetes</a> <a href="/tags/servicemesh">ServiceMesh</a> 
+  
+  
+</p>
+</div>
+
+
+<nav id="TableOfContents">
+<ul>
+<li><a href="#deploy-jaeger-in-kubernetes">Deploy Jaeger in Kubernetes</a>
+<ul>
+<li><a href="#preparation">Preparation</a></li>
+<li><a href="#部署-ceph-rbd-集群">部署 Ceph RBD 集群</a>
+<ul>
+<li><a href="#prepare">Prepare</a></li>
+<li><a href="#activate">Activate</a></li>
+<li><a href="#ceph-rbd-cluster-state">Ceph rbd Cluster State</a></li>
+<li><a href="#cooperate-with-kubernetes">Cooperate with kubernetes</a></li>
+<li><a href="#create-pod-with-pv-on-ceph">Create pod with pv on ceph</a></li>
+</ul></li>
+<li><a href="#部署-elasticsearch">部署 ElasticSearch</a></li>
+<li><a href="#部署-jaeger">部署 Jaeger</a></li>
+<li><a href="#部署-ingress-nginx-ingress-controller">部署 ingress+nginx-ingress-controller</a></li>
+<li><a href="#访问-jaeger-query">访问 jaeger-query</a></li>
+</ul></li>
+</ul>
+</nav>
+
+
+<main>
+
+
+<h1 id="deploy-jaeger-in-kubernetes">Deploy Jaeger in Kubernetes</h1>
+
+<h2 id="preparation">Preparation</h2>
+
+<p><img src="https://www.jaegertracing.io/img/architecture.png" alt="" /></p>
+
+<p>通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件</p>
+
+<ol>
+<li>jaeger-agent</li>
+<li>jaeger-collector</li>
+<li>data-storage
+
+<ol>
+<li>Elasticsearch</li>
+<li>Cassandra</li>
+</ol></li>
+</ol>
+
+<p>由于我们想将 jaeger 部署到 k8s 集群中，针对于这个特定的部署环境，我们可以对部署方案做如下的梳理：</p>
+
+<ul>
+<li>部署方式： helm+jaeger 的 chart 包（参考：<a href="https://github.com/jaegertracing/jaeger-kubernetes">https://github.com/jaegertracing/jaeger-kubernetes</a>, <a href="https://github.com/helm/charts/tree/master/incubator/jaeger）">https://github.com/helm/charts/tree/master/incubator/jaeger）</a></li>
+<li>存储中间件：helm + ElasticSearch 的 chart 包（参考：<a href="https://github.com/helm/charts/tree/master/incubator/elasticsearch）">https://github.com/helm/charts/tree/master/incubator/elasticsearch）</a></li>
+<li>底层存储方案：宿主机外挂500G 数据盘+ Ceph RBD</li>
+<li>访问：ingress+nginx—ingress-controller+service</li>
+</ul>
+
+<p>通过对<a href="https://github.com/jaegertracing/jaeger-kubernetes">GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes</a>的了解，我们可以知道，其实 jaeger 本身的组件部署时比较简单的，直接 kubectl applpy 一个编排文件即可搞定。唯一比较麻烦的是对底层存储的配置。针对这样的情况，我们决定将 jaeger 部署的顺序做如下安排：</p>
+
+<ol>
+<li>准备一个 k8s 集群（笔者有一个一主一从的 k8s 集群，基于虚拟机建立的），主从节点各挂在一块500G 的数据盘</li>
+<li>Ceph RBD 集群和 k8s 混布（╮(╯▽╰)╭，没办法，穷啊），创建需要分配存储的测试 pod，查看 pvc 和 pv 的创建情况</li>
+<li>部署 Elasticsearch</li>
+<li>部署 Jaeger，测试集群内部是否能够成功访问 jaeger-query</li>
+<li>部署 ingress+nginx-ingress-controller，测试集群外部访问情况</li>
+</ol>
+
+<blockquote>
+<p>本文默认用户已经部署好了 k8s 集群并且挂载了数据盘，因为 k8s 的部署步骤也比较复杂，足以写另外一篇文章了。而且对于挂载磁盘的问题来说，用户所处平台的不同（云主机，物理机，本地的虚拟机）可能处理的方式也不太一样。这两部分在本文中就不做过多的描述了。</p>
+</blockquote>
+
+<h2 id="部署-ceph-rbd-集群">部署 Ceph RBD 集群</h2>
+
+<blockquote>
+<p>Ref: <a href="https://tonybai.com/2016/11/07/integrate-kubernetes-with-ceph-rbd/">https://tonybai.com/2016/11/07/integrate-kubernetes-with-ceph-rbd/</a> （感谢作者）<br />
+部署 ceph 的部分，都是借鉴作者的经验，这里只是做一个记录，帮自己梳理部署的步骤。</p>
+</blockquote>
+
+<p>一个 Ceph RBD 集群可以大致分为三个部分：</p>
+
+<ul>
+<li>Deploy Node：部署节点，相当于 k8s 集群中的 Master 节点</li>
+<li>OSD Node： 存储节点</li>
+<li>MON Node： 监控节点</li>
+</ul>
+
+<p>首先，我们需要安装 ceph 官方提供的部署工具： ceph-deploy。由于 k8s 集群所在 Node 的系统是 Ubuntu，所以这里使用 apt-get 来安装</p>
+
+<pre><code>export CEPH_DEPLOY_REPO_URL=http://mirrors.163.com/ceph/debian-jewel
+export CEPH_DEPLOY_GPG_URL=http://mirrors.163.com/ceph/keys/release.asc
+（使用国内的镜像，速度会快一点）
+将 deb https://mirrors.163.com/ceph/debian-jewel/ xenial main 写入到 /etc/apt/sources.list 中
+apt-get update	
+apt-get install ceph-deploy
+</code></pre>
+
+<p>为了方便起见，我们给安装 ceph 创建一个具有 root 权限的专门的 user</p>
+
+<pre><code>以下命令在每个Node上都要执行：
+
+useradd -d /home/cephd -m cephd
+passwd cephd
+
+添加sudo权限：
+echo &quot;cephd ALL = (root) NOPASSWD:ALL&quot; | sudo tee /etc/sudoers.d/cephd
+sudo chmod 0440 /etc/sudoers.d/cephd
+</code></pre>
+
+<p>将不同 Node 上面的 ssh public key 相互拷贝到 ~_.ssh_authorized<em>keys 文件中，且在 ~</em>.ssh_config 中配置好使用 cephd 账户登录到其他机器上面的捷径。如：</p>
+
+<pre><code>Host xr-service-mesh-lab
+   Hostname xr-service-mesh-lab
+   User cephd
+Host xr-service-mesh-lab1
+   Hostname xr-service-mesh-lab1
+   User cephd
+</code></pre>
+
+<p>如果你之前在当前集群安装过 ceph，可以运行如下命令清理：</p>
+
+<pre><code>ceph-deploy purge xr-service-mesh-lab xr-service-mesh-lab1
+ceph-deploy forgetkeys
+ceph-deploy purgedata xr-service-mesh-lab xr-service-mesh-lab1
+</code></pre>
+
+<p>在集群的任意节点中，选取一个作为 deploy node，以 cephd 账户登录。在该节点上执行 <code>ceph-deploy new xr-service-mesh-lab(nodeName)</code>, 将该节点同时作为 monitor 节点。执行了该命令之后，我们可以发现，在当前目录下会自动生成一些文件，这些文件是在之后的部署过程中会用到的。</p>
+
+<p>编辑 <code>ceph.conf</code>文件，在末尾添加几行内容：</p>
+
+<pre><code>osd pool default size = 2
+osd max object name len = 256
+osd max object namespace len = 64
+</code></pre>
+
+<p>接下来，执行<code>ceph-deploy install xr-service-mesh-lab xr-service-mesh-lab1</code>命令，在两个节点上安装好部署 ceph 集群所需要的 binary。</p>
+
+<p>在 mon-node 上（如果你没有切换过节点操作的话，就是当前的 node，也是 deploy-node），进行初始化操作 <code>ceph-deploy mon create-initial</code>。执行完毕后，会在当前目录下观察到很多以 .keyring 后缀结尾的文件。之后，可以运行 <code>ps aux | grep ceph</code>命令，查看 ceph-mon 进程已经运行。</p>
+
+<p>截止目前，对于这个 ceph 集群，我们还有 osd 节点没有部署。osd 节点的部署分为两部分：prepare, activate</p>
+
+<h3 id="prepare">Prepare</h3>
+
+<blockquote>
+<p>执行这一步之前，最好是在 Node 上都挂载好了专用的数据盘，否则，只能是创建一个目录，使用「系统盘」的空间。笔者在部署的时候，在两个节点的_mnt目录下分别挂在了两块500G 的 数据盘，并且在这两块盘上分别创建了两个目录： /mnt_osd0 _mnt_osd1</p>
+</blockquote>
+
+<p>在 deploy-node 上执行如下命令：<code>ceph-deploy osd prepare xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1</code></p>
+
+<h3 id="activate">Activate</h3>
+
+<p>在 deploy-node 上执行如下命令：<code>ceph-deploy osd activate xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1</code>
+若发现如如下报错信息：</p>
+
+<pre><code>[WARNIN] 2016-11-04 14:25:40.325075 7fd1aa73f800 -1  ** ERROR: error creating empty object store in /mnt/osd0: (13) Permission denied
+</code></pre>
+
+<p>进一步查看 <code>/mnt/osd0</code>目录权限信息：</p>
+
+<pre><code>drwxr-sr-x 2 root root 4096 Nov  4 14:25 osd0
+</code></pre>
+
+<p>可以发现该目录的 user 和 group 都是 root，且除了创建者之外其余的 user 是没有 w 权限的，这也就解释了上面，创建目录因权限问题失败的现象。
+再次观察执行 activate 命令输出的日志，可以发现：</p>
+
+<pre><code>... ...
+[xr-service-mesh-lab][WARNIN] got monmap epoch 1
+[xr-service-mesh-lab][WARNIN] command: Running command: /usr/bin/timeout 300 ceph-osd --cluster ceph --mkfs --mkkey -i 0 --monmap /mnt/osd0/activate.monmap --osd-data /mnt/osd0 --osd-journal /mnt/osd0/journal --osd-uuid 6def4f7f-4f37-43a5-8699-5c6ab608c89c --keyring /var/mnt/keyring --setuser cephd --setgroup cephd
+</code></pre>
+
+<p>我们在 Node 上启动 ceph-osd 进程使用的都是名为 cephd 的 user 和 group。所以，要处理这个问题，可以手动对 Node 上对应的目录使用<code>chown -R cephd:cephd &lt;dir&gt;</code>命令，更改目录权限。修复完成后可以重新执行 activate 命令，正常情况下会顺利通过。</p>
+
+<h3 id="ceph-rbd-cluster-state">Ceph rbd Cluster State</h3>
+
+<p>ceph 集群 activate 成功之后，可以在 deploy-node 上使用两个命令来查看集群的健康情况：</p>
+
+<pre><code>$ ceph osd tree
+
+ID WEIGHT  TYPE NAME                     UP/DOWN REWEIGHT PRIMARY-AFFINITY
+-1 0.49959 root default
+-2 0.01909     host xr-service-mesh-lab
+ 0 0.01909         osd.0                      up  1.00000          1.00000
+-3 0.48050     host xr-service-mesh-lab1
+ 1 0.48050         osd.1                      up  1.00000          1.00000
+
+$ ceps -s
+
+    cluster d38afe19-16bd-40f1-b1e4-4249471d656c
+     health HEALTH_OK
+     monmap e1: 1 mons at {xr-service-mesh-lab=172.20.6.29:6789/0}
+            election epoch 3, quorum 0 xr-service-mesh-lab
+     osdmap e10: 2 osds: 2 up, 2 in; 10 remapped pgs
+            flags sortbitwise,require_jewel_osds
+      pgmap v31: 64 pgs, 1 pools, 0 bytes data, 0 objects
+            11934 MB used, 473 GB / 511 GB avail
+                  54 active+clean
+                  10 active
+</code></pre>
+
+<p>可以看到，两个 osd 节点目前都是正常的</p>
+
+<h3 id="cooperate-with-kubernetes">Cooperate with kubernetes</h3>
+
+<p>在部署了 ceph 集群之后，要想在 kubernetes 中通过 ceph 使用集群中的存储资源，还需要一个「桥梁」，它就是 Storage Class。Storage Class 究竟是什么，以及我们要如何构造一个 Storage Class。可以看下另外一篇文章，对 Storage Class 有一个基本的了解：<a href="http://localhost:1313/posts/notion-of-pv-and-pvc/">notion-of-pv-and-pvc</a></p>
+
+<h3 id="create-pod-with-pv-on-ceph">Create pod with pv on ceph</h3>
+
+<p>在按照上面的步骤创建好了 ceph rbd 集群以及对应的 Storage Class 资源对象之后，就可以通过创建一个使用了存储资源的 Pod 来测试我们的 ceph rbd 集群是否工作正常。</p>
+
+<p>首先，我们创建一个 PVC，在 ceph rbd 集群上申请一定量的存储资源：</p>
+
+<pre><code>kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: claim1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: rbd
+  resources:
+    requests:
+      storage: 1Gi
+</code></pre>
+
+<p>其次，创建一个 Pod，并且通过挂载的方式，在容器内使用我们刚刚申请的存储资源：</p>
+
+<pre><code>kind: Pod
+apiVersion: v1
+metadata:
+  name: test-pod
+spec:
+  containers:
+  - name: test-pod
+    image: gcr.io/google_containers/busybox:1.24
+    command:
+    - &quot;/bin/sh&quot;
+    args:
+    - &quot;-c&quot;
+    - &quot;touch /mnt/SUCCESS &amp;&amp; exit 0 || exit 1&quot;
+    volumeMounts:
+    - name: pvc
+      mountPath: &quot;/mnt&quot;
+  restartPolicy: &quot;Never&quot;
+  volumes:
+  - name: pvc
+    persistentVolumeClaim:
+      claimName: claim1
+</code></pre>
+
+<p>最终，我们可以看到 PV 成功的被创建：</p>
+
+<pre><code>root@xr-service-mesh-lab:~/external-storage/ceph/rbd# kubectl -n xuran get pv pvc-556fbe5a-c074-11e8-a174-fa163eebca40 -o yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: ceph.com/rbd
+    rbdProvisionerIdentity: ceph.com/rbd
+  creationTimestamp: 2018-09-25T03:37:38Z
+  finalizers:
+  - kubernetes.io/pv-protection
+  name: pvc-556fbe5a-c074-11e8-a174-fa163eebca40
+  resourceVersion: &quot;2755796&quot;
+  selfLink: /api/v1/persistentvolumes/pvc-556fbe5a-c074-11e8-a174-fa163eebca40
+  uid: 59406bdb-c074-11e8-a174-fa163eebca40
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: claim1
+    namespace: xuran
+    resourceVersion: &quot;2755787&quot;
+    uid: 556fbe5a-c074-11e8-a174-fa163eebca40
+  persistentVolumeReclaimPolicy: Delete
+  rbd:
+    image: kubernetes-dynamic-pvc-59252351-c074-11e8-9c73-dab2986e8f3a
+    keyring: /etc/ceph/keyring
+    monitors:
+    - 172.20.6.29:6789
+    pool: kube
+    secretRef:
+      name: ceph-secret
+      namespace: kube-system
+    user: kube
+  storageClassName: rbd
+status:
+  phase: Bound
+</code></pre>
+
+<h2 id="部署-elasticsearch">部署 ElasticSearch</h2>
+
+<p>在部署 elasticsearch 的时候，我们将参考 elasticsearch Chart 中的编排文件：<a href="https://github.com/helm/charts/tree/master/incubator/elasticsearch。它将帮助我们搭建一个含有三个">https://github.com/helm/charts/tree/master/incubator/elasticsearch。它将帮助我们搭建一个含有三个</a> master 节点，两个 client 节点 ，两个 data 节点的 elasticsearch 集群。</p>
+
+<p>在部署之前，对于上述编排文件，唯一需要改正的就是 elasticsearch 依赖的 storageclass。对此，我们可以使用<code>helm template</code>命令，对 storageclass 的相关参数进行修改，并且最终导出到一个 yaml 文件中，方便我们后续部署.</p>
+
+<p>首先，我们需要下载相应的 chart 包，然后执行如下命令：</p>
+
+<p><code>helm template elasticsearch --name jaeger-es --set cluster.name=tracing-es --set master.persistence.storageClass=ceph --set data.persistence.storageClass=ceph &gt; jaeger-es.yaml</code></p>
+
+<p><strong>注意：persistence.storageClass 的值一定要和我们之前部署 ceph 时创建的 StorageClass 的 name 相同</strong></p>
+
+<p>然后，我们可以执行 <code>kubectl create -f jaeger-es.yaml -n xxx</code>命令来部署 elasticsearch。</p>
+
+<h2 id="部署-jaeger">部署 Jaeger</h2>
+
+<p>在部署 Jaeger 的时候，我们参考：<a href="https://github.com/jaegertracing/jaeger-kubernetes">GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes</a>。由于我们已经部署好了 elasticsearch，所以链接中关于存储中间件的内容我们可以不用关心。</p>
+
+<p>首先，我们需要创建一个 configMap：</p>
+
+<pre><code>kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/production-elasticsearch/configmap.yml
+</code></pre>
+
+<p>然后，开始部署 jaeger 相关的 component：</p>
+
+<pre><code>kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/jaeger-production-template.yml
+</code></pre>
+
+<p>Jaeger 部署成功之后，可以在相应的 ns 下发现一个名为 jaeger-query 的 service。</p>
+
+<pre><code>root@xr-service-mesh-lab:~/external-storage/ceph/rbd# kubectl -n istio-system get svc | grep jaeger
+jaeger-collector                    ClusterIP      10.103.47.166    &lt;none&gt;        14267/TCP,14268/TCP,9411/TCP                                                                                              5d
+jaeger-es-elasticsearch-client      ClusterIP      10.100.101.147   &lt;none&gt;        9200/TCP                                                                                                                  5d
+jaeger-es-elasticsearch-discovery   ClusterIP      None             &lt;none&gt;        9300/TCP                                                                                                                  5d
+jaeger-query                        LoadBalancer   10.105.139.8     &lt;pending&gt;     80:31624/TCP                                                                                                              5d
+</code></pre>
+
+<p>如果是在集群内部，我们是可以直接通过这个 service 的地址访问 jaeger 的查询页面的。但是由于我们现在想在集群外部访问，可选择的方案有如下几种：</p>
+
+<ol>
+<li>修改这个 service 的 type 为 nodePort并指定一个 Port。这样在集群外部就可以通过集群的<code>外网 IP：nodePort/path</code> 的形式访问 jaeger-query。请求的流量将从宿主机的端口转发至目的 Pod 对应的端口。</li>
+<li>使用 ingress+ingress-controller 的形式。 ingress 写入转发规则，属于一个具有文本记录功能的资源对象。ingress-controller 会根据 ingress 中写入的规则，将请求的流量转发到目的 Pod 对应的端口上。</li>
+</ol>
+
+<h2 id="部署-ingress-nginx-ingress-controller">部署 ingress+nginx-ingress-controller</h2>
+
+<p>首先，我们需要创建一个 Ingress：</p>
+
+<pre><code>apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tracing
+  namespace: istio-system
+spec:
+  rules:
+  - host: tracing.istio.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: jaeger-query
+          servicePort: 80
+</code></pre>
+
+<p>规则写的很清楚，当我们进行一次 host 为 tracing.istio.io，且 path 为根目录，端口为80的 http 请求的时候，流量就会被转发到同 ns 下的一个名为 jaeger-query 的 svc 上，最终，由这个 svc 将请求流量打向目的 Pod。</p>
+
+<p>有了 ingress 还不行，还需要一个 ingress-controller 加载上面的规则并且根据它转发请求流量：</p>
+
+<pre><code>kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
+</code></pre>
+
+<h2 id="访问-jaeger-query">访问 jaeger-query</h2>
+
+<p>此时，我们可以在浏览器通过访问 <a href="http://tracing.istio.io">http://tracing.istio.io</a> 看到 jaeger-query 的 UI 界面</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/jager-ui" alt="" /></p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+

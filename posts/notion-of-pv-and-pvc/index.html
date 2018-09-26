@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>The brief of PV and PVC | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">The brief of PV and PVC</span></h1>
+
+<h2 class="date">2018/09/26</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/kubernetes">Kubernetes</a> 
+  
+  
+</p>
+</div>
+
+
+<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#pv-pvc">PV &amp;&amp; PVC</a>
+<ul>
+<li><a href="#storage-class">Storage Class</a></li>
+</ul></li>
+<li><a href="#how-to-use">How to use?</a></li>
+</ul></li>
+</ul>
+</nav>
+
+
+<main>
+
+
+<h2 id="overview">Overview</h2>
+
+<p>在 kubernetes 上部署服务，无论是「有状态」的，还是「无状态」的，可能大部分都有存储数据的需求。随之而来的就是对存储资源的需求。对于 k8s 来说，最底层的存储资源，我们可以直接利用 local storage，即机器的本地磁盘，也可以使用 ceph rbd 这种存储插件，单独的搭建一个存储的集群，使得运行在k8s 上的服务可以使用 network storage。</p>
+
+<p>但是，在搭建好了一个 ceph 存储的集群之后，我们要如何使用它呢？</p>
+
+<h2 id="pv-pvc">PV &amp;&amp; PVC</h2>
+
+<p>在 k8s 中，定义了两个资源来管理和使用集群中的存储资源：</p>
+
+<ul>
+<li>Persistent Volumes： 可以认为是 k8s 集群提供的存储资源的一种抽象，由 k8s 集群自动创建</li>
+<li>PersistentVolumeClaim： 可以认为是 User(广义的 User，泛指一切想使用存储资源的事物) 对存储资源的一个请求声明</li>
+</ul>
+
+<p>对于两者的「合作」模式，可以简单的做如下理解：</p>
+
+<p>用户申请一个定量的存储资源，创建一个 PVC，集群内部的某些组件在收到 PVC 的创建消息之后，根据要求创建一个相应的 PV，并且会为这个 PV 分配实际的存储空间（在本地磁盘，或者是在 ceph rbd 这种网络存储上）。但是，如果不能满足 PVC 所申请的 volume 资源，那么 PV 不会被创建，而这个 PVC 也会一直保留在那里，直到它所申请的 Volume 容量被满足。</p>
+
+<p>对于 PV 来说，集群对它的提供方式一般有两种：动态和静态。静态的 PV 一般都是由 k8s 集群内特定的组件预先分配好的，在用户需要使用的时候，可以直接将 PVC 和 PV 做一个「绑定」的操作即可。而动态的 PV 则需要一个叫做 StorageClass 的东西。</p>
+
+<h3 id="storage-class">Storage Class</h3>
+
+<p>一个 storage class 的资源对象，可以认为是底层存储插件的一个抽象。若我们使用 rbd 作为底层的存储插件，那么就需要创建一个 ceph rbd 的 storage class 的资源对象，若我们使用 cinder, 那么就需要创建一个 openstack clinder 的 storage class 的资源对象。在有动态分配 PV 需求的情况下，它相当于底层存储插件和 PV 之间的一个桥梁。</p>
+
+<p>对于一些第三方的存储插件来说，要创建对应的 Storage class 资源对象，可以在这个 repo 中搜索，并按照文件进行部署：<a href="https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd">external-storage/ceph/rbd at master · kubernetes-incubator/external-storage · GitHub</a></p>
+
+<h2 id="how-to-use">How to use?</h2>
+
+<p>一个 Pod 中的 container 通过 PVC 和 PV 使用存储资源的过程如下：</p>
+
+<p>首先，我们要创建一个 PVC，也就是要申请一定额度的存储资源：</p>
+
+<pre><code>kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: myclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: slow
+  selector:
+    matchLabels:
+      release: &quot;stable&quot;
+    matchExpressions:
+      - {key: environment, operator: In, values: [dev]}
+</code></pre>
+
+<p>其次，构造一个 pod 的编排文件, 并且在容器中通过挂在的方式使用之前通过 PVC 申请的存储资源：</p>
+
+<pre><code>kind: Pod
+apiVersion: v1
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: myfrontend
+      image: nginx
+      volumeMounts:
+      - mountPath: &quot;/var/www/html&quot;
+        name: mypd
+  volumes:
+    - name: mypd
+      persistentVolumeClaim:
+        claimName: myclaim
+</code></pre>
+
+<p>这个编排文件像我们展示了如下几个关键的信息：</p>
+
+<ol>
+<li>使用的 PVC 名称为 myclaim，ns 和 pod 被创建的 ns 相同</li>
+<li>若申请存储资源顺利，那么最终存储资源将会挂载到名称为 myfrontend 的容器中的<code>/var/www/html</code>路径下</li>
+</ol>
+
+<p>总结一下： spec.containers.volumeMounts.name&lt;-&gt;volumes.name&lt;-&gt;pvc.claimName&lt;-&gt;pv&lt;-&gt;storage resource</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+
