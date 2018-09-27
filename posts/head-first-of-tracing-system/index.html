@@ -121,7 +121,7 @@
 </ul></li>
 </ul>
 
-<p>[image:734D4E14-DFAC-4AEA-A96C-67871D4E065D-365-0000577EBA228E5B/D5AA4C42-8D14-4C45-993A-C636D567BC6E.png]</p>
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/D5AA4C42-8D14-4C45-993A-C636D567BC6E.png" alt="" /></p>
 
 <p>上面的「链路追踪」图，在保留了「可以看清调用关系」的基础上，针对我们之前谈到过的几个问题作出了改进。在整个的 tracing 过程中，每一个带有不同颜色的矩形区域都被称作是一个 Span，它代表了一个调用的过程（逻辑上的一个工作单元）。一个 Span 的长度结合 X 轴可以判断它的 processing duration。并且，在按照层级将调用分类之后，可以明显的区分出「串行」和「并发」的逻辑（如图中的container start-up 调用和 stoage allocation两者就是并发执行的，而 container start-up 和 start-up scripts 就是串行执行的）。</p>
 
