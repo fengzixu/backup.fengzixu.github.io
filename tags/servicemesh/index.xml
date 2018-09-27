@@ -35,8 +35,8 @@
  由于服务和服务之间依靠网络通信，请求链路变长使得延迟有一定的升高，所以我们可能需要做一些优化 现代服务多使用「并发」来实现一些 feature。并发逻辑若出现 bug，在一个分布式系统中就需要一个有效的措施去定位和解决  而「链路追踪」技术就旨在为分布式系统解决这些问题。它提供一些方便且有效的手段，使我们可以清晰的了解到整条请求链路中各个阶段的耗时。若在请求处理的过程中出错，尤其是在一些不是我们自己实现的组件中出错，「链路追踪」也可以准确的捕获这类信息。目前已经有了一些成熟的「分布式链路追踪」系统，如 Zipkin or Jaeger。
 TracingGraph 如果让我们通过一个图来描述一个请求的「链路」，基本上可以画成上面的样子，从1-8。这个「链路追踪」图示有优势也有劣势
  优势：  可以看清楚各个组件之间的调用关系。从用户的角度出发观察整个请求的处理链路较为直观  劣势：  整个请求执行的过程中，无法区分哪些逻辑是串行的，哪些逻辑是并行的 无论是其中的一个小步骤还是整个请求，都无法观察到它们的运行时间   上面的「链路追踪」图，在保留了「可以看清调用关系」的基础上，针对我们之前谈到过的几个问题作出了改进。在整个的 tracing 过程中，每一个带有不同颜色的矩形区域都被称作是一个 Span，它代表了一个调用的过程（逻辑上的一个工作单元）。一个 Span 的长度结合 X 轴可以判断它的 processing duration。并且，在按照层级将调用分类之后，可以明显的区分出「串行」和「并发」的逻辑（如图中的container start-up 调用和 stoage allocation两者就是并发执行的，而 container start-up 和 start-up scripts 就是串行执行的）。
-Jaeger Jaeger 是一个由 Uber 公司开发的分布式的链路追踪系统。它在底层依赖了 OpenTracing 提出的和「链路追踪」有关的一系列的数据模型和标准。jaeger 还实现了 OpenTracingAPI（golang），使得应用程序接入 jaeger 更加的方便。一个 jaeger 通常包含以下几个组件：
- jaeger-client：接入使用 jaeger 的服务 jaeger-agent：作为 daemon 进程部署在每一个 host/container 上，用以收集追踪数据发送至 collector jaeger-collector：收集从 jaeger-agent 上反馈而来的数据，以特定的存储组件进行持久化（es） jaeger-ui&amp;amp;jaeger-query：提供 UI 界面和查询追踪数据的服务，使得用户能够方面的查看每个请求的「链路追踪」信息  如果是部署在生产环境的 k8s 集群中，除了上述说到的几个组件之外，还需要一个持久化存储的中间件，为 jaeger 管理海量的「追踪数据」。对于 jaeger 来说，存储中间件有几个可以供选择： - Cassandra - Elasticsearch - Kafka - Memory（only in test）</description>
+Jaeger Jaeger 是一个由 Uber 公司开发的分布式的链路追踪系统。它遵循了 OpenTracing 提出的和「链路追踪」有关的一系列的数据模型和标准。jaeger 还实现了 OpenTracingAPI（golang），使得应用程序接入 jaeger 更加的方便。一个 jaeger 通常包含以下几个组件：
+ jaeger-client：业务接入 jaeger 所需要的 SDK，由特定的语言实现 jaeger-agent：作为 daemon 进程部署在每一个 host/container 上，用以收集追踪数据发送至 collector jaeger-collector：收集从 jaeger-agent 上反馈而来的数据，以特定的存储组件进行持久化（es） jaeger-ui&amp;amp;jaeger-query：提供 UI 界面和查询追踪数据的服务，使得用户能够方面的查看每个请求的「链路追踪」信息  如果是部署在生产环境的 k8s 集群中，除了上述说到的几个组件之外，还需要一个持久化存储的中间件，为 jaeger 管理海量的「追踪数据」。对于 jaeger 来说，存储中间件有几个可以供选择：</description>
     </item>
     
   </channel>

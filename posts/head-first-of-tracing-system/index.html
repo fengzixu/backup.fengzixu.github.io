@@ -78,6 +78,7 @@
 <li><a href="#什么是-link-tracing-为什么我们需要-tracing">什么是 Link Tracing？ 为什么我们需要 Tracing？</a></li>
 <li><a href="#tracinggraph">TracingGraph</a></li>
 <li><a href="#jaeger">Jaeger</a></li>
+<li><a href="#总结">总结</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -127,10 +128,10 @@
 
 <h2 id="jaeger">Jaeger</h2>
 
-<p>Jaeger 是一个由 Uber 公司开发的分布式的链路追踪系统。它在底层依赖了 OpenTracing 提出的和「链路追踪」有关的一系列的数据模型和标准。jaeger 还实现了 OpenTracingAPI（golang），使得应用程序接入 jaeger 更加的方便。一个 jaeger 通常包含以下几个组件：</p>
+<p>Jaeger 是一个由 Uber 公司开发的分布式的链路追踪系统。它遵循了 OpenTracing 提出的和「链路追踪」有关的一系列的数据模型和标准。jaeger 还实现了 OpenTracingAPI（golang），使得应用程序接入 jaeger 更加的方便。一个 jaeger 通常包含以下几个组件：</p>
 
 <ol>
-<li>jaeger-client：接入使用 jaeger 的服务</li>
+<li>jaeger-client：业务接入 jaeger 所需要的 SDK，由特定的语言实现</li>
 <li>jaeger-agent：作为 daemon 进程部署在每一个 host/container 上，用以收集追踪数据发送至 collector</li>
 <li>jaeger-collector：收集从 jaeger-agent 上反馈而来的数据，以特定的存储组件进行持久化（es）</li>
 <li>jaeger-ui&amp;jaeger-query：提供 UI 界面和查询追踪数据的服务，使得用户能够方面的查看每个请求的「链路追踪」信息</li>
@@ -138,13 +139,24 @@
 
 <p><img src="https://www.jaegertracing.io/img/architecture.png" alt="" /></p>
 
-<p>如果是部署在生产环境的 k8s 集群中，除了上述说到的几个组件之外，还需要一个持久化存储的中间件，为 jaeger 管理海量的「追踪数据」。对于 jaeger 来说，存储中间件有几个可以供选择：
-- Cassandra
-- Elasticsearch
-- Kafka
-- Memory（only in test）</p>
+<p>如果是部署在生产环境的 k8s 集群中，除了上述说到的几个组件之外，还需要一个持久化存储的中间件，为 jaeger 管理海量的「追踪数据」。对于 jaeger 来说，存储中间件有几个可以供选择：</p>
+
+<ul>
+<li>Cassandra</li>
+<li>Elasticsearch</li>
+<li>Kafka</li>
+<li>Memory（only in test）</li>
+</ul>
 
 <p>除此之外，如果想将 Jaeger 部署到你的 k8s 的集群中，可能还涉及到「集群外部访问集群内部服务」的问题。这可能需要你额外的为 jaeger 配置 ingress 或者直接使用 NodePort 的 Service。</p>
+
+<h2 id="总结">总结</h2>
+
+<ol>
+<li>链路追踪系统，对于一个分布式系统来说是非常重要的。它为开发者收集在一个请求的生命周期内与其有关的全部信息，并最终利用这些信息构造出一个完成的「请求链路」</li>
+<li>链路追踪的相关信息对业务服务的优化以及疑难问题的定位和修复都将会提供很大的帮助</li>
+<li>OpenTracing 提供了一套标准的链路追踪的数据模型。Jaeger 和 Zipkin 都是实现了这套标准的一个「链路追踪系统」。Jaeger 是兼容 Zipkin 的数据格式的，所以 Jaeger 可以让业务方很方便的从 Zipkin 迁移过来</li>
+</ol>
 
 </main>
 
