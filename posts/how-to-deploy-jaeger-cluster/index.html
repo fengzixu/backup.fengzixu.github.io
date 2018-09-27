@@ -175,7 +175,7 @@ echo &quot;cephd ALL = (root) NOPASSWD:ALL&quot; | sudo tee /etc/sudoers.d/cephd
 sudo chmod 0440 /etc/sudoers.d/cephd
 </code></pre>
 
-<p>将不同 Node 上面的 ssh public key 相互拷贝到 ~_.ssh_authorized<em>keys 文件中，且在 ~</em>.ssh_config 中配置好使用 cephd 账户登录到其他机器上面的捷径。如：</p>
+<p>将不同 Node 上面的 ssh public key 相互拷贝到 <code>~/.ssh_authorized_keys</code> 文件中，且在 <code>~/.ssh_config</code> 中配置好使用 cephd 账户登录到其他机器上面的捷径。如：</p>
 
 <pre><code>Host xr-service-mesh-lab
    Hostname xr-service-mesh-lab
@@ -192,25 +192,41 @@ ceph-deploy forgetkeys
 ceph-deploy purgedata xr-service-mesh-lab xr-service-mesh-lab1
 </code></pre>
 
-<p>在集群的任意节点中，选取一个作为 deploy node，以 cephd 账户登录。在该节点上执行 <code>ceph-deploy new xr-service-mesh-lab(nodeName)</code>, 将该节点同时作为 monitor 节点。执行了该命令之后，我们可以发现，在当前目录下会自动生成一些文件，这些文件是在之后的部署过程中会用到的。</p>
+<p>在集群的任意节点中，选取一个作为 deploy node，以 cephd 账户登录。在该节点上执行</p>
+
+<p><code>ceph-deploy new xr-service-mesh-lab(nodeName)</code></p>
+
+<p>将该节点同时作为 monitor 节点。执行了该命令之后，我们可以发现，在当前目录下会自动生成一些文件，这些文件是在之后的部署过程中会用到的。</p>
 
 <p>编辑 <code>ceph.conf</code>文件，在末尾添加几行内容：</p>
 
-<pre><code>osd pool default size = 2
+<pre><code>osd pool default size = 2 (该参数可以根据自己搭建的 ceph 集群的 osd 节点的个数修改)
 osd max object name len = 256
 osd max object namespace len = 64
 </code></pre>
 
-<p>接下来，执行<code>ceph-deploy install xr-service-mesh-lab xr-service-mesh-lab1</code>命令，在两个节点上安装好部署 ceph 集群所需要的 binary。</p>
+<p>接下来，执行</p>
 
-<p>在 mon-node 上（如果你没有切换过节点操作的话，就是当前的 node，也是 deploy-node），进行初始化操作 <code>ceph-deploy mon create-initial</code>。执行完毕后，会在当前目录下观察到很多以 .keyring 后缀结尾的文件。之后，可以运行 <code>ps aux | grep ceph</code>命令，查看 ceph-mon 进程已经运行。</p>
+<p><code>ceph-deploy install xr-service-mesh-lab xr-service-mesh-lab1</code></p>
+
+<p>命令，在两个节点上安装好部署 ceph 集群所需要的 binary。</p>
+
+<p>在 mon-node 上（如果你没有切换过节点操作的话，就是当前的 node，也是 deploy-node），进行初始化操作</p>
+
+<p><code>ceph-deploy mon create-initial</code></p>
+
+<p>执行完毕后，会在当前目录下观察到很多以 .keyring 后缀结尾的文件。之后，可以运行</p>
+
+<p><code>ps aux | grep ceph</code></p>
+
+<p>命令，查看 ceph-mon 进程已经运行。</p>
 
 <p>截止目前，对于这个 ceph 集群，我们还有 osd 节点没有部署。osd 节点的部署分为两部分：prepare, activate</p>
 
 <h3 id="prepare">Prepare</h3>
 
 <blockquote>
-<p>执行这一步之前，最好是在 Node 上都挂载好了专用的数据盘，否则，只能是创建一个目录，使用「系统盘」的空间。笔者在部署的时候，在两个节点的_mnt目录下分别挂在了两块500G 的 数据盘，并且在这两块盘上分别创建了两个目录： /mnt_osd0 _mnt_osd1</p>
+<p>执行这一步之前，最好是在 Node 上都挂载好了专用的数据盘，否则，只能是创建一个目录，使用「系统盘」的空间。笔者在部署的时候，在两个节点的_mnt目录下分别挂在了两块500G 的 数据盘，并且在这两块盘上分别创建了两个目录： /mnt/osd0 /mnt/osd1</p>
 </blockquote>
 
 <p>在 deploy-node 上执行如下命令：<code>ceph-deploy osd prepare xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1</code></p>
@@ -269,7 +285,9 @@ $ ceps -s
 
 <h3 id="cooperate-with-kubernetes">Cooperate with kubernetes</h3>
 
-<p>在部署了 ceph 集群之后，要想在 kubernetes 中通过 ceph 使用集群中的存储资源，还需要一个「桥梁」，它就是 Storage Class。Storage Class 究竟是什么，以及我们要如何构造一个 Storage Class。可以看下另外一篇文章，对 Storage Class 有一个基本的了解：<a href="http://localhost:1313/posts/notion-of-pv-and-pvc/">notion-of-pv-and-pvc</a></p>
+<p>在部署了 ceph 集群之后，要想在 kubernetes 中通过 ceph 使用集群中的存储资源，还需要一个「桥梁」，它就是 Storage Class。Storage Class 究竟是什么，以及我们要如何构造一个 Storage Class。可以看下另外一篇文章，对 Storage Class 有一个基本的了解：<a href="http://localhost:1313/posts/notion-of-pv-and-pvc/">notion-of-pv-and-pvc</a>。</p>
+
+<p>要想创建 ceph rbd 的 Storage Class，根据如下链接所给出的步骤操作即可：<a href="https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd">https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd</a></p>
 
 <h3 id="create-pod-with-pv-on-ceph">Create pod with pv on ceph</h3>
 
@@ -361,15 +379,16 @@ status:
 
 <h2 id="部署-elasticsearch">部署 ElasticSearch</h2>
 
-<p>在部署 elasticsearch 的时候，我们将参考 elasticsearch Chart 中的编排文件：<a href="https://github.com/helm/charts/tree/master/incubator/elasticsearch。它将帮助我们搭建一个含有三个">https://github.com/helm/charts/tree/master/incubator/elasticsearch。它将帮助我们搭建一个含有三个</a> master 节点，两个 client 节点 ，两个 data 节点的 elasticsearch 集群。</p>
+<p>在部署 elasticsearch 的时候，我们将参考 elasticsearch Chart 中的编排文件：<a href="https://github.com/helm/charts/tree/master/incubator/elasticsearch">https://github.com/helm/charts/tree/master/incubator/elasticsearch</a>。它将帮助我们搭建一个含有三个 master 节点，两个 client 节点   ，两个 data 节点的 elasticsearch 集群。</p>
 
 <p>在部署之前，对于上述编排文件，唯一需要改正的就是 elasticsearch 依赖的 storageclass。对此，我们可以使用<code>helm template</code>命令，对 storageclass 的相关参数进行修改，并且最终导出到一个 yaml 文件中，方便我们后续部署.</p>
 
 <p>首先，我们需要下载相应的 chart 包，然后执行如下命令：</p>
 
-<p><code>helm template elasticsearch --name jaeger-es --set cluster.name=tracing-es --set master.persistence.storageClass=ceph --set data.persistence.storageClass=ceph &gt; jaeger-es.yaml</code></p>
+<pre><code>helm template elasticsearch --name jaeger-es --set cluster.name=tracing-es --set master.persistence.storageClass=ceph --set data.persistence.storageClass=ceph &gt; jaeger-es.yaml
+</code></pre>
 
-<p><strong>注意：persistence.storageClass 的值一定要和我们之前部署 ceph 时创建的 StorageClass 的 name 相同</strong></p>
+<p><strong>注意：persistence.storageClass 的值一定要和我们之前部署 ceph 时创建的 StorageClass 的 meta.name 的值相同</strong></p>
 
 <p>然后，我们可以执行 <code>kubectl create -f jaeger-es.yaml -n xxx</code>命令来部署 elasticsearch。</p>
 
@@ -399,9 +418,11 @@ jaeger-query                        LoadBalancer   10.105.139.8     &lt;pending&
 <p>如果是在集群内部，我们是可以直接通过这个 service 的地址访问 jaeger 的查询页面的。但是由于我们现在想在集群外部访问，可选择的方案有如下几种：</p>
 
 <ol>
-<li>修改这个 service 的 type 为 nodePort并指定一个 Port。这样在集群外部就可以通过集群的<code>外网 IP：nodePort/path</code> 的形式访问 jaeger-query。请求的流量将从宿主机的端口转发至目的 Pod 对应的端口。</li>
+<li>修改这个 service 的 type 为 nodePort 并指定一个宿主机的端口。这样在集群外部就可以通过集群的<code>外网 IP：宿主机端口/path</code> 的形式访问 jaeger-query。请求的流量将从宿主机的端口转发至目的 Pod 对应的端口。</li>
 <li>使用 ingress+ingress-controller 的形式。 ingress 写入转发规则，属于一个具有文本记录功能的资源对象。ingress-controller 会根据 ingress 中写入的规则，将请求的流量转发到目的 Pod 对应的端口上。</li>
 </ol>
+
+<p><strong>如果想了解更多关于 k8s 中部署的服务和「访问」相关的问题，可以看下这个链接：<a href="https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/">https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/</a></strong></p>
 
 <h2 id="部署-ingress-nginx-ingress-controller">部署 ingress+nginx-ingress-controller</h2>
 
@@ -430,9 +451,11 @@ spec:
 <pre><code>kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
 </code></pre>
 
+<p>在本次部署中，笔者使用了 nginx-ingress-controller。本质上来说，nginx-controller 就是对 nginx 的一个封装。你可以这样理解 ingress 和 nginx-ingress-controller 之间的关系：ingress 写入一系列的路由规则，nginx-ingress-controller 中封装的 nginx 会加载这些规则，以实现对指定请求的流量控制。</p>
+
 <h2 id="访问-jaeger-query">访问 jaeger-query</h2>
 
-<p>此时，我们可以在浏览器通过访问 <a href="http://tracing.istio.io">http://tracing.istio.io</a> 看到 jaeger-query 的 UI 界面</p>
+<p>此时，将你的 k8s 集群的公网 ip 和 tracing.istio.io 的 DNS解析映射关系写入你所在机器的 /etc/hosts 文件，然后就可以在浏览器通过访问 <a href="http://tracing.istio.io">http://tracing.istio.io</a> 看到 jaeger-query 的 UI 界面</p>
 
 <p><img src="http://o6sfmikvw.bkt.clouddn.com/jager-ui" alt="" /></p>
 
