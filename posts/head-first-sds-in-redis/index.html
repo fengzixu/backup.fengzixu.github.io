@@ -83,8 +83,6 @@
 
 <h1 id="redis-设计与实现之动态字符串">Redis 设计与实现之动态字符串</h1>
 
-<p>#tech/redis</p>
-
 <p><em>Q: 什么是 SDS</em>
 <em>A:</em>
     SDS 是 Redis 在实现过程中使用的一种「动态字符串」。由于 Redis 的代码基本都是通过 C 语言来实现的，所以 SDS 在最底层还是依赖于<code>char buf[]</code>来存储数据。SDS 对象的数据结构大致如下图所示
