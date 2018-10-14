@@ -6,10 +6,22 @@
     <description>Recent content in Redis on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 27 Aug 2018 16:00:20 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 14 Oct 2018 18:37:32 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/redis/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Head First SDS in Redis</title>
+      <link>http://littledriver.net/posts/head-first-sds-in-redis/</link>
+      <pubDate>Sun, 14 Oct 2018 18:37:32 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/head-first-sds-in-redis/</guid>
+      <description>Redis 设计与实现之动态字符串 #tech/redis
+Q: 什么是 SDS A: SDS 是 Redis 在实现过程中使用的一种「动态字符串」。由于 Redis 的代码基本都是通过 C 语言来实现的，所以 SDS 在最底层还是依赖于char buf[]来存储数据。SDS 对象的数据结构大致如下图所示 可以看出，SDS 结构体成员中有三个属性：len，free，buf。其中 len 标识一个 SDS 对象管理的字符串有效字符是多少个，而 free 则代表这个 SDS 在不扩充空间的前提下还可以存储多少个有效字符，buf 则是一个char[]类型的指针，它指向一段连续的内存空间，这里才是真正存储字符串的地方（有效字符串是指除\0以外的字符串集合）。
+Q: 有了 C 字符串，为什么还需要 SDS？ A: 通过阅读相关数据以及对 Redis 文档的查阅，可以总结出以下几点使用 SDS 而不适用原生 C 字符串的好处
+ * 更高效的获取一个 SDS 对象内保存的字符串的长度 * 杜绝缓冲区溢出 * 减少因字符串的修改导致的频繁分配和回收内存空间操作 * 二进制安全 * 和 C 语言有关字符串的库函数有一个更高的兼容性 其实看到这里，如果你之前使用其他语言中的「普通数组」实现过一个「动态数组」的话，那么除了「二进制安全」这一条好处可能不太理解之外，其余的应该都比较熟悉。下面我们就来分别说一下这几个好处。  Q: 如何更高效的获取字符串的长度？ A: 这个问题在传统的 C 字符串中算是一个痛点。在一个线性的数据结构中，我们都只能通过遍历这个数据结构中所有的有效元素才能够获取它准确的长度，这个操作的时间复杂度是 O(N) 级别。但是当我们只是把 C 字符串作为 SDS 这个数据结构中的一个成员时，我们就可以通过增加另外一个成员len来实时的计算字符串的准确长度。计算的方式也很简单，就是在字符串做「新增元素」的操作时对len+1，做「减少元素」的操作时对len-1。这样一来，就可以通过访问len来获取 SDS 内存储的字符串的长度。类似于这样的实现：</description>
+    </item>
     
     <item>
       <title>Heade First Redis Sentinel</title>

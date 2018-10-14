@@ -156,9 +156,18 @@
     </item>
     
     <item>
+      <title>RDS</title>
+      <link>http://littledriver.net/tags/rds/</link>
+      <pubDate>Sun, 14 Oct 2018 18:37:32 +0800</pubDate>
+      
+      <guid>http://littledriver.net/tags/rds/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Redis</title>
       <link>http://littledriver.net/tags/redis/</link>
-      <pubDate>Mon, 27 Aug 2018 16:00:20 +0800</pubDate>
+      <pubDate>Sun, 14 Oct 2018 18:37:32 +0800</pubDate>
       
       <guid>http://littledriver.net/tags/redis/</guid>
       <description></description>
