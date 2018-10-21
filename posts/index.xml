@@ -6,10 +6,25 @@
     <description>Recent content in Posts on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 19 Oct 2018 21:08:03 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 21 Oct 2018 18:23:07 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Deep Into Process and Thread 2</title>
+      <link>http://littledriver.net/posts/deep-into-process-and-thread-2/</link>
+      <pubDate>Sun, 21 Oct 2018 18:23:07 +0800</pubDate>
+      
+      <guid>http://littledriver.net/posts/deep-into-process-and-thread-2/</guid>
+      <description>先来先服务 最短作业优先 &amp;amp;&amp;amp; 最短剩余时间优先 轮转调度 优先级调度 最短进程优先        Q： 为什么都说「进程切换」是个比较昂贵的操作，它昂贵在哪呢？
+A:
+首先，就是由用户态向内核态的切换。因为我们需要保存旧的进程的状态。其次，我们可能需要执行一个比较复杂的「调度算法」，挑选出一个合适的候选进程。除此之外，每一次进程的切换都会伴随着 CPU 高速缓存的失效。在新的进程被切换到 CPU 上开始运行之后，高速缓存需要从内存中动态装入一些和新的进程运行有关的信息。
+Q: 在什么情况下需要进行进程的调度（切换）？
+A:
+进程切换发生的时候是必然会进行进程调度的，因为此时 CPU 空闲，需要让新的进程在上面运行。那么，什么场景下会发生进程间的切换呢？
+ CPU 时间片消耗完：这种场景是较为普通和正常的，操作系统为了让所有的进程都能够得到 CPU 的资源，只分配每个进程一定的 CPU 时间片，当时间片消耗完后，进程正常退出，就需要调度新的进程上来。 I/O 中断触发：当一个进程因触发 I / O 活动而阻塞之后，若相应的 I / O 设备完成了所需的任务，会向 CPU 发送 I / O 中断。此时，需要决定到底调度那类进程运行：阻塞之后满足条件的，随机的就绪进程，刚刚在运行的进程（被中断打断） 触发阻塞条件：一个进程可能会执行一些会阻塞自身的操作：如阻塞的系统调用，等待某一个资源的释放。此时，操作系统会将另外一个就绪的进程切换上来。  一般来说，一个进程的在运行期间过多的是在 CPU 上进行计算，那么它被认为「计算密集型」的。反之，如果大多数时间都消耗在了 I_O 等待上，那么它被认为是「I / O密集型」的。对于当前的 CPU 和 I_O 设备来说，我们可能需要的问题可能更多的和 I / O密集型的进程有关。因为 CPU 的发展速度是远大于 I / O 设备的。</description>
+    </item>
     
     <item>
       <title>Deep into the process and thread</title>
