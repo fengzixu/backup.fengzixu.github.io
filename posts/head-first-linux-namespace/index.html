@@ -206,12 +206,12 @@ int main()
 
 <h2 id="docker-的-mount-隔离机制-linux-mount-namespace">Docker 的 Mount 隔离机制——Linux Mount Namespace</h2>
 
-<p>Linux Mount Namespace 实现了在不同进程间对于文件系统「挂载点」的隔离机制。每一个进程所持有的挂载点信息都 可以在 <em>proc</em><pid><em>mounts 和 /proc</em><pid><em>mountinfo 和 /proc</em><pid>_mountstats 中找到。_proc 是 Linux 提供的一种虚拟文件系统。此目录下保存的文件和目录信息描述了该操作系统一些运行时的信息。我们即可以通过改变目录下的一些内容来影响操作系统运行的结果，也可以查询该目录下的信息以便获得当前操作系统的运行情况。/proc 目录下的东西并不是真的文件和目录，它实际上是存在于内存中的。</p>
+<p>Linux Mount Namespace 实现了在不同进程间对于文件系统「挂载点」的隔离机制。每一个进程所持有的挂载点信息都 可以在 /proc/<pid>mounts 和 /proc/<pid>mountinfo 和 /proc/<pid>mountstats 中找到。/proc 是 Linux 提供的一种虚拟文件系统。此目录下保存的文件和目录信息描述了该操作系统一些运行时的信息。我们既可以通过改变目录下的一些内容来影响操作系统运行的结果，也可以查询该目录下的信息以便获得当前操作系统的运行情况。/proc 目录下的东西并不是真的文件和目录，它实际上是存在于内存中的。</p>
 
 <p>如果想开启这种隔离机制，需要在创建子进程的时候使用<code>CLONE_NEWNS</code>参数。默认情况下，子进程的挂载点信息一般都是从父进程的 mount namespace 下拷贝的。但是在子进程创建完成之后，两者之间的 mount namespace 以及相应的挂载点信息就没有任何关系了。在子进程中对挂载点信息的操作是不会影响到父进程的。</p>
 
 <blockquote>
-<p>PS: 这里一定要提醒读者的是，Linux Mount Namespace 提供的仅仅是对「挂载点」的隔离，并不是对文件系统的隔离。事实上，即使是在已经建立了Mount Namespace 隔离的两个进程中执行 mount/umount 操作也同样会影响到宿主机的文件系统。隔离，仅仅只是对挂载点信息的隔离（甚至可以理解为对内存中的文本信息进行隔离）</p>
+<p>PS: 这里一定要提醒读者的是，Linux Mount Namespace 提供的仅仅是对「挂载点」的隔离，并不是对文件系统的隔离。事实上，即使是在已经建立了Mount Namespace 隔离的两个进程中执行 mount/umount 操作也同样会影响到宿主机的文件系统。</p>
 </blockquote>
 
 <h2 id="docker-的-pid-隔离机制-linux-pid-namespace">Docker 的 PID 隔离机制——Linux PID Namespace</h2>
@@ -222,7 +222,7 @@ int main()
 
 <h2 id="docker-的-user-隔离机制-linux-user-namespace">Docker 的 User 隔离机制——Linux User Namespace</h2>
 
-<p>Linux User Namespace 提供的隔离机制允许多个不同的进程间各有自己独立的一套 UID_GID 体系，并且可以将进程内部的 UID_GID 与宿主机的 UID/GID 进行映射。开启这个隔离机制的方法也很简单：在创建子进程的时候传入<code>CLONE_NEWUSER</code>参数即可。至于 UID/GID 的映射，可以在<code>/proc/&lt;pid&gt;/uid_map</code> 和 <code>/proc/&lt;pid&gt;/gid_map</code> 两个文件中，按照 <code>ID-inside-ns ID-outside-ns length</code>的形式写入映射记录。</p>
+<p>Linux User Namespace 提供的隔离机制允许多个不同的进程间各有自己独立的一套 UID/GID 体系，并且可以将进程内部的 UID/GID 与宿主机的 UID/GID 进行映射。开启这个隔离机制的方法也很简单：在创建子进程的时候传入<code>CLONE_NEWUSER</code>参数即可。至于 UID/GID 的映射，可以在<code>/proc/&lt;pid&gt;/uid_map</code> 和 <code>/proc/&lt;pid&gt;/gid_map</code> 两个文件中，按照 <code>ID-inside-ns ID-outside-ns length</code>的形式写入映射记录。</p>
 
 <p>这里有一个实现进程间「安全机制」的 Case，是通过 Linux User Namespace 来实现的:</p>
 
