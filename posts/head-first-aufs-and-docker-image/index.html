@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Head First AUFS and Docker Image | LittleDriver</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="http://littledriver.net/">/home/littledriver</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Head First AUFS and Docker Image</span></h1>
+
+<h2 class="date">2018/10/26</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
+  
+  
+  
+  Tags: <a href="/tags/docker">Docker</a> <a href="/tags/linux">Linux</a> 
+  
+  
+</p>
+</div>
+
+
+<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#docker-image-和-aufs-是什么关系">Docker Image 和 AUFS 是什么关系？</a></li>
+<li><a href="#什么是-aufs">什么是 AUFS？</a></li>
+<li><a href="#什么是-docker-镜像分层机制">什么是 Docker 镜像分层机制？</a></li>
+<li><a href="#docker-和-aufs-是如何联系起来的">Docker 和 AUFS 是如何联系起来的？</a></li>
+</ul></li>
+</ul>
+</nav>
+
+
+<main>
+
+
+<blockquote>
+<p>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 <a href="https://coolshell.cn/articles/17061.html">https://coolshell.cn/articles/17061.html</a> 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联系我删除。</p>
+</blockquote>
+
+<h2 id="docker-image-和-aufs-是什么关系">Docker Image 和 AUFS 是什么关系？</h2>
+
+<p>Image 是 Docker 部署的基本单位，一个 Image 运行在一个 Docker Container 上面。这个 Image 包含了我们的程序文件，以及这个程序依赖的资源的环境。Docker Image 对外是以一个文件的形式展示的（更准确的说是一个 mount 点）。既然说到文件，那么它肯定是受到文件系统来管理的。</p>
+
+<p>在 Linux 内核 4.0以及之前的版本上（主要是 Ubuntu 和 Debian），Docker 使用 AUFS 来管理 Docker Image 的存储。虽然，在一些新的 Docker 版本中，已经使用了其他不同的方案来管理镜像，如 DeviceMapper，overlay2。但是 AUFS 是一个比较标准且简单的实现方式，通过 AUFS 来了解 Docker Image 的原理是一个不错的选择。</p>
+
+<h2 id="什么是-aufs">什么是 AUFS？</h2>
+
+<p>AUFS 是 Union File System 众多实现方式的一种。Union File System 从字面意思上来理解就是「联合文件系统」。它将多个物理位置不同的文件目录「联合」起来，挂载到某一个目录下，形成一个抽象的文件系统。</p>
+
+<p>概念理解起来比较枯燥，最好是有一个真实的例子来帮助我们理解：</p>
+
+<p>首先，我们建立 company 和 home 两个目录，并且分别为他们创造两个文件</p>
+
+<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/aufs# tree .
+.
+|-- company
+|   |-- code
+|   `-- meeting
+`-- home
+    |-- eat
+    `-- sleep
+</code></pre>
+
+<p>然后我们将通过 mount 命令把 company 和 home 两个目录「联合」起来，建立一个 AUFS 的文件系统，并挂载到当前目录下的 mnt 目录下：</p>
+
+<pre><code class="language-c">oot@rds-k8s-18-svr0:~/xuran/aufs# mkdir mnt
+root@rds-k8s-18-svr0:~/xuran/aufs# ll
+total 20
+drwxr-xr-x 5 root root 4096 Oct 25 16:10 ./
+drwxr-xr-x 5 root root 4096 Oct 25 16:06 ../
+drwxr-xr-x 4 root root 4096 Oct 25 16:06 company/
+drwxr-xr-x 4 root root 4096 Oct 25 16:05 home/
+drwxr-xr-x 2 root root 4096 Oct 25 16:10 mnt/
+root@rds-k8s-18-svr0:~/xuran/aufs# mount -t aufs -o dirs=./home:./company none ./mnt
+root@rds-k8s-18-svr0:~/xuran/aufs# ll
+total 20
+drwxr-xr-x 5 root root 4096 Oct 25 16:10 ./
+drwxr-xr-x 5 root root 4096 Oct 25 16:06 ../
+drwxr-xr-x 4 root root 4096 Oct 25 16:06 company/
+drwxr-xr-x 6 root root 4096 Oct 25 16:10 home/
+drwxr-xr-x 8 root root 4096 Oct 25 16:10 mnt/
+root@rds-k8s-18-svr0:~/xuran/aufs# tree ./mnt/
+./mnt/
+|-- code
+|-- eat
+|-- meeting
+`-- sleep
+
+4 directories, 0 files
+</code></pre>
+
+<p>通过上述例子最后对 ./mnt 目录结构的输出，可以看到原来两个目录下的内容都被合并到了一个 mnt 这个挂载点下。</p>
+
+<p>默认情况下，如果我们不对「联合」的目录指定权限，内核将根据从左至右的顺序将第一个目录指定为可读可写的，其余的都为只读。那么，当我们向只读的目录做一些写入操作的话，会发生什么呢？</p>
+
+<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/aufs# echo apple &gt; ./mnt/code
+root@rds-k8s-18-svr0:~/xuran/aufs# cat company/code
+root@rds-k8s-18-svr0:~/xuran/aufs# cat home/code
+apple
+root@rds-k8s-18-svr0:~/xuran/aufs#
+</code></pre>
+
+<p>通过对上面代码段的观察，我们可以看出，当写入操作发生在 company/code 文件时， 对应的修改并没有反映到原始的目录中。而是在 home 目录下又创建了一个名为 code 的文件，并将 apple 写入了进去。</p>
+
+<p>看起来很奇怪的现象，其实这正是 Union File System 的厉害之处：Union File System 联合了多个不同的目录，并且把他们挂载到一个统一的目录上。在这些「联合」的子目录中， 有一部分是可读可写的，但是有一部分只是可读的。当你对可读的目录内容做出修改的时候，其结果只会保存到可写的目录下，不会影响只读的目录。比如，我们可以把我们的服务的源代码目录和一个存放代码修改记录的目录「联合」起来构成一个 AUFS。前者设置只读权限，后者设置读写权限。那么，一切对源代码目录下文件的修改都只会影响那个存放修改的目录，不会污染原始的代码。</p>
+
+<p>对于被 AUFS 「联合」的目录来说，在「联合」之后，它们在挂载点下面的目录权限可能有以下几种：</p>
+
+<ul>
+<li>rw：可读可写，用户能直接修改这个 branch 的文件内容</li>
+<li>ro：只读，用户不能通过 aufs 的接口对文件进行写操作，只能读取里面的内容</li>
+<li>rr：real read only，底层的文件本来就是只读的（这种情况比较少见），这种情况下，aufs 就不用担心文件不通过它的接口被修改的情况</li>
+</ul>
+
+<p>但是，上面这些权限都仅仅是对于「联合」的目录来说的。实际上，我们仍然可以绕过这些目录而去直接更改「源目录」。当这种情况发生的时候，AUFS 所管理的联合目录会对一些修改有相应的反馈么？</p>
+
+<p>对于这个问题，AUFS 是通过在「联合」目录的时候传递一个特殊的参数来控制的：udba。 udba 一共有三种可能的取值：</p>
+
+<ul>
+<li>none：aufs 不会进行任何数据同步的检查，所以性能会比其他两种方式要高，但是可能会出现数据不一致的情况。</li>
+<li>reval：aufs 会检查底层的文件有没有改动，如果有的话，把改动的内容更新到挂载点。这个性能会导致 aufs 产生额外的性能损耗</li>
+<li>notify：通过 inotify 监听底层的文件变化，基于事件驱动，能够减少第二种方式的性能损耗</li>
+</ul>
+
+<p>除了上面说到的这些，在 AUFS 中还有一个特殊的概念需要提及一下：</p>
+
+<ol>
+<li>branch – 就是各个要被union起来的目录。它会根据 Union 的顺序形成一个 Stack 的结构，从下至上，最上面的目录是可读写的，其余都是可读的</li>
+</ol>
+
+<h2 id="什么是-docker-镜像分层机制">什么是 Docker 镜像分层机制？</h2>
+
+<p>首先，让我们来看下 Docker Image 中的 Layer 的概念：</p>
+
+<pre><code>Definition of: layer
+In an image, a layer is modification to the image, represented by an instruction in the Dockerfile. Layers are applied in sequence to the base image to create the final image. When an image is updated or rebuilt, only layers that change need to be updated, and unchanged layers are cached locally. This is part of why Docker images are so fast and lightweight. The sizes of each layer add up to equal the size of the final image.
+</code></pre>
+
+<p>简单来说，一个 Image 是通过一个 DockerFile 定义的，然后使用 docker build 命令构建它。DockerFile 中的每一条命令的执行结果都会成为 Image 中的一个 Layer。Docker Image 是有一个层级结构的，最底层的 Layer 为 BaseImage（一般为一个操作系统的 ISO 镜像），然后顺序执行每一条指令，生成的 Layer 按照入栈的顺序逐渐累加，最终形成一个 Image。如果 DockerFile 中的内容没有变动，那么相应的镜像在 build 的时候会复用之前的 layer，以便提升构建效率。并且，即使文件内容有修改，那也只会重新 build 修改的 layer，其他未修改的也仍然会复用。</p>
+
+<p>通过了解了 Docker Image 的分层机制，我们多多少少能够感觉到，Layer 和 Image 的关系与 AUFS 中的联合目录和挂载点的关系比较相似。而 Docker 也正是通过 AUFS 来管理 Images 的。</p>
+
+<p>这里，我们通过 Build 一个镜像，来观察 Image 的分层机制：</p>
+
+<p>Dockerfile:</p>
+
+<pre><code># Use an official Python runtime as a parent image
+FROM python:2.7-slim
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Define environment variable
+ENV NAME World
+
+# Run app.py when the container launches
+CMD [&quot;python&quot;, &quot;app.py&quot;]
+</code></pre>
+
+<p>构建结果：</p>
+
+<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/exampleimage# docker build -t hello ./
+Sending build context to Docker daemon  5.12 kB
+Step 1/7 : FROM python:2.7-slim
+ ---&gt; 804b0a01ea83
+Step 2/7 : WORKDIR /app
+ ---&gt; Using cache
+ ---&gt; 6d93c5b91703
+Step 3/7 : COPY . /app
+ ---&gt; Using cache
+ ---&gt; feddc82d321b
+Step 4/7 : RUN pip install --trusted-host pypi.python.org -r requirements.txt
+ ---&gt; Using cache
+ ---&gt; 94695df5e14d
+Step 5/7 : EXPOSE 81
+ ---&gt; Using cache
+ ---&gt; 43c392d51dff
+Step 6/7 : ENV NAME World
+ ---&gt; Using cache
+ ---&gt; 78c9a60237c8
+Step 7/7 : CMD python app.py
+ ---&gt; Using cache
+ ---&gt; a5ccd4e1b15d
+Successfully built a5ccd4e1b15d
+</code></pre>
+
+<p>通过构建结果可以看出，构建的过程就是执行 Dockerfile 文件中我们写入的命令。构建一共进行了7个步骤，每个步骤进行完都会生成一个随机的 ID，来标识这一 layer 中的内容。 最后一行的 a5ccd4e1b15d 为镜像的 ID。由于我贴上来的构建过程已经是构建了第二次的结果了，所以可以看出，对于没有任何修改的内容，Docker 会复用之前的结果。</p>
+
+<h2 id="docker-和-aufs-是如何联系起来的">Docker 和 AUFS 是如何联系起来的？</h2>
+
+<p>和 Docker 有关的 AUFS 相关的内容，都在<code>/var/lib/docker/aufs</code>目录中。其实，AUFS 不仅会帮忙管理 Docker Image，还会帮我们管理运行中的容器。aufs的目录的结构一般如下所示：</p>
+
+<pre><code>root@rds-k8s-18-svr0:/var/lib/docker/aufs# tree -L 1
+.
+├── diff
+├── layers
+└── mnt
+</code></pre>
+
+<p>其中 diff 存放的是每一个 Image 中 Layers 的内容， 而 layer 目录则是保存的每一个镜像的 layer 的结构信息。mnt 目录下的内容，其实就是一个镜像或者容器运行起来之后，使用的 AUFS 的挂载点。可以认为它就是你在容器内部所看到的文件系统。通过这三个子目录，docker 就能实现镜像的分层存储、容器的 Copy-On-Write 启动。</p>
+
+<p>通过 <code>docker inspect hello</code>命令，我们可以看到之前构建的镜像的 Layer 信息：</p>
+
+<pre><code class="language-c">…
+        &quot;RootFS&quot;: {
+            &quot;Type&quot;: &quot;layers&quot;,
+            &quot;Layers&quot;: [
+                &quot;sha256:237472299760d6726d376385edd9e79c310fe91d794bc9870d038417d448c2d5&quot;,
+                &quot;sha256:9ff579683928293838edf785162e11d7362bdeadd1b91a913d0d777f07a0c14b&quot;,
+                &quot;sha256:473e9a98e4dd51cc459336e2e411eef27ceeb35c4698b2906d1473c155fbb620&quot;,
+                &quot;sha256:639216b11d4ff9961788a9198e663ae74db047fb720049fe1d84f23b5b5dc9d6&quot;,
+                &quot;sha256:c91ccb170b062fc1de577b156c9f16c6923d5a8ab177861e3a4b67aec53e8f13&quot;,
+                &quot;sha256:d2a243c9257f3caa11f31057472b86eeb91ebd4de14c61293cde71823395a187&quot;,
+                &quot;sha256:0c696b8e58cb0ce8528268fdb480f95ec3f005edc39caef6a31c76a8381e6825&quot;
+            ]
+        }
+…
+</code></pre>
+
+<p>Dockerfile 中一共有7个命令，所以layer 信息的数量也同样有7个。这个7个 layer，每一个 layer 都对应到 _var_lib_docker_aufs_diff 目录下的一个目录。但是上述代码段中的 sha256 ID 不是直接映射到 /var_lib_docker_aufs/diff 目录下的目录名的，这之间有一个比较复杂的映射关系。（由于这个映射关系比较复杂，且难以描述，所以这里暂不详细叙述。读者也不用过于纠结这里的映射关系，重点在于理解 AUFS 和镜像分层的工作机制）。</p>
+
+<p>接下来，我们运行一下刚刚构建好的镜像：</p>
+
+<pre><code>root@rds-k8s-18-svr0:~/xuran/exampleimage# docker run -it hello bash
+root@rds-k8s-18-svr0:~# docker ps | grep hello
+9d040e5b9999        hello                                                                                                                       &quot;bash&quot;                   7 minutes ago       Up 7 minutes        81/tcp              laughing_northcutt
+</code></pre>
+
+<p>通过 <code>docker ps</code>命令，可以看到当前运行的容器进程 ID 为 9d040e5b9999。按照上面所描述的，一个容器启动之后，会在 aufs_mnt 下挂载一个目录 /var_lib_docker_aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4，这个目录就是容器当中看到的文件系统。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/B2452573-13C1-448A-8D8A-956C2AB4061D.png" alt="" /></p>
+
+<p>在通过 mount 命令观察系统中的 AUFS 文件系统挂载情况时可以发现，每一条挂载记录后面都跟了一个sid:</p>
+
+<pre><code class="language-c">none /var/lib/docker/aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4 aufs rw,relatime,si=fcff2ee8dd687806,dio,dirperm1 0 0
+</code></pre>
+
+<p>hello 这个容器挂载的 AUFS 的 SID 为 fcff2ee8dd687806。我们将通过这个 ID，可以在 _sys_fs/aufs 的目录下找到对应的 AUFS  的详细信息：</p>
+
+<pre><code class="language-c">root@rds-k8s-18-svr0:/sys/fs/aufs/si_fcff2ee8dd687806# cat br[0-9]*
+/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4=rw
+/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4-init=ro+wh
+/var/lib/docker/aufs/diff/678e5401f758378d36dbc6f410c9324f9c5599db498aea5909b83d6a974af446=ro+wh
+/var/lib/docker/aufs/diff/81e4703c9d06f502774f8fb9af8734ac222af2c4c3aa65813e7bd73ad23f33cb=ro+wh
+/var/lib/docker/aufs/diff/877a44a6fdba1f633b7051b583ee3cc1953dac242cbf8ff2482b59e782fb2c32=ro+wh
+/var/lib/docker/aufs/diff/309ae284b55e1b4d5238ede32dc6fa197982a9f65c34b78c2091b846d9d089d6=ro+wh
+/var/lib/docker/aufs/diff/83507e141977e72a072d7530cb54ee32abff1ade3a8453183a39f3ea48fb4cfe=ro+wh
+/var/lib/docker/aufs/diff/c2e85f6f2e0d67d38f41adafe94c2d82a41247f5dcca690fedad554611c4dc08=ro+wh
+/var/lib/docker/aufs/diff/787977346a1c8653b2c535abd156ddf368f7839e385b237d7325177e6ef335a6=ro+wh
+</code></pre>
+
+<p>可以看到，不光是 Docker Image 是通过 AUFS 分层来管理的。因为 Image 是容器内文件的提供者，所以自然而然，容器内部的文件系统也需要通过 AUFS 的方式来进行管理。其中最上面的 branch 是允许修改的，它对应着这个容器内部的文件系统目录：<code>/var/lib/docker/aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</code>。其余的 branch 都是只读。这就说明，我们在容器当中做的一些修改操作，最后都会反馈到最上面这个目录下：<code>/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</code>。</p>
+
+<p>一个能够反映出容器和镜像分层之间关系的图示如下：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/40A21FCD-8D88-491B-920D-AF10ED59E2D5.png" alt="" /></p>
+
+<p>其中下半部分都是镜像的只读 layer，而顶层才是允许在容器内部修改的。</p>
+
+</main>
+
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+      <hr/>
+      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
+      
+    </footer>
+  </body>
+</html>
+
