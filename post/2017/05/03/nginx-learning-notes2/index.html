@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-05-03T17:50:55&#43;00:00" />
 <meta itemprop="dateModified" content="2017-05-03T17:50:55&#43;00:00" />
-<meta itemprop="wordCount" content="2779">
+<meta itemprop="wordCount" content="2783">
 
 
 
@@ -229,13 +229,20 @@
 <h2 id="post-read">post_read</h2>
 
 <p>post_read是nginx处理用户请求进行的第一个阶段，这个阶段的指令在nginx解析完请求的头部之后就立即开始运行了。其中ngx_realip模块就是这个阶段中比较常用的，它的作用是可以通过特定的指令修改请求头的来源地址。如下面的例子：</p>
-
-<pre><code>server{
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">server{
 	set_real_ip_from 127.0.0.1
 	real_ip_header X-LOCAL-IP
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>这两条来自ngx_realip模块的指令，在处理请求的时候，会把来自本地的请求中的来源地址设置成X-LOCAL-IP这个头部字段所制定的ip。如果该字段的值是空或者不是一个合法的ip格式，那么是不会更改的。nginx中对于请求来源地址有一个相关的内建变量可以直接访问：$remote_addr。如果nginx配置文件中配置了上面在post_read阶段执行的指令并且在rewrite阶段中我们要使用remote_addr这个变量，此时它就是被上面的指令改过的版本。</p>
 
 <p>之所以需要改动请求来源地址，是因为，如果在nginx前面还有一层代理的话，那么按照原始的方式获取来源ip地址肯定是不准确的，代理服务器一般会在代理的过程中将用户请求的来源地址写入到一个特定的http头部字段中，这样nginx在收到这个请求的时候，就可以做一个翻译，以便后续的阶段使用。post_read阶段是在nginx读取到请求的头部就开始运行的，改写请求来源地址的这类事情还是越早做越好。</p>

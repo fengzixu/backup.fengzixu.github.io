@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-10-14T18:37:32&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-14T18:37:32&#43;08:00" />
-<meta itemprop="wordCount" content="2406">
+<meta itemprop="wordCount" content="2422">
 
 
 
@@ -237,14 +237,22 @@
 <p><em>A:</em></p>
 
 <p>通过阅读相关数据以及对 Redis 文档的查阅，可以总结出以下几点使用 SDS 而不适用原生 C 字符串的好处</p>
-
-<pre><code>    * 更高效的获取一个 SDS 对象内保存的字符串的长度
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">    * 更高效的获取一个 SDS 对象内保存的字符串的长度
     * 杜绝缓冲区溢出
     * 减少因字符串的修改导致的频繁分配和回收内存空间操作
     * 二进制安全
-    * 和 C 语言有关字符串的库函数有一个更高的兼容性
-</code></pre>
-
+    * 和 C 语言有关字符串的库函数有一个更高的兼容性</pre></td></tr></table>
+</div>
+</div>
 <p>其实看到这里，如果你之前使用其他语言中的「普通数组」实现过一个「动态数组」的话，那么除了「二进制安全」这一条好处可能不太理解之外，其余的应该都比较熟悉。下面我们就来分别说一下这几个好处。</p>
 
 <p><em>Q: 如何更高效的获取字符串的长度？</em></p>
@@ -252,20 +260,34 @@
 <p><em>A:</em></p>
 
 <p>这个问题在传统的 C 字符串中算是一个痛点。在一个线性的数据结构中，我们都只能通过遍历这个数据结构中所有的有效元素才能够获取它准确的长度，这个操作的时间复杂度是 O(N) 级别。但是当我们只是把 C 字符串作为 SDS 这个数据结构中的一个成员时，我们就可以通过增加另外一个成员<code>len</code>来实时的计算字符串的准确长度。计算的方式也很简单，就是在字符串做「新增元素」的操作时对<code>len</code>+1，做「减少元素」的操作时对<code>len</code>-1。这样一来，就可以通过访问<code>len</code>来获取 SDS 内存储的字符串的长度。类似于这样的实现：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">void</span> <span class="nf">add</span><span class="p">(</span><span class="kt">char</span> <span class="n">a</span><span class="p">){</span>
+	<span class="n">buf</span><span class="p">[</span><span class="n">len</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
 
-<pre><code class="language-c">void add(char a){
-	buf[len++] = a;
-}
+<span class="kt">void</span> <span class="nf">sub</span><span class="p">(</span><span class="kt">char</span> <span class="n">a</span><span class="p">){</span>
+	<span class="n">len</span><span class="o">--</span><span class="p">;</span>
+<span class="p">}</span>
 
-void sub(char a){
-	len--;
-}
-
-int length(char a){
-	return len;
-}
-</code></pre>
-
+<span class="kt">int</span> <span class="nf">length</span><span class="p">(</span><span class="kt">char</span> <span class="n">a</span><span class="p">){</span>
+	<span class="k">return</span> <span class="n">len</span><span class="p">;</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
 <p><em>Q: 如何杜绝缓冲区溢出？</em></p>
 
 <p><em>A:</em></p>

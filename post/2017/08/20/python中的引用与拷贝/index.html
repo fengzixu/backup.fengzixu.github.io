@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-08-20T16:48:31&#43;00:00" />
 <meta itemprop="dateModified" content="2017-08-20T16:48:31&#43;00:00" />
-<meta itemprop="wordCount" content="1238">
+<meta itemprop="wordCount" content="1306">
 
 
 
@@ -225,55 +225,102 @@
 <p>之前在 python 变量相关的文章中，提到过赋值行为在 python 中和其他语言有何异同。说白了，其实就是默认传递引用，而不会拷贝整个对象。这种做法一个比较好的地方就是避免的在使用大型对象的时候，由于一些使用上的不规范而造成巨大的开销。但是凡事都有两面性，方便的同时，带来的坏处就是，同一个对象的引用可以有多个，那么只要这个对象的数据发生了变化，受影响的将是指向他的所有的引用。这种行为通常是我们不想看到的。</p>
 
 <p>其实，这种行为，和 c++中的浅拷贝的行为是一直的。c++中也有引用的概念。浅拷贝通常也只是拷贝引用or 指针，而不会真正的拷贝整个对象。依稀记得，如果要在 C++中的自定义类型实现深拷贝，还需要自己实现拷贝构造函数。在 python 中，对于 list，dict 等数据结构，有一些现成的方法可以调用：</p>
-
-<pre><code class="language-python">	a = [1, 2, 3]
-	b = a //shallow copy
-	c = a[:] //deep copy, get a new object
-	g = list(a) //deep copy. cool!
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python">	<span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+	<span class="n">b</span> <span class="o">=</span> <span class="n">a</span> <span class="o">//</span><span class="n">shallow</span> <span class="n">copy</span>
+	<span class="n">c</span> <span class="o">=</span> <span class="n">a</span><span class="p">[:]</span> <span class="o">//</span><span class="n">deep</span> <span class="n">copy</span><span class="p">,</span> <span class="n">get</span> <span class="n">a</span> <span class="n">new</span> <span class="nb">object</span>
+	<span class="n">g</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">//</span><span class="n">deep</span> <span class="n">copy</span><span class="o">.</span> <span class="n">cool</span><span class="err">!</span>
 	
-	d = {1: 2, 3: 4}
-	e = d //shallow copy
-	f = d.copy()
-</code></pre>
-
+	<span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
+	<span class="n">e</span> <span class="o">=</span> <span class="n">d</span> <span class="o">//</span><span class="n">shallow</span> <span class="n">copy</span>
+	<span class="n">f</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></code></pre></td></tr></table>
+</div>
+</div>
 <p><code>需要注意的是：</code>列表和字典上面所提到的深拷贝方法，都无法拷贝嵌套结构：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="n">In</span> <span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="n">a</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">5</span><span class="p">]</span>
 
-<pre><code class="language-python">In [12]: a
-Out[12]: [1, [2, 3, 4], 5]
+<span class="n">In</span> <span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="n">b</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">5</span><span class="p">]</span>
 
-In [13]: b
-Out[13]: [1, [2, 3, 4], 5]
+<span class="n">In</span> <span class="p">[</span><span class="mi">14</span><span class="p">]:</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000000</span>
 
-In [14]: a[1][0] = 10000000
+<span class="n">In</span> <span class="p">[</span><span class="mi">15</span><span class="p">]:</span> <span class="n">a</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">15</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">10000000</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">5</span><span class="p">]</span>
 
-In [15]: a
-Out[15]: [1, [10000000, 3, 4], 5]
-
-In [16]: b
-Out[16]: [1, [10000000, 3, 4], 5]
-</code></pre>
-
+<span class="n">In</span> <span class="p">[</span><span class="mi">16</span><span class="p">]:</span> <span class="n">b</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">16</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">10000000</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">5</span><span class="p">]</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>其中， a 中的列表，及时通过<code>[:]</code>形式进行拷贝，仍然无法对其中嵌套的列表进行深拷贝操作。这个时候，可以使用 copy 标准库内的 deepcopy 方法，来达到嵌套深拷贝的目的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="n">In</span> <span class="p">[</span><span class="mi">17</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">copy</span>
 
-<pre><code class="language-python">In [17]: import copy
+<span class="n">In</span> <span class="p">[</span><span class="mi">18</span><span class="p">]:</span> <span class="n">c</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 
-In [18]: c = copy.deepcopy(a)
+<span class="n">In</span> <span class="p">[</span><span class="mi">19</span><span class="p">]:</span> <span class="n">c</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">19</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">10000000</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">5</span><span class="p">]</span>
 
-In [19]: c
-Out[19]: [1, [10000000, 3, 4], 5]
+<span class="n">In</span> <span class="p">[</span><span class="mi">20</span><span class="p">]:</span> <span class="n">a</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">20</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">10000000</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">5</span><span class="p">]</span>
 
-In [20]: a
-Out[20]: [1, [10000000, 3, 4], 5]
+<span class="n">In</span> <span class="p">[</span><span class="mi">21</span><span class="p">]:</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&#34;fdsfsdsf&#34;</span>
 
-In [21]: c[1] = &quot;fdsfsdsf&quot;
+<span class="n">In</span> <span class="p">[</span><span class="mi">22</span><span class="p">]:</span> <span class="n">a</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">22</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">10000000</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">5</span><span class="p">]</span>
 
-In [22]: a
-Out[22]: [1, [10000000, 3, 4], 5]
-
-In [23]: c
-Out[23]: [1, 'fdsfsdsf', 5]
-</code></pre>
-
+<span class="n">In</span> <span class="p">[</span><span class="mi">23</span><span class="p">]:</span> <span class="n">c</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">23</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;fdsfsdsf&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span></code></pre></td></tr></table>
+</div>
+</div>
 <h1 id="从比较说起">从比较说起</h1>
 
 <p>python 中比较两个对象的是否相等，通常有两种形式：</p>
@@ -289,43 +336,79 @@ Out[23]: [1, 'fdsfsdsf', 5]
 <h1 id="重复赋值">重复赋值</h1>
 
 <p>这里说重复赋值不是指对某一个变量赋值多次，而指的是对某一个变量赋值多个重复的元素。当重复的这个元素是嵌套或者非嵌套的时候，都会有着截然不同的结果。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="n">In</span> <span class="p">[</span><span class="mi">49</span><span class="p">]:</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 
-<pre><code class="language-python">In [49]: a = [1, 2, 3]
+<span class="n">In</span> <span class="p">[</span><span class="mi">50</span><span class="p">]:</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="mi">4</span>
 
-In [50]: b = a * 4
+<span class="n">In</span> <span class="p">[</span><span class="mi">51</span><span class="p">]:</span> <span class="n">b</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">51</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 
-In [51]: b
-Out[51]: [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+<span class="n">In</span> <span class="p">[</span><span class="mi">52</span><span class="p">]:</span> <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span>
 
-In [52]: c = [a] * 4
+<span class="n">In</span> <span class="p">[</span><span class="mi">53</span><span class="p">]:</span> <span class="n">c</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">53</span><span class="p">]:</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
 
-In [53]: c
-Out[53]: [[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]]
+<span class="n">In</span> <span class="p">[</span><span class="mi">54</span><span class="p">]:</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">44444</span>
 
-In [54]: a[1] = 44444
+<span class="n">In</span> <span class="p">[</span><span class="mi">55</span><span class="p">]:</span> <span class="n">a</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">55</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">44444</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 
-In [55]: a
-Out[55]: [1, 44444, 3]
+<span class="n">In</span> <span class="p">[</span><span class="mi">56</span><span class="p">]:</span> <span class="n">b</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">56</span><span class="p">]:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 
-In [56]: b
-Out[56]: [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
-
-In [57]: c
-Out[57]: [[1, 44444, 3], [1, 44444, 3], [1, 44444, 3], [1, 44444, 3]]
-</code></pre>
-
+<span class="n">In</span> <span class="p">[</span><span class="mi">57</span><span class="p">]:</span> <span class="n">c</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">57</span><span class="p">]:</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">44444</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">44444</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">44444</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">44444</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>利用 <code>id</code> 分别查看一下 a，b，c 三个变量的地址就可以很容易的解释因重复嵌套元素所造成的这种问题</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="n">In</span> <span class="p">[</span><span class="mi">60</span><span class="p">]:</span> <span class="nb">id</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">60</span><span class="p">]:</span> <span class="mi">4329904392</span>
 
-<pre><code class="language-python">In [60]: id(a)
-Out[60]: 4329904392
+<span class="n">In</span> <span class="p">[</span><span class="mi">61</span><span class="p">]:</span> <span class="nb">id</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">61</span><span class="p">]:</span> <span class="mi">4328297536</span>
 
-In [61]: id(b)
-Out[61]: 4328297536
-
-In [62]: id(c[0])
-Out[62]: 4329904392
-</code></pre>
-
+<span class="n">In</span> <span class="p">[</span><span class="mi">62</span><span class="p">]:</span> <span class="nb">id</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">62</span><span class="p">]:</span> <span class="mi">4329904392</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>b 在赋值的时候，对 a 做了4次的重复，我们都知道，序列的重复，分片，合并都会生成一个新的对象而不会改动原来的引用。所以 b 中的12个元素都是仅属于 b 的。由于对 c 赋值的时候，语义表现的是重复4个元素为 a 的嵌套列表给 c，重复的操作看起来只对顶层元素生效了，因为顶层元素是 a，是一个列表，也可以称作是一个引用，所以 c 这个列表中的四个元素，都是 a 列表单位引用。此时，a 和 c 存在共享引用的现象，自然在更改 a 的时候。就改动了 c。所以说，一个嵌套的形式，无形中在重复元素赋值的时候，加深了深度，与序列的重复只对顶层元素生效一起，导致了上面的现象。</p>
 
     </div>

@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-04-04T22:01:51&#43;00:00" />
 <meta itemprop="dateModified" content="2017-04-04T22:01:51&#43;00:00" />
-<meta itemprop="wordCount" content="3332">
+<meta itemprop="wordCount" content="3352">
 
 
 
@@ -225,9 +225,32 @@
 <p>在unix系统中读写文件会涉及到i/o操作，大家也都清楚i/o操作是非常消耗系统资源的。对于简单的读写文件来说，其i/o效率的变化是有一定规律可循的。apue第三章中提到了这样一个例子，从终端标准输入中读取数据，每次读取buffsize个字节，然后将读取到的数据写入到文件中，直到处理完标准输入中全部的数据。作者怀疑，我们选取的buffsize值可能会影响读写文件的i/o效率，所以控制buffsize大小这个变量，每次实验增加一倍的大小，直至处理完所有的数据。但是在做这个实验之前需要注意的是，进程在处理数据的时候会把它们加载到主存里，如果我们每一次实验读取的数据都是同样的，那么操作系统的缓存机制是不会将常用的数据置换出去的，它们会一直保存在内存中。这样一来，我们的测试结果就是不准确的。为了保证实验结果的准确性，每一次实验在改变buffsize大小的同时也要更换实验demo读写的文件内容。</p>
 
 <p>实现demo代码如下：</p>
-
-<pre><code>#include &quot;apue.h&quot;
-#include &quot;apueerror.h&quot;
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">#include &#34;apue.h&#34;
+#include &#34;apueerror.h&#34;
 
 #define BUFFSIZE 4096
 
@@ -236,19 +259,18 @@ int main() {
     char buff [BUFFSIZE];
     while((n = read(STDIN_FILENO, buff, BUFFSIZE))&gt; 0) {
 	if (write(STDOUT_FILENO, buff, n) != n) {
-	    err_sys(&quot;write file fail&quot;);
+	    err_sys(&#34;write file fail&#34;);
 	}
     }
 
     if (n &lt; 0){
-	err_sys(&quot;read file fail&quot;);
+	err_sys(&#34;read file fail&#34;);
     }
 
     return 0;
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>实验结果如下:</p>
 
 <p><img src="http://o6sfmikvw.bkt.clouddn.com/WX20170404-235411@2x.png" alt="" />

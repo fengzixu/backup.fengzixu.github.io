@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="xuran" />
-  <meta name="description" content="Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-T" />
+  <meta name="description" content="Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType 1 func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-" />
 
 
 
@@ -57,25 +57,25 @@
 
 
 <meta property="og:title" content="golang-net/http-package源码分析(2)" />
-<meta property="og:description" content="Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-T" />
+<meta property="og:description" content="Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType 1 func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://littledriver.net/post/2017/04/05/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%902/" /><meta property="article:published_time" content="2017-04-05T19:58:31&#43;00:00"/>
 <meta property="article:modified_time" content="2017-04-05T19:58:31&#43;00:00"/>
 
 <meta itemprop="name" content="golang-net/http-package源码分析(2)">
-<meta itemprop="description" content="Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-T">
+<meta itemprop="description" content="Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType 1 func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-">
 
 
 <meta itemprop="datePublished" content="2017-04-05T19:58:31&#43;00:00" />
 <meta itemprop="dateModified" content="2017-04-05T19:58:31&#43;00:00" />
-<meta itemprop="wordCount" content="8358">
+<meta itemprop="wordCount" content="8802">
 
 
 
 <meta itemprop="keywords" content="SourceCodeAnalyse," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="golang-net/http-package源码分析(2)"/>
-<meta name="twitter:description" content="Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-T"/>
+<meta name="twitter:description" content="Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType 1 func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -239,78 +239,149 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 <h1 id="detectcontenttype">DetectContentType</h1>
-
-<pre><code>	func DetectContentType(data []byte) string
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	func DetectContentType(data []byte) string</pre></td></tr></table>
+</div>
+</div>
 <p>DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-Type值。该函数最多取data数据的前512个字节来进行判断，函数内部会先过滤掉一些空白字符，然后就根据一定的匹配算法来进行匹配，如果没有匹配到任何已知的类型，就会返回一个 &ldquo;application/octet-stream&rdquo;。</p>
 
 <h1 id="error">Error</h1>
-
-<pre><code>	func Error(w ResponseWriter, error string, code int)
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	func Error(w ResponseWriter, error string, code int)</pre></td></tr></table>
+</div>
+</div>
 <p>Error方法将会把用户指定的error和状态码写入ResponseWriter。但是调用这个函数的人需要确保没有进一步的信息写入到ResponseWriter。
 实现代码是非常简单的，就是向response的header中写入数据：</p>
-
-<pre><code>	func Error(w ResponseWriter, error string, code int) {
-		w.Header().Set(&quot;Content-Type&quot;, &quot;text/plain; charset=utf-8&quot;)
-		w.Header().Set(&quot;X-Content-Type-Options&quot;, &quot;nosniff&quot;)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	func Error(w ResponseWriter, error string, code int) {
+		w.Header().Set(&#34;Content-Type&#34;, &#34;text/plain; charset=utf-8&#34;)
+		w.Header().Set(&#34;X-Content-Type-Options&#34;, &#34;nosniff&#34;)
 		w.WriteHeader(code)
 		fmt.Fprintln(w, error)
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <h1 id="handle">Handle</h1>
-
-<pre><code>	func Handle(pattern string, handler Handler)
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	func Handle(pattern string, handler Handler)</pre></td></tr></table>
+</div>
+</div>
 <p>Handle这个方法以及HandleFunc，ServeHttp，DefaultServeMux等都是golang实现的http框架中非常重要的元素，这篇文章接下来的篇幅我将和大家请一起学习它们，以了解一个http请求是如何通过golang实现的http框架来到服务后端处理并最终返回给客户端的。</p>
 
 <p>简单来说，handle这个函数就是把请求的url和处理这个请求的方法绑定到一起。它的实现如下：</p>
-
-<pre><code>// Handle registers the handler for the given pattern
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// Handle registers the handler for the given pattern
 // in the DefaultServeMux.
 // The documentation for ServeMux explains how patterns are matched.
-func Handle(pattern string, handler Handler) { DefaultServeMux.Handle(pattern, handler) }
-</code></pre>
-
+func Handle(pattern string, handler Handler) { DefaultServeMux.Handle(pattern, handler) }</pre></td></tr></table>
+</div>
+</div>
 <h1 id="servemux">ServeMux</h1>
 
 <p>可以看出在Handle方法里面调用了DefaultServeMux的handle方法来实现pattern和handler的绑定操作。那么这个DefaultServeMux是什么呢？DefaultServeMux是ServeMux类型变量的一个指针，ServeMux类型的定义如下：</p>
-
-<pre><code>// ServeMux is an HTTP request multiplexer.
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// ServeMux is an HTTP request multiplexer.
 // It matches the URL of each incoming request against a list of registered
 // patterns and calls the handler for the pattern that
 // most closely matches the URL.
 //
-// Patterns name fixed, rooted paths, like &quot;/favicon.ico&quot;,
-// or rooted subtrees, like &quot;/images/&quot; (note the trailing slash).
+// Patterns name fixed, rooted paths, like &#34;/favicon.ico&#34;,
+// or rooted subtrees, like &#34;/images/&#34; (note the trailing slash).
 // Longer patterns take precedence over shorter ones, so that
-// if there are handlers registered for both &quot;/images/&quot;
-// and &quot;/images/thumbnails/&quot;, the latter handler will be
-// called for paths beginning &quot;/images/thumbnails/&quot; and the
+// if there are handlers registered for both &#34;/images/&#34;
+// and &#34;/images/thumbnails/&#34;, the latter handler will be
+// called for paths beginning &#34;/images/thumbnails/&#34; and the
 // former will receive requests for any other paths in the
-// &quot;/images/&quot; subtree.
+// &#34;/images/&#34; subtree.
 //
 // Note that since a pattern ending in a slash names a rooted subtree,
-// the pattern &quot;/&quot; matches all paths not matched by other registered
-// patterns, not just the URL with Path == &quot;/&quot;.
+// the pattern &#34;/&#34; matches all paths not matched by other registered
+// patterns, not just the URL with Path == &#34;/&#34;.
 //
 // If a subtree has been registered and a request is received naming the
 // subtree root without its trailing slash, ServeMux redirects that
 // request to the subtree root (adding the trailing slash). This behavior can
 // be overridden with a separate registration for the path without
-// the trailing slash. For example, registering &quot;/images/&quot; causes ServeMux
-// to redirect a request for &quot;/images&quot; to &quot;/images/&quot;, unless &quot;/images&quot; has
+// the trailing slash. For example, registering &#34;/images/&#34; causes ServeMux
+// to redirect a request for &#34;/images&#34; to &#34;/images/&#34;, unless &#34;/images&#34; has
 // been registered separately.
 //
 // Patterns may optionally begin with a host name, restricting matches to
 // URLs on that host only. Host-specific patterns take precedence over
 // general patterns, so that a handler might register for the two patterns
-// &quot;/codesearch&quot; and &quot;codesearch.google.com/&quot; without also taking over
-// requests for &quot;http://www.google.com/&quot;.
+// &#34;/codesearch&#34; and &#34;codesearch.google.com/&#34; without also taking over
+// requests for &#34;http://www.google.com/&#34;.
 //
 // ServeMux also takes care of sanitizing the URL request path,
 // redirecting any request containing . or .. elements or repeated slashes
@@ -319,9 +390,9 @@ type ServeMux struct {
 	mu    sync.RWMutex
 	m     map[string]muxEntry
 	hosts bool // whether any patterns contain hostnames
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>其实只看第一段落，我们对一个请求在golang的http框架中流动的过程就有了一个大致的了解：
 服务端首先将一些pattern和handler绑定在一起，形成了一个pattern和handler一一对应的列表。ServeMux作为服务端一个http请求路由的角色出现，它将对进来的请求和我们已经构造好的pattern列表进行匹配，找到一个最佳的匹配项，然后调用相应的handler处理请求，最终将结果返回给用户。http包中的Handle方法之所以会调用DefaultServeMux的Handle方法，就是要把一条pattern和handler绑定的列表项注册到ServerMux上。以便ServerMux在接受到外部过来的请求之后可以依此来进行请求的派发。</p>
 
@@ -336,22 +407,68 @@ type ServeMux struct {
 <p>了解了ServeMux是一个类似http路由的组件，那么接下来就看看ServeMux的Handle方法都做了些什么。</p>
 
 <h1 id="servemux-handle">ServeMux.Handle</h1>
-
-<pre><code>	
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	
 // Handle registers the handler for the given pattern.
 // If a handler already exists for pattern, Handle panics.
 func (mux *ServeMux) Handle(pattern string, handler Handler) {
 	mux.mu.Lock()
 	defer mux.mu.Unlock()
 
-	if pattern == &quot;&quot; {
-		panic(&quot;http: invalid pattern &quot; + pattern)
+	if pattern == &#34;&#34; {
+		panic(&#34;http: invalid pattern &#34; + pattern)
 	}
 	if handler == nil {
-		panic(&quot;http: nil handler&quot;)
+		panic(&#34;http: nil handler&#34;)
 	}
 	if mux.m[pattern].explicit {
-		panic(&quot;http: multiple registrations for &quot; + pattern)
+		panic(&#34;http: multiple registrations for &#34; + pattern)
 	}
 
 	if mux.m == nil {
@@ -359,7 +476,7 @@ func (mux *ServeMux) Handle(pattern string, handler Handler) {
 	}
 	mux.m[pattern] = muxEntry{explicit: true, h: handler, pattern: pattern}
 
-	if pattern[0] != '/' {
+	if pattern[0] != &#39;/&#39; {
 		mux.hosts = true
 	}
 
@@ -367,22 +484,21 @@ func (mux *ServeMux) Handle(pattern string, handler Handler) {
 	// If pattern is /tree/, insert an implicit permanent redirect for /tree.
 	// It can be overridden by an explicit registration.
 	n := len(pattern)
-	if n &gt; 0 &amp;&amp; pattern[n-1] == '/' &amp;&amp; !mux.m[pattern[0:n-1]].explicit {
+	if n &gt; 0 &amp;&amp; pattern[n-1] == &#39;/&#39; &amp;&amp; !mux.m[pattern[0:n-1]].explicit {
 		// If pattern contains a host name, strip it and use remaining
 		// path for redirect.
 		path := pattern
-		if pattern[0] != '/' {
-			// In pattern, at least the last character is a '/', so
-			// strings.Index can't be -1.
-			path = pattern[strings.Index(pattern, &quot;/&quot;):]
+		if pattern[0] != &#39;/&#39; {
+			// In pattern, at least the last character is a &#39;/&#39;, so
+			// strings.Index can&#39;t be -1.
+			path = pattern[strings.Index(pattern, &#34;/&#34;):]
 		}
 		url := &amp;url.URL{Path: path}
 		mux.m[pattern[0:n-1]] = muxEntry{h: RedirectHandler(url.String(), StatusMovedPermanently), pattern: pattern}
 	}
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>因为Handle方法会修改ServeMux中的Map，为了实现线程安全的Handle方法，一进来就对Handle这个函数加上了写锁。紧接着就是一些参数的检查工作，比如注册的pattern是否为空，handler是否为nil以及该pattern是否已经注册过一次了，这些都是属于非法的注册行为。如果以上的检查都通过了，那么golang将会在ServeMux中的Map内增加一条注册记录。如果此时我们的pattern是以斜线结尾的，那么golang会检测不以斜线结尾的pattern是否已经注册过，如果没有注册过，它会为我们将不带斜线的pattern注册，并且handler重定向到带有斜线的pattern对应的handler。这里需要注意一点：</p>
 
 <ol>
@@ -392,8 +508,37 @@ func (mux *ServeMux) Handle(pattern string, handler Handler) {
 <p>回忆一下我们现在都了解了哪些知识点：首先可以通过一个Http包的Handle方法将一个pattern和handler注册起来，然后发现注册的这个操作实际上是由ServeMux这个类型的对象来实现的，它相当于一个Http的路由，ServeMux在注册时候，会做出一些改变，如为不带斜线的pattern默认添加重定向的Handler等。那么处理一个和Pattern匹配的请求的Handler是个什么东西呢？</p>
 
 <h1 id="handler">Handler</h1>
-
-<pre><code>// A Handler responds to an HTTP request.
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// A Handler responds to an HTTP request.
 //
 // ServeHTTP should write reply headers and data to the ResponseWriter
 // and then return. Returning signals that the request is finished; it
@@ -414,37 +559,80 @@ func (mux *ServeMux) Handle(pattern string, handler Handler) {
 // that the effect of the panic was isolated to the active request.
 // It recovers the panic, logs a stack trace to the server error log,
 // and hangs up the connection. To abort a handler so the client sees
-// an interrupted response but the server doesn't log an error, panic
+// an interrupted response but the server doesn&#39;t log an error, panic
 // with the value ErrAbortHandler.
 type Handler interface {
 	ServeHTTP(ResponseWriter, *Request)
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>Handler是一个接口，它里面包含了一个ServeHttp的方法，也就是说，任何一个实现了ServeHttp方法的对象，都可以被赋值给Handler对象。Handler正如我们前面所讲到的那样，它负责处理一个http的请求。实际的处理逻辑应该在ServeHttp方法中实现。这个方法接收两个参数，一个是ResponseWriter，一个是Request。ServeHttp方法要保证先读取request，处理完之后把返回的header和body部分写入到responsewriter中，这个处理的顺序不能够颠倒。并且在ServeHttp在将响应结果写入到responseWriter之后，就不应该在使用ResponseWriter和request这两个参数了。说白了，当ServeHttp写入结果到respinseWriter的那一刻，整个http请求的处理就结束了。并且，golang明确的提示我们，ServeHttp内部不应该去修改request的相关信息。当ServeHttp出现panic的时候，golang会recover住它，在服务的日志中输出堆栈信息且挂起这个链接。如果直接终止一个handler，那么服务不会输出错误，而是直接panic崩掉，同时客户端也会得到一个中断的响应。</p>
 
 <h1 id="servemux-servehttp">ServeMux.ServeHTTP</h1>
 
 <p>既然现在，pattern有了，handler有了，ServeMux的注册功能也有了，那么ServeMux作为一个路由是如何将一个http请求匹配到已经注册的pattern，并且交由这个pattern对应的handler处理的呢？这也就是ServeMux派发request的一个过程。ServeMux也实现了一个ServeHttp的方法，这证明它其实也可以算作是一个handler，那么在外部请求进入到服务的时候，ServeMux会作为一个前置的handler来处理这个请求，而ServeMux的处理方式就是去匹配pattern并且派发这个请求给具体处理逻辑。</p>
-
-<pre><code>// ServeHTTP dispatches the request to the handler whose
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// ServeHTTP dispatches the request to the handler whose
 // pattern most closely matches the request URL.
 func (mux *ServeMux) ServeHTTP(w ResponseWriter, r *Request) {
-	if r.RequestURI == &quot;*&quot; {
+	if r.RequestURI == &#34;*&#34; {
 		if r.ProtoAtLeast(1, 1) {
-			w.Header().Set(&quot;Connection&quot;, &quot;close&quot;)
+			w.Header().Set(&#34;Connection&#34;, &#34;close&#34;)
 		}
 		w.WriteHeader(StatusBadRequest)
 		return
 	}
 	h, _ := mux.Handler(r)
 	h.ServeHTTP(w, r)
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>可以看到ServeMux的ServeHttp方法在处理请求的时候，会先检查request中的url是否为*。然后他会检查请求的http协议版本至少要在1.1及以上才是合法的，否则就返回给客户端一个错误。然后，serveMux将会调用Handler方法，该方法中将会检查request中的信息并匹配到相应的pattern，返回给我们一个能够处理该请求的一个handler。最后调用该handler实现的ServeHttp方法处理这个请求。看起来ServeHttp这个方法的重点就在于这个Handler方法的实现了。</p>
-
-<pre><code>// Handler returns the handler to use for the given request,
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// Handler returns the handler to use for the given request,
 // consulting r.Method, r.Host, and r.URL.Path. It always returns
 // a non-nil handler. If the path is not in its canonical form, the
 // handler will be an internally-generated handler that redirects
@@ -455,9 +643,9 @@ func (mux *ServeMux) ServeHTTP(w ResponseWriter, r *Request) {
 // the pattern that will match after following the redirect.
 //
 // If there is no registered handler that applies to the request,
-// Handler returns a ``page not found'' handler and an empty pattern.
+// Handler returns a ``page not found&#39;&#39; handler and an empty pattern.
 func (mux *ServeMux) Handler(r *Request) (h Handler, pattern string) {
-	if r.Method != &quot;CONNECT&quot; {
+	if r.Method != &#34;CONNECT&#34; {
 		if p := cleanPath(r.URL.Path); p != r.URL.Path {
 			_, pattern = mux.handler(r.Host, p)
 			url := *r.URL
@@ -467,14 +655,35 @@ func (mux *ServeMux) Handler(r *Request) (h Handler, pattern string) {
 	}
 
 	return mux.handler(r.Host, r.URL.Path)
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>Handler这个方法是永远不会返回一个值为nil的handler，即使最后request没有匹配到任何的handler，函数也会返回一个“page not found”的handler。匹配之前，handler会先调用cleanPath来对请求的urlpath做一些清理工作，排除匹配时候的干扰。清理之后的path如果和request内的urlpath不一致的话，那就说明，request内的urlpath是不符合规范的，不是一个标准的形式，此时，golang将会返回一个用于重定向这个请求的Handler。如果确实发生了这种情况，那么ServeMux的ServeHttp方法将会调用RedirectHandler类型的ServeHttp方法来处理请求。通过观察RedirectHandler的ServeHttp方法的实现，我们知道，RedirectHandler在处理请求的时候最终是将重定向的状态码和location头部字段写入到Response的header中，其中location的内容就是根据我们规范过的path来确定的。</p>
 
 <p>如果request传递进来的path就是一个标准的形式，那么将会调用mux.handler方法开始进行匹配工作.</p>
-
-<pre><code>// handler is the main implementation of Handler.
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// handler is the main implementation of Handler.
 // The path is known to be in canonical form, except for CONNECT methods.
 func (mux *ServeMux) handler(host, path string) (h Handler, pattern string) {
 	mux.mu.RLock()
@@ -488,13 +697,12 @@ func (mux *ServeMux) handler(host, path string) (h Handler, pattern string) {
 		h, pattern = mux.match(path)
 	}
 	if h == nil {
-		h, pattern = NotFoundHandler(), &quot;&quot;
+		h, pattern = NotFoundHandler(), &#34;&#34;
 	}
 	return
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>handler一开始就用读锁锁住了整个函数，说明在这个函数中会读取ServeMux中的handler注册的map。之前在了解ServeMux成员结构的时候说过，如果ServeMux开启了强制带域名匹配，那么它是第一优先级的，待匹配的path也要加上host。如果强制带域名匹配没有匹配到，那么就会进行其他正常的匹配，否则认为没有匹配到，返回有一个NotFoundHanlder。NotFoundHanlder在处理请求的时候也是向response写入相应的错误信息，返回给客户端。ServeMux的math方法将会遍历注册了pattern和handler的map，对pattern和path进行匹配。在匹配的时候如果发现注册map当中的pattern与path有多个匹配情况，那么将会选取pattern最长的那个作为最佳的匹配项，这一点在介绍ServeMux类型的时候也是说过的。</p>
 
 <p>其实讲到这里，一个请求从外部进来，到ServeMux,到handler，到ServeHttp，最终处理完成返回给客户端的一条线就已经是通的了。其中涉及到了一些细枝末节的东西，如path.Clean是如何清洗urlpath的，这些我们暂时都不做过多的了解。我们的重点要放在golang实现的http框架上面，了解它是如何进行运作的。</p>
@@ -502,25 +710,53 @@ func (mux *ServeMux) handler(host, path string) (h Handler, pattern string) {
 <p>之前我们是从http包中的Handle说起的，那么紧接着我们就来看看HandleFunc这个函数都做了什么以及与Handle方法有何异同。</p>
 
 <h1 id="handlefunc">HandleFunc</h1>
-
-<pre><code>// HandleFunc registers the handler function for the given pattern
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// HandleFunc registers the handler function for the given pattern
 // in the DefaultServeMux.
 // The documentation for ServeMux explains how patterns are matched.
 func HandleFunc(pattern string, handler func(ResponseWriter, *Request)) {
 	DefaultServeMux.HandleFunc(pattern, handler)
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>HandleFunc这个函数看起来和Handle没有什么区别，都是调用了DefaultServeMux的同名方法对pattern和处理与这个pattern匹配的请求的handler进行注册。只不过HandleFunc注册的handler并不是一个Handler类型的对象，而直接是一个函数，这个函数的原型和Handler类型中的ServeHttp方法是一样的。</p>
-
-<pre><code>func (mux *ServeMux) HandleFunc(pattern string, handler func(ResponseWriter, *Request)) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (mux *ServeMux) HandleFunc(pattern string, handler func(ResponseWriter, *Request)) {
 	mux.Handle(pattern, HandlerFunc(handler))
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>ServeMux的HandleFunc方法内部调用的还是Handle方法，只不过对我们传递进来的函数方法通过HandlerFunc转换成一个Handler的对象。</p>
-
-<pre><code>// The HandlerFunc type is an adapter to allow the use of
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as HTTP handlers. If f is a function
 // with the appropriate signature, HandlerFunc(f) is a
 // Handler that calls f.
@@ -529,82 +765,194 @@ type HandlerFunc func(ResponseWriter, *Request)
 // ServeHTTP calls f(w, r).
 func (f HandlerFunc) ServeHTTP(w ResponseWriter, r *Request) {
 	f(w, r)
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>在golang中我们知道，函数也是一种值，这种值的类型我暂且就把它称作是一个函数类型吧。既然是类型，那么在golang中就可以实现这个类型相应的成员方法，HandlerFunc就是这样。ServeMux的Handle方法第二个参数就是接受了一个Handler对象，只要实现了ServeHttp方法，都可以赋值给它。HandlerFunc也实现了一个，只不过在内部调用了自己。感觉是golang利用Interface的特性玩了一个小把戏，为我们提供了额外的一种方式来对pattern和handler进行注册。</p>
 
 <h1 id="listenandserve">ListenAndServe</h1>
 
 <p>listenAndServe这个方法应该是处理一个http请求的流程中最重要的一个方法了。从函数名上我们就可以看出，这个函数起到了监听和提供服务的作用。</p>
-
-<pre><code>
-// ListenAndServe listens on the TCP network address addr
-// and then calls Serve with handler to handle requests
-// on incoming connections.
-// Accepted connections are configured to enable TCP keep-alives.
-// Handler is typically nil, in which case the DefaultServeMux is
-// used.
-//
-// A trivial example server is:
-//
-//	package main
-//
-//	import (
-//		&quot;io&quot;
-//		&quot;net/http&quot;
-//		&quot;log&quot;
-//	)
-//
-//	// hello world, the web server
-//	func HelloServer(w http.ResponseWriter, req *http.Request) {
-//		io.WriteString(w, &quot;hello, world!\n&quot;)
-//	}
-//
-//	func main() {
-//		http.HandleFunc(&quot;/hello&quot;, HelloServer)
-//		log.Fatal(http.ListenAndServe(&quot;:12345&quot;, nil))
-//	}
-//
-// ListenAndServe always returns a non-nil error.
-func ListenAndServe(addr string, handler Handler) error {
-	server := &amp;Server{Addr: addr, Handler: handler}
-	return server.ListenAndServe()
-}
-
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"><span class="c1">// ListenAndServe listens on the TCP network address addr
+</span><span class="c1">// and then calls Serve with handler to handle requests
+</span><span class="c1">// on incoming connections.
+</span><span class="c1">// Accepted connections are configured to enable TCP keep-alives.
+</span><span class="c1">// Handler is typically nil, in which case the DefaultServeMux is
+</span><span class="c1">// used.
+</span><span class="c1">//
+</span><span class="c1">// A trivial example server is:
+</span><span class="c1">//
+</span><span class="c1">//	package main
+</span><span class="c1">//
+</span><span class="c1">//	import (
+</span><span class="c1">//		&#34;io&#34;
+</span><span class="c1">//		&#34;net/http&#34;
+</span><span class="c1">//		&#34;log&#34;
+</span><span class="c1">//	)
+</span><span class="c1">//
+</span><span class="c1">//	// hello world, the web server
+</span><span class="c1">//	func HelloServer(w http.ResponseWriter, req *http.Request) {
+</span><span class="c1">//		io.WriteString(w, &#34;hello, world!\n&#34;)
+</span><span class="c1">//	}
+</span><span class="c1">//
+</span><span class="c1">//	func main() {
+</span><span class="c1">//		http.HandleFunc(&#34;/hello&#34;, HelloServer)
+</span><span class="c1">//		log.Fatal(http.ListenAndServe(&#34;:12345&#34;, nil))
+</span><span class="c1">//	}
+</span><span class="c1">//
+</span><span class="c1">// ListenAndServe always returns a non-nil error.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">ListenAndServe</span><span class="p">(</span><span class="nx">addr</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">handler</span> <span class="nx">Handler</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="nx">server</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Server</span><span class="p">{</span><span class="nx">Addr</span><span class="p">:</span> <span class="nx">addr</span><span class="p">,</span> <span class="nx">Handler</span><span class="p">:</span> <span class="nx">handler</span><span class="p">}</span>
+	<span class="k">return</span> <span class="nx">server</span><span class="p">.</span><span class="nf">ListenAndServe</span><span class="p">()</span>
+<span class="p">}</span></pre></td></tr></table>
+</div>
+</div>
 <p>ListenAndServe通过监听一个tcp的网络地址来为通过某个tcp链接发来的请求提供服务。可以看到该函数的第二个参数就是一个Handler对象，ListenAndServe显然已经是golang服务框架中最外层的入口了，那么首先处理从外部进来请求的handler自然应该是ServeMux。当我们指定第二个参数为nil的时候，golang就会使用DefaultServeMux作为我们整个服务的路由handler。</p>
-
-<pre><code>
-// ListenAndServe listens on the TCP network address srv.Addr and then
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// ListenAndServe listens on the TCP network address srv.Addr and then
 // calls Serve to handle requests on incoming connections.
 // Accepted connections are configured to enable TCP keep-alives.
-// If srv.Addr is blank, &quot;:http&quot; is used.
+// If srv.Addr is blank, &#34;:http&#34; is used.
 // ListenAndServe always returns a non-nil error.
 func (srv *Server) ListenAndServe() error {
 	addr := srv.Addr
-	if addr == &quot;&quot; {
-		addr = &quot;:http&quot;
+	if addr == &#34;&#34; {
+		addr = &#34;:http&#34;
 	}
-	ln, err := net.Listen(&quot;tcp&quot;, addr)
+	ln, err := net.Listen(&#34;tcp&#34;, addr)
 	if err != nil {
 		return err
 	}
 	return srv.Serve(tcpKeepAliveListener{ln.(*net.TCPListener)})
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>http包中的ListenAndServe方法在其内部通过定义了一个server对象，调用server的ListenAndServe方法。这个Server看起来就是整个golang的http服务框架的核心类型。它的ListenAndServe方法监听了本机的addr端口并调用Serve方法来开启整个服务。前面我们讲到了一个请求到了ServeMux之后是如何被派发并且处理的，那么接下来，我们就来研究一下一个请求是如何从客户端到达ServeMux的。</p>
-
-<pre><code>	
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	
 // Serve accepts incoming connections on the Listener l, creating a
 // new service goroutine for each. The service goroutines read requests and
 // then call srv.Handler to reply to them.
 //
 // For HTTP/2 support, srv.TLSConfig should be initialized to the
-// provided listener's TLS Config before calling Serve. If
-// srv.TLSConfig is non-nil and doesn't include the string &quot;h2&quot; in
+// provided listener&#39;s TLS Config before calling Serve. If
+// srv.TLSConfig is non-nil and doesn&#39;t include the string &#34;h2&#34; in
 // Config.NextProtos, HTTP/2 support is not enabled.
 //
 // Serve always returns a non-nil error. After Shutdown or Close, the
@@ -643,7 +991,7 @@ func (srv *Server) Serve(l net.Listener) error {
 				if max := 1 * time.Second; tempDelay &gt; max {
 					tempDelay = max
 				}
-				srv.logf(&quot;http: Accept error: %v; retrying in %v&quot;, e, tempDelay)
+				srv.logf(&#34;http: Accept error: %v; retrying in %v&#34;, e, tempDelay)
 				time.Sleep(tempDelay)
 				continue
 			}
@@ -654,22 +1002,166 @@ func (srv *Server) Serve(l net.Listener) error {
 		c.setState(c.rwc, StateNew) // before Serve can return
 		go c.serve(ctx)
 	}
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>server对象调用了Serve方法之后，可以看到，在其实现中有一个死循环，不断的接受从外部而来的网络连接，为每一个网络连接都开启一个goroutine调用Conn类型对象的serve方法来处理这条连接上发来的http请求。Serve函数大体的逻辑就是这样，一些实现的细节我们暂时先不追究，但是有一点需要注意的是，server调用了newConn创建了一个Conn类型的对象，这个对象内其中一个成员就是我们的server对象，也就是说，再创建这个Conn对象的时候把server自己也传递了进去。</p>
 
 <p>了解了以上我们说的几点就可以继续向下研究了。</p>
-
-<pre><code>func (c *conn) serve(ctx context.Context) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (c *conn) serve(ctx context.Context) {
 	c.remoteAddr = c.rwc.RemoteAddr().String()
 	defer func() {
 		if err := recover(); err != nil &amp;&amp; err != ErrAbortHandler {
 			const size = 64 &lt;&lt; 10
 			buf := make([]byte, size)
 			buf = buf[:runtime.Stack(buf, false)]
-			c.server.logf(&quot;http: panic serving %v: %v\n%s&quot;, c.remoteAddr, err, buf)
+			c.server.logf(&#34;http: panic serving %v: %v\n%s&#34;, c.remoteAddr, err, buf)
 		}
 		if !c.hijacked() {
 			c.close()
@@ -685,7 +1177,7 @@ func (srv *Server) Serve(l net.Listener) error {
 			c.rwc.SetWriteDeadline(time.Now().Add(d))
 		}
 		if err := tlsConn.Handshake(); err != nil {
-			c.server.logf(&quot;http: TLS handshake error from %s: %v&quot;, c.rwc.RemoteAddr(), err)
+			c.server.logf(&#34;http: TLS handshake error from %s: %v&#34;, c.rwc.RemoteAddr(), err)
 			return
 		}
 		c.tlsState = new(tls.ConnectionState)
@@ -712,33 +1204,33 @@ func (srv *Server) Serve(l net.Listener) error {
 	for {
 		w, err := c.readRequest(ctx)
 		if c.r.remain != c.server.initialReadLimitSize() {
-			// If we read any bytes off the wire, we're active.
+			// If we read any bytes off the wire, we&#39;re active.
 			c.setState(c.rwc, StateActive)
 		}
 		if err != nil {
-			const errorHeaders = &quot;\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n&quot;
+			const errorHeaders = &#34;\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n&#34;
 
 			if err == errTooLarge {
 				// Their HTTP client may or may not be
-				// able to read this if we're
+				// able to read this if we&#39;re
 				// responding to them and hanging up
-				// while they're still writing their
+				// while they&#39;re still writing their
 				// request. Undefined behavior.
-				const publicErr = &quot;431 Request Header Fields Too Large&quot;
-				fmt.Fprintf(c.rwc, &quot;HTTP/1.1 &quot;+publicErr+errorHeaders+publicErr)
+				const publicErr = &#34;431 Request Header Fields Too Large&#34;
+				fmt.Fprintf(c.rwc, &#34;HTTP/1.1 &#34;+publicErr+errorHeaders+publicErr)
 				c.closeWriteAndWait()
 				return
 			}
 			if isCommonNetReadError(err) {
-				return // don't reply
+				return // don&#39;t reply
 			}
 
-			publicErr := &quot;400 Bad Request&quot;
+			publicErr := &#34;400 Bad Request&#34;
 			if v, ok := err.(badRequestError); ok {
-				publicErr = publicErr + &quot;: &quot; + string(v)
+				publicErr = publicErr + &#34;: &#34; + string(v)
 			}
 
-			fmt.Fprintf(c.rwc, &quot;HTTP/1.1 &quot;+publicErr+errorHeaders+publicErr)
+			fmt.Fprintf(c.rwc, &#34;HTTP/1.1 &#34;+publicErr+errorHeaders+publicErr)
 			return
 		}
 
@@ -749,7 +1241,7 @@ func (srv *Server) Serve(l net.Listener) error {
 				// Wrap the Body reader with one that replies on the connection
 				req.Body = &amp;expectContinueReader{readCloser: req.Body, resp: w}
 			}
-		} else if req.Header.get(&quot;Expect&quot;) != &quot;&quot; {
+		} else if req.Header.get(&#34;Expect&#34;) != &#34;&#34; {
 			w.sendExpectationFailed()
 			return
 		}
@@ -766,11 +1258,11 @@ func (srv *Server) Serve(l net.Listener) error {
 		}
 
 		// HTTP cannot have multiple simultaneous active requests.[*]
-		// Until the server replies to this request, it can't read another,
+		// Until the server replies to this request, it can&#39;t read another,
 		// so we might as well run the handler in this goroutine.
 		// [*] Not strictly true: HTTP pipelining. We could let them all process
 		// in parallel even if their responses need to be serialized.
-		// But we're not going to implement HTTP pipelining because it
+		// But we&#39;re not going to implement HTTP pipelining because it
 		// was never deployed in the wild and the answer is HTTP/2.
 		serverHandler{c.server}.ServeHTTP(w, w.req)
 		w.cancelCtx()
@@ -788,8 +1280,8 @@ func (srv *Server) Serve(l net.Listener) error {
 		c.curReq.Store((*response)(nil))
 
 		if !w.conn.server.doKeepAlives() {
-			// We're in shutdown mode. We might've replied
-			// to the user without &quot;Connection: close&quot; and
+			// We&#39;re in shutdown mode. We might&#39;ve replied
+			// to the user without &#34;Connection: close&#34; and
 			// they might think they can send another
 			// request, but such is life with HTTP/1.1.
 			return
@@ -803,10 +1295,9 @@ func (srv *Server) Serve(l net.Listener) error {
 		}
 		c.rwc.SetReadDeadline(time.Time{})
 	}
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>在conn对象的serve方法中，最引人注目的代码不过有两行，而这两行也是最核心的：</p>
 
 <ol>

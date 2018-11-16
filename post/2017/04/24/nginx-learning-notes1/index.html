@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-04-24T18:30:13&#43;00:00" />
 <meta itemprop="dateModified" content="2017-04-24T18:30:13&#43;00:00" />
-<meta itemprop="wordCount" content="5175">
+<meta itemprop="wordCount" content="5208">
 
 
 
@@ -234,19 +234,32 @@
 </ol>
 
 <p>nginx配置中的变量一经定义其作用范围就是整个配置，所以在不同的server模块下也是可以共享同一个变量的定义的。但是这里要注意的是， 虽然不同server模块之间可以共享变量的定义，但是变量的赋值行为却是无法共享的。如：</p>
-
-<pre><code>server{
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">server{
 	location / {
-		echo &quot;$foo&quot;
+		echo &#34;$foo&#34;
 	}
 	
 	location /test {
 		set $foo hahah
-		echo &quot;$foo&quot;
+		echo &#34;$foo&#34;
 	}
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>这种nginx配置文件，是可以成功启动的。因为nginx中允许共享变量的定义。 但是当我们使用curl来访问/和/test的时候，得到的结果可以证明，$foo这个变量的在每一个location都有一个独立的副本。其实想想，前面说的共享变量定义实际上应该被认为是共享变量的声明，不同的location模块都能够成功识别$foo这个变量。但是，这个变量的值，抑或说这个变量的内存在不同的location下是相互独立的。</p>
 
 <p>看到上面这个例子，可能会觉得，变量的在内存中的值是和location绑定的，不同的变量在不同的location中会有一份独立的副本存放它的值。但是事实上，一个变量在内存中的副本是和请求绑定的。如从/test运行echo_exec跳转到/，此时在/这个location块下输出foo的值，仍然是hahah。也就是说，在内部跳转的过程当中，它对一个变量使用了同一份内存副本。这就证明了，某个location中使用的变量在内存中的副本并不是和location本身强绑定的，而是和请求绑定的。</p>
@@ -308,8 +321,25 @@
 <p>content阶段的指令主要负责生成Http中的response并返回给外部请求的客户端。在rewrite阶段和access阶段中，只要是该阶段的指令，那么多个模块的指令是可以配合起来用的。比如在access阶段中的ngx_access和ngx_lua两个模块中的指令可以共存于access阶段，并且按照一定的顺序运行。但是对于content来说，这是不可行的。</p>
 
 <p>在一个location块中，只能有一个所谓的&rdquo;内容处理程序&rdquo;。如果我们写入了多个内容处理程序，那么究竟谁会执行是无法确定的。如：</p>
-
-<pre><code>worker_processes  1;
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">worker_processes  1;
 events {
         worker_connections 1024;
 }
@@ -318,32 +348,42 @@ http {
     server {
 	listen 8080;
         location /test {
-	    echo &quot;fuck you&quot;;
-	    content_by_lua 'ngx.say(&quot;hello world&quot;)';
+	    echo &#34;fuck you&#34;;
+	    content_by_lua &#39;ngx.say(&#34;hello world&#34;)&#39;;
 	}
     }
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>在location部分中有两个所谓的内容处理程序，他们来自不同的包，但是最后只输出了helloworld。当你将echo和content_by_lua交换位置之后，最后会输出fuckyou。对于某些指令来说，如果在一个location的范围内，有多个同一个模块下的指令被用作内容处理程序的时候会按照一定的顺序都执行一遍。而有的模块则不行。比如多个echo在同一个location中就可以按照一定的顺序都执行一遍，但是content_by_lua就只会执行一次。</p>
 
 <p>在content阶段中，如果我们实现没有注册一个“内容处理程序”，那么nginx会把这个请求映射到几个文件系统静态资源服务模块上。默认情况下，nginx会为我们安排三个静态资源服务模块，ngx_index, ngx_autoindex, ngx_static。前面两个模块都作用于以／结尾的请求，static模块作用于不以／结尾的请求。</p>
 
 <p>ngx_index模块中的index指令会在nginx所在的文件系统中查找指定的文件。如</p>
-
-<pre><code>	location / {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	location / {
 	    root /var/www/;
 	    index index.html;
 	    autoindex on;
 	}
 	
 	location /index.html {
-	    echo &quot;fuck&quot;;
-	}
-
-</code></pre>
-
+	    echo &#34;fuck&#34;;
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>当请求是直接访问根目录的时候，首先通过root指令指定后面指令所运行的目录。index指令将会在root指令所指示的目录下查找index.html这个文件，如果找到了，那么内部跳转到/index.html的location块中进行请求的处理。如果不存在，那么直接放弃这个请求的处理。也就是说，根据上面的配置，如果/var/www/这个目录下有index.html这个文件，那么访问根目录的时候就会条换到/index.html这个location中，输出fuck。否则将会返回错误信息。</p>
 
 <p>当nginx保持上面的配置文件不变，删除/var/www目录下的index.html文件之后，会发现并没有和预期中的一样报错。而是访问到了一个目录索引的html页面，这个页面就是autoindex指令为我们生成的。如果此时你将autoindex指令去掉，那么就会因为没有找到这个index.html文件而报错403。</p>

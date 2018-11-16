@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-03-12T13:00:47&#43;00:00" />
 <meta itemprop="dateModified" content="2017-03-12T13:00:47&#43;00:00" />
-<meta itemprop="wordCount" content="2282">
+<meta itemprop="wordCount" content="2385">
 
 
 
@@ -240,25 +240,90 @@
 <p>我们可以在外循环遍历请求参数中的字段名，内循环遍历定义好的struct类型变量的field。但是这样效率是非常低的。稍微考虑一下就可以将定义好的struct类型的变量保存在一个map[string]reflect.Value内，map的key为struct内对应的tag，value则为对应的字段值。这样我们就可以在拿到请求参数字段名的时候，以O(1)的复杂度在这个map内找到其对应的field值，然后调用相应的Set方法即可将请求参数的值解析到具体类型的变量中。之所以能够通过构造出来的map改动定义好的struct类型变量内的field值，是因为map本身是一个引用类型，其底层使用的内存空间还是属于struct。</p>
 
 <p>实现代码如下</p>
-
-<pre><code>import (
-	&quot;fmt&quot;
-	&quot;github.com/qiniu/errors&quot;
-	&quot;net/http&quot;
-	&quot;reflect&quot;
-	&quot;strconv&quot;
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">import (
+	&#34;fmt&#34;
+	&#34;github.com/qiniu/errors&#34;
+	&#34;net/http&#34;
+	&#34;reflect&#34;
+	&#34;strconv&#34;
 )
 
 func ExtractHttpReq(req *http.Request, ptr interface{}) error {
 	m := make(map[string]reflect.Value)
 	value := reflect.ValueOf(ptr).Elem()
 	if value.Kind() != reflect.Struct || !value.IsValid() {
-		return errors.New(&quot;input data is invalid&quot;)
+		return errors.New(&#34;input data is invalid&#34;)
 	}
 
 	for i := 0; i &lt; value.NumField(); i++ {
-		tag := value.Type().Field(i).Tag.Get(&quot;http&quot;)
-		if tag == &quot;&quot; {
+		tag := value.Type().Field(i).Tag.Get(&#34;http&#34;)
+		if tag == &#34;&#34; {
 			tag = value.Type().Field(i).Name
 		}
 		m[tag] = value.Field(i)
@@ -298,58 +363,96 @@ func Populate(value reflect.Value, item string) {
 	case reflect.String:
 		value.SetString(item)
 	default:
-		fmt.Println(&quot;unsupport type&quot;)
+		fmt.Println(&#34;unsupport type&#34;)
 	}
 
 	return
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <h1 id="reflection-in-method">Reflection in method</h1>
 
 <p>除了上面讲到的，可以使用reflect通过struct tag找到其对应的field变量并且更新里面的值之外。我们还可以是用reflect通过一个普通类型的值，找到其定义的成员函数。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"><span class="kn">package</span> <span class="nx">main</span>
 
-<pre><code>package main
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;fmt&#34;</span>
+	<span class="s">&#34;reflect&#34;</span>
+	<span class="s">&#34;strings&#34;</span>
+<span class="p">)</span>
 
-import (
-	&quot;fmt&quot;
-	&quot;reflect&quot;
-	&quot;strings&quot;
-)
+<span class="kd">type</span> <span class="nx">T</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">Text</span> <span class="kt">string</span>
+<span class="p">}</span>
 
-type T struct {
-	Text string
-}
+<span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="nx">T</span><span class="p">)</span> <span class="nf">GetText</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;get text&#34;</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">t</span><span class="p">.</span><span class="nx">Text</span>
+<span class="p">}</span>
 
-func (t T) GetText() string {
-	fmt.Println(&quot;get text&quot;)
-	return t.Text
-}
+<span class="kd">func</span> <span class="nf">PrintMethod</span><span class="p">(</span><span class="nx">v</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Value</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">!</span><span class="nx">v</span><span class="p">.</span><span class="nf">IsValid</span><span class="p">()</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;input params is invalid&#34;</span><span class="p">)</span>
+		<span class="k">return</span>
+	<span class="p">}</span>
 
-func PrintMethod(v reflect.Value) {
-	if !v.IsValid() {
-		fmt.Println(&quot;input params is invalid&quot;)
-		return
-	}
+	<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">v</span><span class="p">.</span><span class="nf">NumMethod</span><span class="p">();</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;func (%s) %s %s\n&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Type</span><span class="p">().</span><span class="nf">String</span><span class="p">(),</span>
+			<span class="nx">v</span><span class="p">.</span><span class="nf">Type</span><span class="p">().</span><span class="nf">Method</span><span class="p">(</span><span class="nx">i</span><span class="p">).</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">strings</span><span class="p">.</span><span class="nf">TrimPrefix</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Method</span><span class="p">(</span><span class="nx">i</span><span class="p">).</span><span class="nf">Type</span><span class="p">().</span><span class="nf">String</span><span class="p">(),</span> <span class="s">&#34;func&#34;</span><span class="p">))</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Method</span><span class="p">(</span><span class="nx">i</span><span class="p">).</span><span class="nf">Call</span><span class="p">([]</span><span class="nx">reflect</span><span class="p">.</span><span class="nx">Value</span><span class="p">{}))</span>
+	<span class="p">}</span>
 
-	for i := 0; i &lt; v.NumMethod(); i++ {
-		fmt.Printf(&quot;func (%s) %s %s\n&quot;, v.Type().String(),
-			v.Type().Method(i).Name, strings.TrimPrefix(v.Method(i).Type().String(), &quot;func&quot;))
-		fmt.Println(v.Method(i).Call([]reflect.Value{}))
-	}
+	<span class="k">return</span>
+<span class="p">}</span>
 
-	return
-}
-
-func main() {
-	a := T{Text: &quot;haha&quot;}
-	PrintMethod(reflect.ValueOf(a))
-	return
-}
-
-</code></pre>
-
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">a</span> <span class="o">:=</span> <span class="nx">T</span><span class="p">{</span><span class="nx">Text</span><span class="p">:</span> <span class="s">&#34;haha&#34;</span><span class="p">}</span>
+	<span class="nf">PrintMethod</span><span class="p">(</span><span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">a</span><span class="p">))</span>
+	<span class="k">return</span>
+<span class="p">}</span></pre></td></tr></table>
+</div>
+</div>
 <p>通过上面的实现我们可以看出来，reflect.Type以及reflect.Value都有自己的Method方法。只不过reflect.Type的Method返回的是一个Method类型的数据，它里面包含了关于这个method的一切信息。但是reflect.Value的Method返回的是一个包含了函数值的reflect.Value。我们可以直接通过reflect.Value.Method(index).Call的形式去调用这个函数。</p>
 
 <h1 id="how-to-use-reflect">How to use reflect</h1>
@@ -359,13 +462,20 @@ func main() {
 <p>reflect.Value类型的变量在调用相应方法的时候，一定记得先要检查这个变量是否是zero value或者它的动态类型是什么。因为reflect包中的很多方法在调用的时候都不会帮你做这些，一旦你使用了不当的类型调用了其所没有实现的方法的时候，将会直接导致panic的发生。另外一个类似的问题就是，在调用setxx方法之前，要检查一下这个变量是否是可寻址的并且是可以更新的。</p>
 
 <p>还有一个比较危险的地方就是，reflect包无法识别无限递归的问题。我们之前实现了一个格式化输出一般数据类型变量内容的函数，假设这个数据类型的内部成员的类型和外部是一致的，就会导致无限递归的调用。如：</p>
-
-<pre><code>type Recursive struct {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">type Recursive struct {
 	T Recursive
 	A string
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>这种例子其实并不罕见，比如链表的实现常常就会使用类似的数据结构。而且reflect的代码因为没有依赖具体的数据类型，所以它的速度是非常慢的。</p>
     </div>
 

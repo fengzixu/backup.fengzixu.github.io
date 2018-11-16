@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-11-15T22:40:55&#43;08:00" />
 <meta itemprop="dateModified" content="2018-11-15T22:40:55&#43;08:00" />
-<meta itemprop="wordCount" content="7697">
+<meta itemprop="wordCount" content="7709">
 
 
 
@@ -236,36 +236,66 @@ Warning：设计文档的对应的 k8s 版本为1.7</p>
 <p><em>A:</em></p>
 
 <p>Kubernetes 在不同的 Resource Objects 中维护一定的「从属关系」。内置的 Resource Objects 一般会默认在一个 Resource Object 和它的创建者之间建立一个「从属关系」。当然，你也可以利用<code>ObjectMeta.OwnerReferences</code>自由的去给两个 Resource Object 建立关系，前提是被建立关系的两个对象必须在一个 Namespace 下。</p>
-
-<pre><code>// OwnerReference contains enough information to let you identify an owning
-// object. Currently, an owning object must be in the same namespace, so there
-// is no namespace field.
-type OwnerReference struct {
-	// API version of the referent.
-	APIVersion string `json:&quot;apiVersion&quot; protobuf:&quot;bytes,5,opt,name=apiVersion&quot;`
-	// Kind of the referent.
-	// More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds
-	Kind string `json:&quot;kind&quot; protobuf:&quot;bytes,1,opt,name=kind&quot;`
-	// Name of the referent.
-	// More info: http://kubernetes.io/docs/user-guide/identifiers#names
-	Name string `json:&quot;name&quot; protobuf:&quot;bytes,3,opt,name=name&quot;`
-	// UID of the referent.
-	// More info: http://kubernetes.io/docs/user-guide/identifiers#uids
-	UID types.UID `json:&quot;uid&quot; protobuf:&quot;bytes,4,opt,name=uid,casttype=k8s.io/apimachinery/pkg/types.UID&quot;`
-	// If true, this reference points to the managing controller.
-	// +optional
-	Controller *bool `json:&quot;controller,omitempty&quot; protobuf:&quot;varint,6,opt,name=controller&quot;`
-	// If true, AND if the owner has the &quot;foregroundDeletion&quot; finalizer, then
-	// the owner cannot be deleted from the key-value store until this
-	// reference is removed.
-	// Defaults to false.
-	// To set this field, a user needs &quot;delete&quot; permission of the owner,
-	// otherwise 422 (Unprocessable Entity) will be returned.
-	// +optional
-	BlockOwnerDeletion *bool `json:&quot;blockOwnerDeletion,omitempty&quot; protobuf:&quot;varint,7,opt,name=blockOwnerDeletion&quot;`
-}
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="c1">// OwnerReference contains enough information to let you identify an owning
+</span><span class="c1">// object. Currently, an owning object must be in the same namespace, so there
+</span><span class="c1">// is no namespace field.
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">OwnerReference</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="c1">// API version of the referent.
+</span><span class="c1"></span>	<span class="nx">APIVersion</span> <span class="kt">string</span> <span class="s">`json:&#34;apiVersion&#34; protobuf:&#34;bytes,5,opt,name=apiVersion&#34;`</span>
+	<span class="c1">// Kind of the referent.
+</span><span class="c1"></span>	<span class="c1">// More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds
+</span><span class="c1"></span>	<span class="nx">Kind</span> <span class="kt">string</span> <span class="s">`json:&#34;kind&#34; protobuf:&#34;bytes,1,opt,name=kind&#34;`</span>
+	<span class="c1">// Name of the referent.
+</span><span class="c1"></span>	<span class="c1">// More info: http://kubernetes.io/docs/user-guide/identifiers#names
+</span><span class="c1"></span>	<span class="nx">Name</span> <span class="kt">string</span> <span class="s">`json:&#34;name&#34; protobuf:&#34;bytes,3,opt,name=name&#34;`</span>
+	<span class="c1">// UID of the referent.
+</span><span class="c1"></span>	<span class="c1">// More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+</span><span class="c1"></span>	<span class="nx">UID</span> <span class="nx">types</span><span class="p">.</span><span class="nx">UID</span> <span class="s">`json:&#34;uid&#34; protobuf:&#34;bytes,4,opt,name=uid,casttype=k8s.io/apimachinery/pkg/types.UID&#34;`</span>
+	<span class="c1">// If true, this reference points to the managing controller.
+</span><span class="c1"></span>	<span class="c1">// +optional
+</span><span class="c1"></span>	<span class="nx">Controller</span> <span class="o">*</span><span class="kt">bool</span> <span class="s">`json:&#34;controller,omitempty&#34; protobuf:&#34;varint,6,opt,name=controller&#34;`</span>
+	<span class="c1">// If true, AND if the owner has the &#34;foregroundDeletion&#34; finalizer, then
+</span><span class="c1"></span>	<span class="c1">// the owner cannot be deleted from the key-value store until this
+</span><span class="c1"></span>	<span class="c1">// reference is removed.
+</span><span class="c1"></span>	<span class="c1">// Defaults to false.
+</span><span class="c1"></span>	<span class="c1">// To set this field, a user needs &#34;delete&#34; permission of the owner,
+</span><span class="c1"></span>	<span class="c1">// otherwise 422 (Unprocessable Entity) will be returned.
+</span><span class="c1"></span>	<span class="c1">// +optional
+</span><span class="c1"></span>	<span class="nx">BlockOwnerDeletion</span> <span class="o">*</span><span class="kt">bool</span> <span class="s">`json:&#34;blockOwnerDeletion,omitempty&#34; protobuf:&#34;varint,7,opt,name=blockOwnerDeletion&#34;`</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
 <p><code>OwnerReference</code>一般存在于某一个 Resource Object  信息中的 metadata 部分。<code>OwnerReference</code>中的字段可以唯一的确定 k8s 中的一个 Resource Object。两个 Object 可以通过这种方式建立一个 <code>owner-dependent</code>的关系。</p>
 
 <p>K8s 实现了一种「Cascading deletion」（级联删除）的机制，它利用已经建立的「从属关系」进行资源对象的清理工作。例如，当一个 dependent 资源的 owner 已经被删除或者不存在的时候，从某种角度就可以判定，这个 dependent 的对象已经是异常（无人管辖）的了，需要进行清理。而 「cascading deletion」则是被 k8s 中的一个 controller 组件实现的：<code>Garbage Collector</code></p>
@@ -277,88 +307,167 @@ type OwnerReference struct {
 <p><strong>A:</strong></p>
 
 <p>我们可以通过一个实际的例子来了解这个「从属关系」：</p>
-
-<pre><code>apiVersion: extensions/v1beta1
-kind: ReplicaSet
-metadata:
-  annotations:
-    deployment.kubernetes.io/desired-replicas: &quot;2&quot;
-    deployment.kubernetes.io/max-replicas: &quot;3&quot;
-    deployment.kubernetes.io/revision: &quot;1&quot;
-  creationTimestamp: 2018-09-07T07:11:52Z
-  generation: 1
-  labels:
-    app: coffee
-    pod-template-hash: &quot;3866135192&quot;
-  name: coffee-7dbb5795f6
-  namespace: default
-  ownerReferences:
-  - apiVersion: apps/v1
-    blockOwnerDeletion: true
-    controller: true
-    kind: Deployment
-    name: coffee
-    uid: 4b807ee6-b26d-11e8-b891-fa163eebca40
-  resourceVersion: &quot;476159&quot;
-  selfLink: /apis/extensions/v1beta1/namespaces/default/replicasets/coffee-7dbb5795f6
-  uid: 4b81e76c-b26d-11e8-b891-fa163eebca40
-spec:
-  replicas: 2
-....
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">apiVersion<span class="p">:</span><span class="w"> </span>extensions/v1beta1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>ReplicaSet<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>annotations<span class="p">:</span><span class="w">
+</span><span class="w">    </span>deployment.kubernetes.io/desired-replicas<span class="p">:</span><span class="w"> </span><span class="s2">&#34;2&#34;</span><span class="w">
+</span><span class="w">    </span>deployment.kubernetes.io/max-replicas<span class="p">:</span><span class="w"> </span><span class="s2">&#34;3&#34;</span><span class="w">
+</span><span class="w">    </span>deployment.kubernetes.io/revision<span class="p">:</span><span class="w"> </span><span class="s2">&#34;1&#34;</span><span class="w">
+</span><span class="w">  </span>creationTimestamp<span class="p">:</span><span class="w"> </span><span class="ld">2018-09-07T07:11:52Z</span><span class="w">
+</span><span class="w">  </span>generation<span class="p">:</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span><span class="w">  </span>labels<span class="p">:</span><span class="w">
+</span><span class="w">    </span>app<span class="p">:</span><span class="w"> </span>coffee<span class="w">
+</span><span class="w">    </span>pod-template-hash<span class="p">:</span><span class="w"> </span><span class="s2">&#34;3866135192&#34;</span><span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>coffee-7dbb5795f6<span class="w">
+</span><span class="w">  </span>namespace<span class="p">:</span><span class="w"> </span>default<span class="w">
+</span><span class="w">  </span>ownerReferences<span class="p">:</span><span class="w">
+</span><span class="w">  </span>-<span class="w"> </span>apiVersion<span class="p">:</span><span class="w"> </span>apps/v1<span class="w">
+</span><span class="w">    </span>blockOwnerDeletion<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">    </span>controller<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">    </span>kind<span class="p">:</span><span class="w"> </span>Deployment<span class="w">
+</span><span class="w">    </span>name<span class="p">:</span><span class="w"> </span>coffee<span class="w">
+</span><span class="w">    </span>uid<span class="p">:</span><span class="w"> </span>4b807ee6-b26d-<span class="m">11e8</span>-b891-fa163eebca40<span class="w">
+</span><span class="w">  </span>resourceVersion<span class="p">:</span><span class="w"> </span><span class="s2">&#34;476159&#34;</span><span class="w">
+</span><span class="w">  </span>selfLink<span class="p">:</span><span class="w"> </span>/apis/extensions/v1beta1/namespaces/default/replicasets/coffee-7dbb5795f6<span class="w">
+</span><span class="w">  </span>uid<span class="p">:</span><span class="w"> </span>4b81e76c-b26d-<span class="m">11e8</span>-b891-fa163eebca40<span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w">  </span>replicas<span class="p">:</span><span class="w"> </span><span class="m">2</span><span class="w">
+</span><span class="w"></span>....</code></pre></td></tr></table>
+</div>
+</div>
 <p>上面截取了一个 ReplicaSet Object 中的 metadata 的部分信息。我们可以注意到，它的 <code>ownerReferences</code>字段标识了一个 Deployment Object。我们都清楚的是，ReplicaSet 会创建一系列的 Pod。通过<code>spec.replicas:2</code>可以知道，他会创建两个pod。</p>
-
-<pre><code>root@xr-service-mesh-lab:~/istio-1.0.2# kubectl get pods  | grep coffee
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">root@xr-service-mesh-lab:~/istio-1.0.2# kubectl get pods  | grep coffee
 coffee-7dbb5795f6-6crxz          1/1       Running   0          9d
 coffee-7dbb5795f6-hv7tr          1/1       Running   0          5d
-root@xr-service-mesh-lab:~/istio-1.0.2#
-</code></pre>
-
+root@xr-service-mesh-lab:~/istio-1.0.2#</pre></td></tr></table>
+</div>
+</div>
 <p>让我们来观察其中一个 Pod：</p>
-
-<pre><code>apiVersion: v1
-kind: Pod
-metadata:
-  annotations:
-    cni.projectcalico.org/podIP: 192.168.0.14/32
-  creationTimestamp: 2018-09-07T07:11:52Z
-  generateName: coffee-7dbb5795f6-
-  labels:
-    app: coffee
-    pod-template-hash: &quot;3866135192&quot;
-  name: coffee-7dbb5795f6-6crxz
-  namespace: default
-  ownerReferences:
-  - apiVersion: apps/v1
-    blockOwnerDeletion: true
-    controller: true
-    kind: ReplicaSet
-    name: coffee-7dbb5795f6
-    uid: 4b81e76c-b26d-11e8-b891-fa163eebca40
-  resourceVersion: &quot;76727&quot;
-  selfLink: /api/v1/namespaces/default/pods/coffee-7dbb5795f6-6crxz
-  uid: 4b863e4d-b26d-11e8-b891-fa163eebca40
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">apiVersion<span class="p">:</span><span class="w"> </span>v1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>Pod<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>annotations<span class="p">:</span><span class="w">
+</span><span class="w">    </span>cni.projectcalico.org/podIP<span class="p">:</span><span class="w"> </span><span class="m">192.168</span>.<span class="m">0.14</span>/<span class="m">32</span><span class="w">
+</span><span class="w">  </span>creationTimestamp<span class="p">:</span><span class="w"> </span><span class="ld">2018-09-07T07:11:52Z</span><span class="w">
+</span><span class="w">  </span>generateName<span class="p">:</span><span class="w"> </span>coffee-7dbb5795f6-<span class="w">
+</span><span class="w">  </span>labels<span class="p">:</span><span class="w">
+</span><span class="w">    </span>app<span class="p">:</span><span class="w"> </span>coffee<span class="w">
+</span><span class="w">    </span>pod-template-hash<span class="p">:</span><span class="w"> </span><span class="s2">&#34;3866135192&#34;</span><span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>coffee-7dbb5795f6-6crxz<span class="w">
+</span><span class="w">  </span>namespace<span class="p">:</span><span class="w"> </span>default<span class="w">
+</span><span class="w">  </span>ownerReferences<span class="p">:</span><span class="w">
+</span><span class="w">  </span>-<span class="w"> </span>apiVersion<span class="p">:</span><span class="w"> </span>apps/v1<span class="w">
+</span><span class="w">    </span>blockOwnerDeletion<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">    </span>controller<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">    </span>kind<span class="p">:</span><span class="w"> </span>ReplicaSet<span class="w">
+</span><span class="w">    </span>name<span class="p">:</span><span class="w"> </span>coffee-7dbb5795f6<span class="w">
+</span><span class="w">    </span>uid<span class="p">:</span><span class="w"> </span>4b81e76c-b26d-<span class="m">11e8</span>-b891-fa163eebca40<span class="w">
+</span><span class="w">  </span>resourceVersion<span class="p">:</span><span class="w"> </span><span class="s2">&#34;76727&#34;</span><span class="w">
+</span><span class="w">  </span>selfLink<span class="p">:</span><span class="w"> </span>/api/v1/namespaces/default/pods/coffee-7dbb5795f6-6crxz<span class="w">
+</span><span class="w">  </span>uid<span class="p">:</span><span class="w"> </span>4b863e4d-b26d-<span class="m">11e8</span>-b891-fa163eebca40</code></pre></td></tr></table>
+</div>
+</div>
 <p>我们可以看出，pod 中的<code>ownerReferences</code>所标识的 Object 正式我们上面看到过的 ReplicaSet。最后让我们来检查一下 ReplicaSet 所对应的 Deployment 的情况：</p>
-
-<pre><code>apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  annotations:
-    deployment.kubernetes.io/revision: &quot;1&quot;
-  creationTimestamp: 2018-09-07T07:11:52Z
-  generation: 1
-  labels:
-    app: coffee
-  name: coffee
-  namespace: default
-  resourceVersion: &quot;476161&quot;
-  selfLink: /apis/extensions/v1beta1/namespaces/default/deployments/coffee
-  uid: 4b807ee6-b26d-11e8-b891-fa163eebca40
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">apiVersion<span class="p">:</span><span class="w"> </span>extensions/v1beta1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>Deployment<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>annotations<span class="p">:</span><span class="w">
+</span><span class="w">    </span>deployment.kubernetes.io/revision<span class="p">:</span><span class="w"> </span><span class="s2">&#34;1&#34;</span><span class="w">
+</span><span class="w">  </span>creationTimestamp<span class="p">:</span><span class="w"> </span><span class="ld">2018-09-07T07:11:52Z</span><span class="w">
+</span><span class="w">  </span>generation<span class="p">:</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span><span class="w">  </span>labels<span class="p">:</span><span class="w">
+</span><span class="w">    </span>app<span class="p">:</span><span class="w"> </span>coffee<span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>coffee<span class="w">
+</span><span class="w">  </span>namespace<span class="p">:</span><span class="w"> </span>default<span class="w">
+</span><span class="w">  </span>resourceVersion<span class="p">:</span><span class="w"> </span><span class="s2">&#34;476161&#34;</span><span class="w">
+</span><span class="w">  </span>selfLink<span class="p">:</span><span class="w"> </span>/apis/extensions/v1beta1/namespaces/default/deployments/coffee<span class="w">
+</span><span class="w">  </span>uid<span class="p">:</span><span class="w"> </span>4b807ee6-b26d-<span class="m">11e8</span>-b891-fa163eebca40</code></pre></td></tr></table>
+</div>
+</div>
 <p>对比一下 ReplicaSet Object 中 ownerReference 标识的 Object 可知，这个 Deployment 是 ReplicaSet 的 owner。至此，我们通过观察三个 Object 中的 ownerReference 的信息，可以建立起如下的「从属关系」：</p>
 
 <ul>
@@ -514,38 +623,69 @@ metadata:
 <p><code>OwnerReference.BlockOwnerDeletion</code>参数大多数情况下在相应的 dependents 对象创建的时候就设置进去了。如果想在 dependents 对象创建之后更新这个参数的值，可能需要使用<code>admission controller</code> (1.7及以上版本)提供的一些权限相关的功能。</p>
 
 <p><code>DeleteOptions.PropagationPolicy</code>一共有3个候选值：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// DeletionPropagation decides if a deletion will propagate to the dependents of
+</span><span class="c1">// the object, and how the garbage collector will handle the propagation.
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">DeletionPropagation</span> <span class="kt">string</span>
 
-<pre><code>// DeletionPropagation decides if a deletion will propagate to the dependents of
-// the object, and how the garbage collector will handle the propagation.
-type DeletionPropagation string
-
-const (
-	// Orphans the dependents.
-	DeletePropagationOrphan DeletionPropagation = &quot;Orphan&quot;
-	// Deletes the object from the key-value store, the garbage collector will
-	// delete the dependents in the background.
-	DeletePropagationBackground DeletionPropagation = &quot;Background&quot;
-	// The object exists in the key-value store until the garbage collector
-	// deletes all the dependents whose ownerReference.blockOwnerDeletion=true
-	// from the key-value store.  API sever will put the &quot;foregroundDeletion&quot;
-	// finalizer on the object, and sets its deletionTimestamp.  This policy is
-	// cascading, i.e., the dependents will be deleted with Foreground.
-	DeletePropagationForeground DeletionPropagation = &quot;Foreground&quot;
-)
-</code></pre>
-
+<span class="kd">const</span> <span class="p">(</span>
+	<span class="c1">// Orphans the dependents.
+</span><span class="c1"></span>	<span class="nx">DeletePropagationOrphan</span> <span class="nx">DeletionPropagation</span> <span class="p">=</span> <span class="s">&#34;Orphan&#34;</span>
+	<span class="c1">// Deletes the object from the key-value store, the garbage collector will
+</span><span class="c1"></span>	<span class="c1">// delete the dependents in the background.
+</span><span class="c1"></span>	<span class="nx">DeletePropagationBackground</span> <span class="nx">DeletionPropagation</span> <span class="p">=</span> <span class="s">&#34;Background&#34;</span>
+	<span class="c1">// The object exists in the key-value store until the garbage collector
+</span><span class="c1"></span>	<span class="c1">// deletes all the dependents whose ownerReference.blockOwnerDeletion=true
+</span><span class="c1"></span>	<span class="c1">// from the key-value store.  API sever will put the &#34;foregroundDeletion&#34;
+</span><span class="c1"></span>	<span class="c1">// finalizer on the object, and sets its deletionTimestamp.  This policy is
+</span><span class="c1"></span>	<span class="c1">// cascading, i.e., the dependents will be deleted with Foreground.
+</span><span class="c1"></span>	<span class="nx">DeletePropagationForeground</span> <span class="nx">DeletionPropagation</span> <span class="p">=</span> <span class="s">&#34;Foreground&#34;</span>
+<span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>再结合<code>OwnerReference.BlockOwnerDeletion</code> 参数的注释</p>
-
-<pre><code>	// If true, AND if the owner has the &quot;foregroundDeletion&quot; finalizer, then
-	// the owner cannot be deleted from the key-value store until this
-	// reference is removed.
-	// Defaults to false.
-	// To set this field, a user needs &quot;delete&quot; permission of the owner,
-	// otherwise 422 (Unprocessable Entity) will be returned.
-	// +optional
-	BlockOwnerDeletion *bool `json:&quot;blockOwnerDeletion,omitempty&quot; protobuf:&quot;varint,7,opt,name=blockOwnerDeletion&quot;`
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go">	<span class="c1">// If true, AND if the owner has the &#34;foregroundDeletion&#34; finalizer, then
+</span><span class="c1"></span>	<span class="c1">// the owner cannot be deleted from the key-value store until this
+</span><span class="c1"></span>	<span class="c1">// reference is removed.
+</span><span class="c1"></span>	<span class="c1">// Defaults to false.
+</span><span class="c1"></span>	<span class="c1">// To set this field, a user needs &#34;delete&#34; permission of the owner,
+</span><span class="c1"></span>	<span class="c1">// otherwise 422 (Unprocessable Entity) will be returned.
+</span><span class="c1"></span>	<span class="c1">// +optional
+</span><span class="c1"></span>	<span class="nx">BlockOwnerDeletion</span> <span class="o">*</span><span class="kt">bool</span> <span class="s">`json:&#34;blockOwnerDeletion,omitempty&#34; protobuf:&#34;varint,7,opt,name=blockOwnerDeletion&#34;`</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>我们可以了解到。同步删除的开启方式如下：</p>
 
 <ol>
@@ -556,14 +696,22 @@ const (
 <p>开启之后，在删除身份为 owner 的资源对象的时候，就会先将 denpendents 对象中 <code>OwnerReference.BlockOwnerDeletion</code>为 true 的资源对象先删除，然后再删除 owner 身份的对象。这里的「删除」就指的是我们前面说过的「真正的删除」：从 k8s 存储资源对象信息的 key-value 数据库中删除所有与其相关的信息。需要注意的是，<code>OwnerReference.BlockOwnerDeletion</code>为 false 的dependent 对象不会阻碍 owner 对象的删除操作。</p>
 
 <p>Foreground 是 k8s 提供的两种级联删除方式其中之一，另外一种为 Background。通过上面相关的注释可以看到 Foreground 级联删除也是通过 Finalizer 来实现的，查看 Finalizer 相关的定义可知，标准的 Finalizer，一个是 orphan 的，另一个就是Foreground的：</p>
-
-<pre><code>// These are internal finalizer values for Kubernetes-like APIs, must be qualified name unless defined here
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// These are internal finalizer values for Kubernetes-like APIs, must be qualified name unless defined here
 const (
-	FinalizerOrphanDependents string = &quot;orphan&quot;
-	FinalizerDeleteDependents string = &quot;foregroundDeletion&quot;
-)
-</code></pre>
-
+	FinalizerOrphanDependents string = &#34;orphan&#34;
+	FinalizerDeleteDependents string = &#34;foregroundDeletion&#34;
+)</pre></td></tr></table>
+</div>
+</div>
 <p>API-Server 的<code>Delete</code>函数，在接受到删除请求的时候，会检查 <code>DeleteOptions.PropagationPolicy</code>参数，若其值为<code>DeletePropagationForeground</code>, API-Server 随即会对该资源对象进行 Update 操作：</p>
 
 <ol>

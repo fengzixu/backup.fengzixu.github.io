@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-01-24T22:19:11&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-24T22:19:11&#43;00:00" />
-<meta itemprop="wordCount" content="1450">
+<meta itemprop="wordCount" content="1456">
 
 
 
@@ -247,11 +247,16 @@
 <h4 id="q-开发一个-operator-前需要知道什么">Q: 开发一个 Operator 前需要知道什么？</h4>
 
 <h4 id="a-开发一个-operator-需要基于-kubernetes-中的两个概念">A: 开发一个 Operator 需要基于 Kubernetes 中的两个概念：</h4>
-
-<pre><code>1. resource
-2. controller
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">1. resource
+2. controller</pre></td></tr></table>
+</div>
+</div>
 <p>CoreOs中的文档中简要的概括了一个 Operator 的开发内容：
 An Operator builds upon the basic Kubernetes resource and controller concepts and adds a set of knowledge or configuration that allows the Operator to execute common application tasks。</p>
 
@@ -289,13 +294,20 @@ An Operator builds upon the basic Kubernetes resource and controller concepts an
 <h4 id="q-开发一个-operator-需要哪些步骤">Q: 开发一个 Operator 需要哪些步骤？</h4>
 
 <h4 id="a-6">A:</h4>
-
-<pre><code>    1. 定义一个 CR（可以使用 yaml 文件也可以使用 kubernetes-client-go 的 library）
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">    1. 定义一个 CR（可以使用 yaml 文件也可以使用 kubernetes-client-go 的 library）
     2. 向 API Server 注册这个 CR
     3. 提供相应的 handler 用于处理用户对 CR 的 ADU操作
-    4. 监听 CR 的的各种事件，并路由至相应的 handler 进行处理
-</code></pre>
-
+    4. 监听 CR 的的各种事件，并路由至相应的 handler 进行处理</pre></td></tr></table>
+</div>
+</div>
     </div>
 
     

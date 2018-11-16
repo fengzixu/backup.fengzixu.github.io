@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-05-30T11:10:32&#43;00:00" />
 <meta itemprop="dateModified" content="2017-05-30T11:10:32&#43;00:00" />
-<meta itemprop="wordCount" content="2123">
+<meta itemprop="wordCount" content="2143">
 
 
 
@@ -244,8 +244,31 @@
 <h3 id="严格轮换法">严格轮换法</h3>
 
 <p>严格轮换法也是依靠某一个共享变量，这个共享变量有一个初始值。多个不同的进程在可以进入临界区之前都会读取这个共享变量，如果这个共享变量的值指示当前进程可以进入临界区，那么该进程就可以正常访问，并且在离开临界区之前将此共享变量置为另外一个值。想用这种办法的一个前提就是，共享变量的取值集合数对应了共享它的进程数。每一个进程在想进入临界区之前都要忙等待轮训这个变量的值是否属于自己的那个。当离开临界区之前也要把响应的共享变量置为其他进程所需要的值才行。</p>
-
-<pre><code>//process 0
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">//process 0
 
 enter_region{
 	while(1){
@@ -264,9 +287,9 @@ enter_region{
 		turn = 0;
 		break;
 	}
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>如上面的伪代码所示，如果现在有两个进程需要进入同一块临界区。共享变量初始值为0，那么0号进程将首先获得该临界区的访问权限，1号进程由于检查turn的值并不是属于自己可以获取权限的值，就进入循环，使用忙等待的方式，不断的访问turn变量。当0号进程执行完毕，离开临界区的时候，会将turn置为1，此时将锁的使用权限给了process1，process1得到锁之后便可以访问临界区。</p>
 
 <p>目前还只有两个进程，使用起来还不是特别的麻烦。但是如果有多个进程的时候，其中一个进程执行完毕，接下来这个锁的权限给谁，看起来是依靠当前的这个进程来决定的。那么这就有一定的几率是会成环的。</p>

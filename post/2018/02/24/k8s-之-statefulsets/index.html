@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-02-24T17:13:44&#43;00:00" />
 <meta itemprop="dateModified" content="2018-02-24T17:13:44&#43;00:00" />
-<meta itemprop="wordCount" content="1753">
+<meta itemprop="wordCount" content="1803">
 
 
 
@@ -245,8 +245,56 @@
 
 <li><p>volumeClaimTemplates：指定用于 StatefulSets 中 pod 的存储设置</p></li>
 </ol>
-
-<pre><code>apiVersion: v1
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">apiVersion: v1
 kind: Service
 metadata:
   name: nginx
@@ -265,7 +313,7 @@ kind: StatefulSet
 metadata:
   name: web
 spec:
-  serviceName: &quot;nginx&quot;
+  serviceName: &#34;nginx&#34;
   replicas: 3
   template:
     metadata:
@@ -286,14 +334,13 @@ spec:
   - metadata:
       name: www
     spec:
-      accessModes: [ &quot;ReadWriteOnce&quot; ]
+      accessModes: [ &#34;ReadWriteOnce&#34; ]
       storageClassName: my-storage-class
       resources:
         requests:
-          storage: 1Gi
-
-</code></pre>
-
+          storage: 1Gi</pre></td></tr></table>
+</div>
+</div>
 <p>Q: 在一个 StatefulSets 中，如何按照顺序操作 Pod？</p>
 
 <p>A: 按顺序操作一系列对象的时候，最直接的办法就是给这些被操作对象加上序号。处理的时候，按照序号的顺序即可。不过在 StatefulSets 中不仅仅只用0， 1， 2这样的序号来标识 Pod。而是通过序号+hostname+pod 所使用的存储路径。为什么要这么麻烦呢？这和上面提到的 StatefulSets 的特性是相关的。首先，StatefulSets 中的 Pod 是不可被随意替换的，即使一个 Pod 发生了终止，更新等对Pod 状态有影响的操作，当 k8s将它恢复的时候，它的标识并没有改变。沿着这个思路接着思考，可以发现，因为 Pod 是不稳定的，随时会发生变化，只要pod 一变化，那么它的 IP 就有可能会变。各个 pod 之前的启停本来就是有顺序的，像 Redis 这种 app，用户可能操作的就必须是主节点，也就是说，操作的 pod 是特定的。基于对这些情况的考虑，我们加入一个 headless service，使用 k8s 中的 dns 相关功能，通过不变的pod 标识符，即可找到对应的 pod。最后一点，StatefulSets 为其内部的 pod 在 node 上提供了稳定的存储，使得数据不会轻易丢失。即使对应的 pod 或者 statefulsets 被删除了，这些存储依然不会被回收。综上所述，通过序号+hostname+存储地址，在 StatefulSets 中表示一个 Pod 是完全可以的。有了可靠的序号生成方式之后，排序和按序处理的问题也就迎刃而解了。</p>
@@ -301,20 +348,31 @@ spec:
 <p>Q: 在一个 StatefulSets 中, 按照什么顺序操作 Pod?</p>
 
 <p>A: 操作 Pod 分为以下几种情况：</p>
-
-<pre><code>部署：按照[0, N)的顺序进行部署。部署当前一个 Pod 的时候，其所有前序 Pod 必须是部署完成且可用的状态，它才能够被正常部署。如现在部署 C，但是在 B 成功部署之后 A 挂了，这个时候 C 是不能部署的。
-终止：按照[N-1, 0]的顺序进行终止。终止和部署的不同之处在于，在终止当前 Pod 的时候，它需要观察前后的 Pod 状态是否都是符合「预期」的。比如现在要终止 B，那么 B 成功被终止的条件就是 C 已经处于终止状态，A 现在是健康的可用状态。A 和 C 有任何一个状态不满足预期，B 都是不能够正常进行被终止的操作的。
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">部署：按照[0, N)的顺序进行部署。部署当前一个 Pod 的时候，其所有前序 Pod 必须是部署完成且可用的状态，它才能够被正常部署。如现在部署 C，但是在 B 成功部署之后 A 挂了，这个时候 C 是不能部署的。
+终止：按照[N-1, 0]的顺序进行终止。终止和部署的不同之处在于，在终止当前 Pod 的时候，它需要观察前后的 Pod 状态是否都是符合「预期」的。比如现在要终止 B，那么 B 成功被终止的条件就是 C 已经处于终止状态，A 现在是健康的可用状态。A 和 C 有任何一个状态不满足预期，B 都是不能够正常进行被终止的操作的。</pre></td></tr></table>
+</div>
+</div>
 <p>Q: 如果 Pod 的配置有变化，StatefulSets 如何更新其包含的 Pod?</p>
 
 <p>A: StatefulSets中更新 Pod 的策略，大致分为几种类型：</p>
-
-<pre><code>全自动： RollingUpdate，当 spec.template 中的配置发生变化，会自动对 pod 进行更新
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">全自动： RollingUpdate，当 spec.template 中的配置发生变化，会自动对 pod 进行更新
 半自动： Partition，功能上类似 NodeSelector，可以指定一个partition阈值，所有 pod 的序号大于等于这个阈值的都会被自动更新，否则，剩余的 Pod 不但不会被自动处理。手动终止掉某个 Pod，StatefulSets 在重启这个 pod 之后也会维持之前的版本。
-手动：OnDelete，在 sepc.template 的配置被修改之后，手动结束掉 pod，StatefulSets 在重启这个 pod 的时候会使用最新的配置
-</code></pre>
-
+手动：OnDelete，在 sepc.template 的配置被修改之后，手动结束掉 pod，StatefulSets 在重启这个 pod 的时候会使用最新的配置</pre></td></tr></table>
+</div>
+</div>
     </div>
 
     

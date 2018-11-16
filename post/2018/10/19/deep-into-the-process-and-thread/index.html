@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-10-19T21:08:03&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-19T21:08:03&#43;08:00" />
-<meta itemprop="wordCount" content="8796">
+<meta itemprop="wordCount" content="8816">
 
 
 
@@ -346,29 +346,52 @@
 </ol>
 
 <p>其实，实现「同步」一种比较简单的方式就是利用我们上面所说的信号量，而且这个信号量还有存储信号的功能，不会怕信号丢失。同步和互斥一般都是在一起使用的：互斥用于锁住临界区，同步用于保证执行顺序。但是在运用他们的时候，请一定要掌握好它们之间语义的差别：互斥作用于进程已经可以执行但是执行过程中受阻，同步作用于进程是否可以执行。这么说可能比较迷惑，我们来看下面一个例子（利用信号量解决生产者、消费者问题）：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">m_mux</span> <span class="c1">// 互斥信号量
+</span><span class="c1"></span><span class="n">m_num_empty</span> <span class="c1">// 缓冲区空闲位置个数
+</span><span class="c1"></span><span class="n">m_num_full</span> <span class="c1">// 缓冲区有数据的位置个数
+</span><span class="c1"></span><span class="n">buf</span> <span class="c1">// 缓冲区
+</span><span class="c1"></span>
+<span class="kt">void</span> <span class="n">producer</span><span class="p">(){</span>
+	 <span class="n">down</span><span class="p">(</span><span class="n">m_num_empty</span><span class="p">)</span> <span class="c1">// 缓冲区是否已满，可以生产消息
+</span><span class="c1"></span>	 <span class="n">down</span><span class="p">(</span><span class="n">m_mux</span><span class="p">)</span> <span class="c1">// 是否可进入临界区
+</span><span class="c1"></span>   <span class="n">buf</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1">// 生产消息
+</span><span class="c1"></span>   <span class="n">up</span><span class="p">(</span><span class="n">m_mux</span><span class="p">)</span> <span class="c1">// 离开临界区
+</span><span class="c1"></span>	 <span class="n">up</span><span class="p">(</span><span class="n">m_num_full</span><span class="p">)</span> <span class="c1">// 增加有数据的位置个数
+</span><span class="c1"></span><span class="p">}</span> 
 
-<pre><code class="language-c">m_mux // 互斥信号量
-m_num_empty // 缓冲区空闲位置个数
-m_num_full // 缓冲区有数据的位置个数
-buf // 缓冲区
-
-void producer(){
-	 down(m_num_empty) // 缓冲区是否已满，可以生产消息
-	 down(m_mux) // 是否可进入临界区
-   buf.append(1) // 生产消息
-   up(m_mux) // 离开临界区
-	 up(m_num_full) // 增加有数据的位置个数
-} 
-
-void comsumer(){
-	 down(m_num_full) // 缓冲区是否还有数据，可以消费
-	 down(m_mux) // 是否可进入临界区
-   buf.append(1) // 生产消息
-   up(m_mux) // 离开临界区
-	 up(m_num_empty) // 增加空闲的位置个数
-} 
-</code></pre>
-
+<span class="kt">void</span> <span class="n">comsumer</span><span class="p">(){</span>
+	 <span class="n">down</span><span class="p">(</span><span class="n">m_num_full</span><span class="p">)</span> <span class="c1">// 缓冲区是否还有数据，可以消费
+</span><span class="c1"></span>	 <span class="n">down</span><span class="p">(</span><span class="n">m_mux</span><span class="p">)</span> <span class="c1">// 是否可进入临界区
+</span><span class="c1"></span>   <span class="n">buf</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1">// 生产消息
+</span><span class="c1"></span>   <span class="n">up</span><span class="p">(</span><span class="n">m_mux</span><span class="p">)</span> <span class="c1">// 离开临界区
+</span><span class="c1"></span>	 <span class="n">up</span><span class="p">(</span><span class="n">m_num_empty</span><span class="p">)</span> <span class="c1">// 增加空闲的位置个数
+</span><span class="c1"></span><span class="p">}</span> </code></pre></td></tr></table>
+</div>
+</div>
 <p>以目前的状态，上面这个例子运行起来是没有什么问题的。但是如果我们把同步和互斥的语义搞错，粗心一点将down 操作全部颠倒顺序就可能会发生死锁：当 m_mux 在减小 m_num_empty 信号前就被-1且缓冲区已经满了的时候，生产者将会被阻塞，但是此时生产者已经没有机会在释放互斥量了。而消费者会因为被互斥量阻塞的原因无法进入临界区消费，从而不能对m_num_empty信号量执行 up 操作环境生产者。这是一个标准的死锁的例子，它像我们说明了一个事实：在使用同步和互斥的时候要注意对信号量的操作顺序，否则会引起灾难。</p>
 
 <p><em>Q: 什么是管程？什么是条件变量？</em></p>

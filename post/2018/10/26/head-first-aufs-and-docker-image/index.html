@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-10-26T10:13:21&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-26T10:13:21&#43;08:00" />
-<meta itemprop="wordCount" content="3668">
+<meta itemprop="wordCount" content="3783">
 
 
 
@@ -237,56 +237,102 @@
 <p>概念理解起来比较枯燥，最好是有一个真实的例子来帮助我们理解：</p>
 
 <p>首先，我们建立 company 和 home 两个目录，并且分别为他们创造两个文件</p>
-
-<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/aufs# tree .
-.
-|-- company
-|   |-- code
-|   `-- meeting
-`-- home
-    |-- eat
-    `-- sleep
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># tree .
+</span><span class="cp"></span><span class="p">.</span>
+<span class="o">|--</span> <span class="n">company</span>
+<span class="o">|</span>   <span class="o">|--</span> <span class="n">code</span>
+<span class="o">|</span>   <span class="err">`</span><span class="o">--</span> <span class="n">meeting</span>
+<span class="err">`</span><span class="o">--</span> <span class="n">home</span>
+    <span class="o">|--</span> <span class="n">eat</span>
+    <span class="err">`</span><span class="o">--</span> <span class="n">sleep</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>然后我们将通过 mount 命令把 company 和 home 两个目录「联合」起来，建立一个 AUFS 的文件系统，并挂载到当前目录下的 mnt 目录下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">oot</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># mkdir mnt
+</span><span class="cp"></span><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># ll
+</span><span class="cp"></span><span class="n">total</span> <span class="mi">20</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">5</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mi">10</span> <span class="p">.</span><span class="o">/</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">5</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mo">06</span> <span class="p">..</span><span class="o">/</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">4</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mo">06</span> <span class="n">company</span><span class="o">/</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">4</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mo">05</span> <span class="n">home</span><span class="o">/</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">2</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mi">10</span> <span class="n">mnt</span><span class="o">/</span>
+<span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># mount -t aufs -o dirs=./home:./company none ./mnt
+</span><span class="cp"></span><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># ll
+</span><span class="cp"></span><span class="n">total</span> <span class="mi">20</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">5</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mi">10</span> <span class="p">.</span><span class="o">/</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">5</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mo">06</span> <span class="p">..</span><span class="o">/</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">4</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mo">06</span> <span class="n">company</span><span class="o">/</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">6</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mi">10</span> <span class="n">home</span><span class="o">/</span>
+<span class="n">drwxr</span><span class="o">-</span><span class="n">xr</span><span class="o">-</span><span class="n">x</span> <span class="mi">8</span> <span class="n">root</span> <span class="n">root</span> <span class="mi">4096</span> <span class="n">Oct</span> <span class="mi">25</span> <span class="mi">16</span><span class="o">:</span><span class="mi">10</span> <span class="n">mnt</span><span class="o">/</span>
+<span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># tree ./mnt/
+</span><span class="cp"></span><span class="p">.</span><span class="o">/</span><span class="n">mnt</span><span class="o">/</span>
+<span class="o">|--</span> <span class="n">code</span>
+<span class="o">|--</span> <span class="n">eat</span>
+<span class="o">|--</span> <span class="n">meeting</span>
+<span class="err">`</span><span class="o">--</span> <span class="n">sleep</span>
 
-<pre><code class="language-c">oot@rds-k8s-18-svr0:~/xuran/aufs# mkdir mnt
-root@rds-k8s-18-svr0:~/xuran/aufs# ll
-total 20
-drwxr-xr-x 5 root root 4096 Oct 25 16:10 ./
-drwxr-xr-x 5 root root 4096 Oct 25 16:06 ../
-drwxr-xr-x 4 root root 4096 Oct 25 16:06 company/
-drwxr-xr-x 4 root root 4096 Oct 25 16:05 home/
-drwxr-xr-x 2 root root 4096 Oct 25 16:10 mnt/
-root@rds-k8s-18-svr0:~/xuran/aufs# mount -t aufs -o dirs=./home:./company none ./mnt
-root@rds-k8s-18-svr0:~/xuran/aufs# ll
-total 20
-drwxr-xr-x 5 root root 4096 Oct 25 16:10 ./
-drwxr-xr-x 5 root root 4096 Oct 25 16:06 ../
-drwxr-xr-x 4 root root 4096 Oct 25 16:06 company/
-drwxr-xr-x 6 root root 4096 Oct 25 16:10 home/
-drwxr-xr-x 8 root root 4096 Oct 25 16:10 mnt/
-root@rds-k8s-18-svr0:~/xuran/aufs# tree ./mnt/
-./mnt/
-|-- code
-|-- eat
-|-- meeting
-`-- sleep
-
-4 directories, 0 files
-</code></pre>
-
+<span class="mi">4</span> <span class="n">directories</span><span class="p">,</span> <span class="mi">0</span> <span class="n">files</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>通过上述例子最后对 ./mnt 目录结构的输出，可以看到原来两个目录下的内容都被合并到了一个 mnt 这个挂载点下。</p>
 
 <p>默认情况下，如果我们不对「联合」的目录指定权限，内核将根据从左至右的顺序将第一个目录指定为可读可写的，其余的都为只读。那么，当我们向只读的目录做一些写入操作的话，会发生什么呢？</p>
-
-<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/aufs# echo apple &gt; ./mnt/code
-root@rds-k8s-18-svr0:~/xuran/aufs# cat company/code
-root@rds-k8s-18-svr0:~/xuran/aufs# cat home/code
-apple
-root@rds-k8s-18-svr0:~/xuran/aufs#
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># echo apple &gt; ./mnt/code
+</span><span class="cp"></span><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># cat company/code
+</span><span class="cp"></span><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp"># cat home/code
+</span><span class="cp"></span><span class="n">apple</span>
+<span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">aufs</span><span class="cp">#</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>通过对上面代码段的观察，我们可以看出，当写入操作发生在 company/code 文件时， 对应的修改并没有反映到原始的目录中。而是在 home 目录下又创建了一个名为 code 的文件，并将 apple 写入了进去。</p>
 
 <p>看起来很奇怪的现象，其实这正是 Union File System 的厉害之处：Union File System 联合了多个不同的目录，并且把他们挂载到一个统一的目录上。在这些「联合」的子目录中， 有一部分是可读可写的，但是有一部分只是可读的。当你对可读的目录内容做出修改的时候，其结果只会保存到可写的目录下，不会影响只读的目录。比如，我们可以把我们的服务的源代码目录和一个存放代码修改记录的目录「联合」起来构成一个 AUFS。前者设置只读权限，后者设置读写权限。那么，一切对源代码目录下文件的修改都只会影响那个存放修改的目录，不会污染原始的代码。</p>
@@ -318,11 +364,16 @@ root@rds-k8s-18-svr0:~/xuran/aufs#
 <h2 id="什么是-docker-镜像分层机制">什么是 Docker 镜像分层机制？</h2>
 
 <p>首先，让我们来看下 Docker Image 中的 Layer 的概念：</p>
-
-<pre><code>Definition of: layer
-In an image, a layer is modification to the image, represented by an instruction in the Dockerfile. Layers are applied in sequence to the base image to create the final image. When an image is updated or rebuilt, only layers that change need to be updated, and unchanged layers are cached locally. This is part of why Docker images are so fast and lightweight. The sizes of each layer add up to equal the size of the final image.
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">Definition of: layer
+In an image, a layer is modification to the image, represented by an instruction in the Dockerfile. Layers are applied in sequence to the base image to create the final image. When an image is updated or rebuilt, only layers that change need to be updated, and unchanged layers are cached locally. This is part of why Docker images are so fast and lightweight. The sizes of each layer add up to equal the size of the final image.</pre></td></tr></table>
+</div>
+</div>
 <p>简单来说，一个 Image 是通过一个 DockerFile 定义的，然后使用 docker build 命令构建它。DockerFile 中的每一条命令的执行结果都会成为 Image 中的一个 Layer。Docker Image 是有一个层级结构的，最底层的 Layer 为 BaseImage（一般为一个操作系统的 ISO 镜像），然后顺序执行每一条指令，生成的 Layer 按照入栈的顺序逐渐累加，最终形成一个 Image。如果 DockerFile 中的内容没有变动，那么相应的镜像在 build 的时候会复用之前的 layer，以便提升构建效率。并且，即使文件内容有修改，那也只会重新 build 修改的 layer，其他未修改的也仍然会复用。</p>
 
 <p>通过了解了 Docker Image 的分层机制，我们多多少少能够感觉到，Layer 和 Image 的关系与 AUFS 中的联合目录和挂载点的关系比较相似。而 Docker 也正是通过 AUFS 来管理 Images 的。</p>
@@ -330,8 +381,31 @@ In an image, a layer is modification to the image, represented by an instruction
 <p>这里，我们通过 Build 一个镜像，来观察 Image 的分层机制：</p>
 
 <p>Dockerfile:</p>
-
-<pre><code># Use an official Python runtime as a parent image
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"># Use an official Python runtime as a parent image
 FROM python:2.7-slim
 
 # Set the working directory to /app
@@ -350,101 +424,175 @@ EXPOSE 80
 ENV NAME World
 
 # Run app.py when the container launches
-CMD [&quot;python&quot;, &quot;app.py&quot;]
-</code></pre>
-
+CMD [&#34;python&#34;, &#34;app.py&#34;]</pre></td></tr></table>
+</div>
+</div>
 <p>构建结果：</p>
-
-<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/exampleimage# docker build -t hello ./
-Sending build context to Docker daemon  5.12 kB
-Step 1/7 : FROM python:2.7-slim
- ---&gt; 804b0a01ea83
-Step 2/7 : WORKDIR /app
- ---&gt; Using cache
- ---&gt; 6d93c5b91703
-Step 3/7 : COPY . /app
- ---&gt; Using cache
- ---&gt; feddc82d321b
-Step 4/7 : RUN pip install --trusted-host pypi.python.org -r requirements.txt
- ---&gt; Using cache
- ---&gt; 94695df5e14d
-Step 5/7 : EXPOSE 81
- ---&gt; Using cache
- ---&gt; 43c392d51dff
-Step 6/7 : ENV NAME World
- ---&gt; Using cache
- ---&gt; 78c9a60237c8
-Step 7/7 : CMD python app.py
- ---&gt; Using cache
- ---&gt; a5ccd4e1b15d
-Successfully built a5ccd4e1b15d
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">~/</span><span class="n">xuran</span><span class="o">/</span><span class="n">exampleimage</span><span class="cp"># docker build -t hello ./
+</span><span class="cp"></span><span class="n">Sending</span> <span class="n">build</span> <span class="n">context</span> <span class="n">to</span> <span class="n">Docker</span> <span class="n">daemon</span>  <span class="mf">5.12</span> <span class="n">kB</span>
+<span class="n">Step</span> <span class="mi">1</span><span class="o">/</span><span class="mi">7</span> <span class="o">:</span> <span class="n">FROM</span> <span class="nl">python</span><span class="p">:</span><span class="mf">2.7</span><span class="o">-</span><span class="n">slim</span>
+ <span class="o">---&gt;</span> <span class="mi">804</span><span class="n">b0a01ea83</span>
+<span class="n">Step</span> <span class="mi">2</span><span class="o">/</span><span class="mi">7</span> <span class="o">:</span> <span class="n">WORKDIR</span> <span class="o">/</span><span class="n">app</span>
+ <span class="o">---&gt;</span> <span class="n">Using</span> <span class="n">cache</span>
+ <span class="o">---&gt;</span> <span class="mi">6</span><span class="n">d93c5b91703</span>
+<span class="n">Step</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span> <span class="o">:</span> <span class="n">COPY</span> <span class="p">.</span> <span class="o">/</span><span class="n">app</span>
+ <span class="o">---&gt;</span> <span class="n">Using</span> <span class="n">cache</span>
+ <span class="o">---&gt;</span> <span class="n">feddc82d321b</span>
+<span class="n">Step</span> <span class="mi">4</span><span class="o">/</span><span class="mi">7</span> <span class="o">:</span> <span class="n">RUN</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">trusted</span><span class="o">-</span><span class="n">host</span> <span class="n">pypi</span><span class="p">.</span><span class="n">python</span><span class="p">.</span><span class="n">org</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="p">.</span><span class="n">txt</span>
+ <span class="o">---&gt;</span> <span class="n">Using</span> <span class="n">cache</span>
+ <span class="o">---&gt;</span> <span class="mi">94695</span><span class="n">df5e14d</span>
+<span class="n">Step</span> <span class="mi">5</span><span class="o">/</span><span class="mi">7</span> <span class="o">:</span> <span class="n">EXPOSE</span> <span class="mi">81</span>
+ <span class="o">---&gt;</span> <span class="n">Using</span> <span class="n">cache</span>
+ <span class="o">---&gt;</span> <span class="mi">43</span><span class="n">c392d51dff</span>
+<span class="n">Step</span> <span class="mi">6</span><span class="o">/</span><span class="mi">7</span> <span class="o">:</span> <span class="n">ENV</span> <span class="n">NAME</span> <span class="n">World</span>
+ <span class="o">---&gt;</span> <span class="n">Using</span> <span class="n">cache</span>
+ <span class="o">---&gt;</span> <span class="mi">78</span><span class="n">c9a60237c8</span>
+<span class="n">Step</span> <span class="mi">7</span><span class="o">/</span><span class="mi">7</span> <span class="o">:</span> <span class="n">CMD</span> <span class="n">python</span> <span class="n">app</span><span class="p">.</span><span class="n">py</span>
+ <span class="o">---&gt;</span> <span class="n">Using</span> <span class="n">cache</span>
+ <span class="o">---&gt;</span> <span class="n">a5ccd4e1b15d</span>
+<span class="n">Successfully</span> <span class="n">built</span> <span class="n">a5ccd4e1b15d</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>通过构建结果可以看出，构建的过程就是执行 Dockerfile 文件中我们写入的命令。构建一共进行了7个步骤，每个步骤进行完都会生成一个随机的 ID，来标识这一 layer 中的内容。 最后一行的 a5ccd4e1b15d 为镜像的 ID。由于我贴上来的构建过程已经是构建了第二次的结果了，所以可以看出，对于没有任何修改的内容，Docker 会复用之前的结果。</p>
 
 <h2 id="docker-和-aufs-是如何联系起来的">Docker 和 AUFS 是如何联系起来的？</h2>
 
 <p>和 Docker 有关的 AUFS 相关的内容，都在<code>/var/lib/docker/aufs</code>目录中。其实，AUFS 不仅会帮忙管理 Docker Image，还会帮我们管理运行中的容器。aufs的目录的结构一般如下所示：</p>
-
-<pre><code>root@rds-k8s-18-svr0:/var/lib/docker/aufs# tree -L 1
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">root@rds-k8s-18-svr0:/var/lib/docker/aufs# tree -L 1
 .
 ├── diff
 ├── layers
-└── mnt
-</code></pre>
-
+└── mnt</pre></td></tr></table>
+</div>
+</div>
 <p>其中 diff 存放的是每一个 Image 中 Layers 的内容， 而 layer 目录则是保存的每一个镜像的 layer 的结构信息。mnt 目录下的内容，其实就是一个镜像或者容器运行起来之后，使用的 AUFS 的挂载点。可以认为它就是你在容器内部所看到的文件系统。通过这三个子目录，docker 就能实现镜像的分层存储、容器的 Copy-On-Write 启动。</p>
 
 <p>通过 <code>docker inspect hello</code>命令，我们可以看到之前构建的镜像的 Layer 信息：</p>
-
-<pre><code class="language-c">…
-        &quot;RootFS&quot;: {
-            &quot;Type&quot;: &quot;layers&quot;,
-            &quot;Layers&quot;: [
-                &quot;sha256:237472299760d6726d376385edd9e79c310fe91d794bc9870d038417d448c2d5&quot;,
-                &quot;sha256:9ff579683928293838edf785162e11d7362bdeadd1b91a913d0d777f07a0c14b&quot;,
-                &quot;sha256:473e9a98e4dd51cc459336e2e411eef27ceeb35c4698b2906d1473c155fbb620&quot;,
-                &quot;sha256:639216b11d4ff9961788a9198e663ae74db047fb720049fe1d84f23b5b5dc9d6&quot;,
-                &quot;sha256:c91ccb170b062fc1de577b156c9f16c6923d5a8ab177861e3a4b67aec53e8f13&quot;,
-                &quot;sha256:d2a243c9257f3caa11f31057472b86eeb91ebd4de14c61293cde71823395a187&quot;,
-                &quot;sha256:0c696b8e58cb0ce8528268fdb480f95ec3f005edc39caef6a31c76a8381e6825&quot;
-            ]
-        }
-…
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="err">…</span>
+        <span class="s">&#34;RootFS&#34;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s">&#34;Type&#34;</span><span class="o">:</span> <span class="s">&#34;layers&#34;</span><span class="p">,</span>
+            <span class="s">&#34;Layers&#34;</span><span class="o">:</span> <span class="p">[</span>
+                <span class="s">&#34;sha256:237472299760d6726d376385edd9e79c310fe91d794bc9870d038417d448c2d5&#34;</span><span class="p">,</span>
+                <span class="s">&#34;sha256:9ff579683928293838edf785162e11d7362bdeadd1b91a913d0d777f07a0c14b&#34;</span><span class="p">,</span>
+                <span class="s">&#34;sha256:473e9a98e4dd51cc459336e2e411eef27ceeb35c4698b2906d1473c155fbb620&#34;</span><span class="p">,</span>
+                <span class="s">&#34;sha256:639216b11d4ff9961788a9198e663ae74db047fb720049fe1d84f23b5b5dc9d6&#34;</span><span class="p">,</span>
+                <span class="s">&#34;sha256:c91ccb170b062fc1de577b156c9f16c6923d5a8ab177861e3a4b67aec53e8f13&#34;</span><span class="p">,</span>
+                <span class="s">&#34;sha256:d2a243c9257f3caa11f31057472b86eeb91ebd4de14c61293cde71823395a187&#34;</span><span class="p">,</span>
+                <span class="s">&#34;sha256:0c696b8e58cb0ce8528268fdb480f95ec3f005edc39caef6a31c76a8381e6825&#34;</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+<span class="err">…</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>Dockerfile 中一共有7个命令，所以layer 信息的数量也同样有7个。这个7个 layer，每一个 layer 都对应到 _var_lib_docker_aufs_diff 目录下的一个目录。但是上述代码段中的 sha256 ID 不是直接映射到 /var_lib_docker_aufs/diff 目录下的目录名的，这之间有一个比较复杂的映射关系。（由于这个映射关系比较复杂，且难以描述，所以这里暂不详细叙述。读者也不用过于纠结这里的映射关系，重点在于理解 AUFS 和镜像分层的工作机制）。</p>
 
 <p>接下来，我们运行一下刚刚构建好的镜像：</p>
-
-<pre><code>root@rds-k8s-18-svr0:~/xuran/exampleimage# docker run -it hello bash
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">root@rds-k8s-18-svr0:~/xuran/exampleimage# docker run -it hello bash
 root@rds-k8s-18-svr0:~# docker ps | grep hello
-9d040e5b9999        hello                                                                                                                       &quot;bash&quot;                   7 minutes ago       Up 7 minutes        81/tcp              laughing_northcutt
-</code></pre>
-
+9d040e5b9999        hello                                                                                                                       &#34;bash&#34;                   7 minutes ago       Up 7 minutes        81/tcp              laughing_northcutt</pre></td></tr></table>
+</div>
+</div>
 <p>通过 <code>docker ps</code>命令，可以看到当前运行的容器进程 ID 为 9d040e5b9999。按照上面所描述的，一个容器启动之后，会在 aufs_mnt 下挂载一个目录 /var_lib_docker_aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4，这个目录就是容器当中看到的文件系统。</p>
 
 <p><img src="http://o6sfmikvw.bkt.clouddn.com/B2452573-13C1-448A-8D8A-956C2AB4061D.png" alt="" /></p>
 
 <p>在通过 mount 命令观察系统中的 AUFS 文件系统挂载情况时可以发现，每一条挂载记录后面都跟了一个sid:</p>
-
-<pre><code class="language-c">none /var/lib/docker/aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4 aufs rw,relatime,si=fcff2ee8dd687806,dio,dirperm1 0 0
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">none</span> <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">mnt</span><span class="o">/</span><span class="mi">755</span><span class="n">ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</span> <span class="n">aufs</span> <span class="n">rw</span><span class="p">,</span><span class="n">relatime</span><span class="p">,</span><span class="n">si</span><span class="o">=</span><span class="n">fcff2ee8dd687806</span><span class="p">,</span><span class="n">dio</span><span class="p">,</span><span class="n">dirperm1</span> <span class="mi">0</span> <span class="mi">0</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>hello 这个容器挂载的 AUFS 的 SID 为 fcff2ee8dd687806。我们将通过这个 ID，可以在 _sys_fs/aufs 的目录下找到对应的 AUFS  的详细信息：</p>
-
-<pre><code class="language-c">root@rds-k8s-18-svr0:/sys/fs/aufs/si_fcff2ee8dd687806# cat br[0-9]*
-/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4=rw
-/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4-init=ro+wh
-/var/lib/docker/aufs/diff/678e5401f758378d36dbc6f410c9324f9c5599db498aea5909b83d6a974af446=ro+wh
-/var/lib/docker/aufs/diff/81e4703c9d06f502774f8fb9af8734ac222af2c4c3aa65813e7bd73ad23f33cb=ro+wh
-/var/lib/docker/aufs/diff/877a44a6fdba1f633b7051b583ee3cc1953dac242cbf8ff2482b59e782fb2c32=ro+wh
-/var/lib/docker/aufs/diff/309ae284b55e1b4d5238ede32dc6fa197982a9f65c34b78c2091b846d9d089d6=ro+wh
-/var/lib/docker/aufs/diff/83507e141977e72a072d7530cb54ee32abff1ade3a8453183a39f3ea48fb4cfe=ro+wh
-/var/lib/docker/aufs/diff/c2e85f6f2e0d67d38f41adafe94c2d82a41247f5dcca690fedad554611c4dc08=ro+wh
-/var/lib/docker/aufs/diff/787977346a1c8653b2c535abd156ddf368f7839e385b237d7325177e6ef335a6=ro+wh
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">fs</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">si_fcff2ee8dd687806</span><span class="cp"># cat br[0-9]*
+</span><span class="cp"></span><span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mi">755</span><span class="n">ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</span><span class="o">=</span><span class="n">rw</span>
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mi">755</span><span class="n">ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</span><span class="o">-</span><span class="n">init</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mf">678e5401</span><span class="n">f758378d36dbc6f410c9324f9c5599db498aea5909b83d6a974af446</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mf">81e4703</span><span class="n">c9d06f502774f8fb9af8734ac222af2c4c3aa65813e7bd73ad23f33cb</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mi">877</span><span class="n">a44a6fdba1f633b7051b583ee3cc1953dac242cbf8ff2482b59e782fb2c32</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mi">309</span><span class="n">ae284b55e1b4d5238ede32dc6fa197982a9f65c34b78c2091b846d9d089d6</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mf">83507e141977</span><span class="n">e72a072d7530cb54ee32abff1ade3a8453183a39f3ea48fb4cfe</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="n">c2e85f6f2e0d67d38f41adafe94c2d82a41247f5dcca690fedad554611c4dc08</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mi">787977346</span><span class="n">a1c8653b2c535abd156ddf368f7839e385b237d7325177e6ef335a6</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>可以看到，不光是 Docker Image 是通过 AUFS 分层来管理的。因为 Image 是容器内文件的提供者，所以自然而然，容器内部的文件系统也需要通过 AUFS 的方式来进行管理。其中最上面的 branch 是允许修改的，它对应着这个容器内部的文件系统目录：<code>/var/lib/docker/aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</code>。其余的 branch 都是只读。这就说明，我们在容器当中做的一些修改操作，最后都会反馈到最上面这个目录下：<code>/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</code>。</p>
 
 <p>一个能够反映出容器和镜像分层之间关系的图示如下：</p>

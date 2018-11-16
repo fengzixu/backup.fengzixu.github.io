@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-09-26T17:58:12&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-26T17:58:12&#43;08:00" />
-<meta itemprop="wordCount" content="1052">
+<meta itemprop="wordCount" content="1084">
 
 
 
@@ -252,8 +252,28 @@
 <p>一个 Pod 中的 container 通过 PVC 和 PV 使用存储资源的过程如下：</p>
 
 <p>首先，我们要创建一个 PVC，也就是要申请一定额度的存储资源：</p>
-
-<pre><code>kind: PersistentVolumeClaim
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: myclaim
@@ -267,14 +287,32 @@ spec:
   storageClassName: slow
   selector:
     matchLabels:
-      release: &quot;stable&quot;
+      release: &#34;stable&#34;
     matchExpressions:
-      - {key: environment, operator: In, values: [dev]}
-</code></pre>
-
+      - {key: environment, operator: In, values: [dev]}</pre></td></tr></table>
+</div>
+</div>
 <p>其次，构造一个 pod 的编排文件, 并且在容器中通过挂在的方式使用之前通过 PVC 申请的存储资源：</p>
-
-<pre><code>kind: Pod
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">kind: Pod
 apiVersion: v1
 metadata:
   name: mypod
@@ -283,14 +321,14 @@ spec:
     - name: myfrontend
       image: nginx
       volumeMounts:
-      - mountPath: &quot;/var/www/html&quot;
+      - mountPath: &#34;/var/www/html&#34;
         name: mypd
   volumes:
     - name: mypd
       persistentVolumeClaim:
-        claimName: myclaim
-</code></pre>
-
+        claimName: myclaim</pre></td></tr></table>
+</div>
+</div>
 <p>这个编排文件像我们展示了如下几个关键的信息：</p>
 
 <ol>

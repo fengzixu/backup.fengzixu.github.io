@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-09-28T16:39:57&#43;00:00" />
 <meta itemprop="dateModified" content="2017-09-28T16:39:57&#43;00:00" />
-<meta itemprop="wordCount" content="1202">
+<meta itemprop="wordCount" content="1229">
 
 
 
@@ -241,40 +241,73 @@
 <h1 id="0x03-循环队列的实现">0x03 循环队列的实现</h1>
 
 <h1 id="0x031-enqueue">0x031 enqueue</h1>
-
-<pre><code class="language-python">In [10]: def enqueue(item):
-    ...:     # queue 为空/一直插入元素到没有可用空间/循环插入后没有可用空间
-    ...:     if queue and ((rear == len(queue) - 1 and front == 0) or (rear + 1 == front)):
-    ...:           raise Exception(&quot;No has a avalible space&quot;)
-    ...:
-    ...:     # 发生循环插入
-    ...:     if front != 0 and rear == len(queue) -1:
-    ...:         rear = -1
-    ...:     rear = rear + 1
-    ...:     queue[rear] = item
-    ...:
-    ...:     # 插入第一个元素，改变 front 的值
-    ...:     if front == -1:
-    ...:         front = 0
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="k">def</span> <span class="nf">enqueue</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="c1"># queue 为空/一直插入元素到没有可用空间/循环插入后没有可用空间</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="k">if</span> <span class="n">queue</span> <span class="ow">and</span> <span class="p">((</span><span class="n">rear</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">queue</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">front</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">rear</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">front</span><span class="p">)):</span>
+    <span class="o">...</span><span class="p">:</span>           <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;No has a avalible space&#34;</span><span class="p">)</span>
+    <span class="o">...</span><span class="p">:</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="c1"># 发生循环插入</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="k">if</span> <span class="n">front</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">rear</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">queue</span><span class="p">)</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+    <span class="o">...</span><span class="p">:</span>         <span class="n">rear</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="n">rear</span> <span class="o">=</span> <span class="n">rear</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="n">queue</span><span class="p">[</span><span class="n">rear</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+    <span class="o">...</span><span class="p">:</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="c1"># 插入第一个元素，改变 front 的值</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="k">if</span> <span class="n">front</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+    <span class="o">...</span><span class="p">:</span>         <span class="n">front</span> <span class="o">=</span> <span class="mi">0</span></code></pre></td></tr></table>
+</div>
+</div>
 <h1 id="0x032-dequeue">0x032 dequeue</h1>
-
-<pre><code class="language-python">In [97]: def dequeue():
-    ...:     global front, rear
-    ...:     print queue
-    ...:     if not queue or (front == -1  and rear == -1):
-    ...:         raise Exception('queue is null')
-    ...:     queue[front] = '#'
-    ...:     front = front + 1
-    ...:     # 弹出的元素为队列中最后一个
-    ...:     if front - 1 == rear:
-    ...:         front = rear = -1
-    ...:     # 循环弹出
-    ...:     if front == len(queue):
-    ...:         front = 0
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="n">In</span> <span class="p">[</span><span class="mi">97</span><span class="p">]:</span> <span class="k">def</span> <span class="nf">dequeue</span><span class="p">():</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="k">global</span> <span class="n">front</span><span class="p">,</span> <span class="n">rear</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="k">print</span> <span class="n">queue</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="k">if</span> <span class="ow">not</span> <span class="n">queue</span> <span class="ow">or</span> <span class="p">(</span><span class="n">front</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>  <span class="ow">and</span> <span class="n">rear</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="o">...</span><span class="p">:</span>         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;queue is null&#39;</span><span class="p">)</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="n">queue</span><span class="p">[</span><span class="n">front</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#&#39;</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="n">front</span> <span class="o">=</span> <span class="n">front</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="c1"># 弹出的元素为队列中最后一个</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="k">if</span> <span class="n">front</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">rear</span><span class="p">:</span>
+    <span class="o">...</span><span class="p">:</span>         <span class="n">front</span> <span class="o">=</span> <span class="n">rear</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="c1"># 循环弹出</span>
+    <span class="o">...</span><span class="p">:</span>     <span class="k">if</span> <span class="n">front</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">queue</span><span class="p">):</span>
+    <span class="o">...</span><span class="p">:</span>         <span class="n">front</span> <span class="o">=</span> <span class="mi">0</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>对于「出队」和「入队」两个操作的实现，其实最重要的只有一点：如何在一个线性结构已经被循环利用的情况下判断出它的状态是满还是空。从上面的实现中我们可以看到，当判断一个队列是满状态的时候有以下两个条件：</p>
 
 <ol>

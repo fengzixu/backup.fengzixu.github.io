@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="xuran" />
-  <meta name="description" content="MaxBytesReader // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally or maliciously // sending a large request and wasting server resources." />
+  <meta name="description" content="MaxBytesReader 1 2 3 4 5 6 7 8 9 10 11 // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&amp;#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally" />
 
 
 
@@ -57,25 +57,25 @@
 
 
 <meta property="og:title" content="golang-net-http-package源码分析(3)" />
-<meta property="og:description" content="MaxBytesReader // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally or maliciously // sending a large request and wasting server resources." />
+<meta property="og:description" content="MaxBytesReader 1 2 3 4 5 6 7 8 9 10 11 // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://littledriver.net/post/2017/04/06/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%903/" /><meta property="article:published_time" content="2017-04-06T23:36:39&#43;00:00"/>
 <meta property="article:modified_time" content="2017-04-06T23:36:39&#43;00:00"/>
 
 <meta itemprop="name" content="golang-net-http-package源码分析(3)">
-<meta itemprop="description" content="MaxBytesReader // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally or maliciously // sending a large request and wasting server resources.">
+<meta itemprop="description" content="MaxBytesReader 1 2 3 4 5 6 7 8 9 10 11 // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally">
 
 
 <meta itemprop="datePublished" content="2017-04-06T23:36:39&#43;00:00" />
 <meta itemprop="dateModified" content="2017-04-06T23:36:39&#43;00:00" />
-<meta itemprop="wordCount" content="4666">
+<meta itemprop="wordCount" content="5041">
 
 
 
 <meta itemprop="keywords" content="SourceCodeAnalyse," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="golang-net-http-package源码分析(3)"/>
-<meta name="twitter:description" content="MaxBytesReader // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally or maliciously // sending a large request and wasting server resources."/>
+<meta name="twitter:description" content="MaxBytesReader 1 2 3 4 5 6 7 8 9 10 11 // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -219,10 +219,24 @@
     
     <div class="post-content">
       <h1 id="maxbytesreader">MaxBytesReader</h1>
-
-<pre><code>// MaxBytesReader is similar to io.LimitReader but is intended for
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// MaxBytesReader is similar to io.LimitReader but is intended for
 // limiting the size of incoming request bodies. In contrast to
-// io.LimitReader, MaxBytesReader's result is a ReadCloser, returns a
+// io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a
 // non-EOF error for a Read beyond the limit, and closes the
 // underlying reader when its Close method is called.
 //
@@ -230,35 +244,70 @@
 // sending a large request and wasting server resources.
 func MaxBytesReader(w ResponseWriter, r io.ReadCloser, n int64) io.ReadCloser {
 	return &amp;maxBytesReader{w: w, r: r, n: n}
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>maxBytesReader函数返回了一个io.ReadCloser类型的对象，maxBytesReader类型对象实现了io.ReadCloser的全部接口。它主要用于检查服务端收到的request的长度是否超过我们预设的限制。</p>
 
 <h1 id="notfound">NotFound</h1>
-
-<pre><code>// NotFound replies to the request with an HTTP 404 not found error.
-func NotFound(w ResponseWriter, r *Request) { Error(w, &quot;404 page not found&quot;, StatusNotFound) }
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// NotFound replies to the request with an HTTP 404 not found error.
+func NotFound(w ResponseWriter, r *Request) { Error(w, &#34;404 page not found&#34;, StatusNotFound) }</pre></td></tr></table>
+</div>
+</div>
 <p>notfound方法将404的状态码写入到ResponseWriter里面，并输出404相关错误信息</p>
 
 <h1 id="parsehttpversion">ParseHTTPVersion</h1>
-
-<pre><code>// ParseHTTPVersion parses a HTTP version string.
-// &quot;HTTP/1.0&quot; returns (1, 0, true).
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// ParseHTTPVersion parses a HTTP version string.
+// &#34;HTTP/1.0&#34; returns (1, 0, true).
 func ParseHTTPVersion(vers string) (major, minor int, ok bool) {
 	const Big = 1000000 // arbitrary upper bound
 	switch vers {
-	case &quot;HTTP/1.1&quot;:
+	case &#34;HTTP/1.1&#34;:
 		return 1, 1, true
-	case &quot;HTTP/1.0&quot;:
+	case &#34;HTTP/1.0&#34;:
 		return 1, 0, true
 	}
-	if !strings.HasPrefix(vers, &quot;HTTP/&quot;) {
+	if !strings.HasPrefix(vers, &#34;HTTP/&#34;) {
 		return 0, 0, false
 	}
-	dot := strings.Index(vers, &quot;.&quot;)
+	dot := strings.Index(vers, &#34;.&#34;)
 	if dot &lt; 0 {
 		return 0, 0, false
 	}
@@ -271,15 +320,29 @@ func ParseHTTPVersion(vers string) (major, minor int, ok bool) {
 		return 0, 0, false
 	}
 	return major, minor, true
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>ParseHTTPVersion通过传递进来的字符串来判断http协议版本，里面的逻辑比较简单，几乎是硬编码的方式去做判断。除了1.1和1.0是明确判断之外，最后两个if语句也是可以判断出一些格式合法，但是主副版本号没有在1.1和1.0之内的协议版本。</p>
 
 <h1 id="parsetime">ParseTime</h1>
-
-<pre><code>// ParseTime parses a time header (such as the Date: header),
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// ParseTime parses a time header (such as the Date: header),
 // trying each of the three formats allowed by HTTP/1.1:
 // TimeFormat, time.RFC850, and time.ANSIC.
 func ParseTime(text string) (t time.Time, err error) {
@@ -290,71 +353,156 @@ func ParseTime(text string) (t time.Time, err error) {
 		}
 	}
 	return
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>ParseTime函数将使用time.Parse函数将传递进来的string解析成相应的时间。如果按照预定的时间格式解析成功则返回结果。</p>
 
 <h1 id="proxyenvironment">ProxyEnvironment</h1>
-
-<pre><code>
-// ProxyFromEnvironment returns the URL of the proxy to use for a
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// ProxyFromEnvironment returns the URL of the proxy to use for a
 // given request, as indicated by the environment variables
 // HTTP_PROXY, HTTPS_PROXY and NO_PROXY (or the lowercase versions
 // thereof). HTTPS_PROXY takes precedence over HTTP_PROXY for https
 // requests.
 //
 // The environment values may be either a complete URL or a
-// &quot;host[:port]&quot;, in which case the &quot;http&quot; scheme is assumed.
+// &#34;host[:port]&#34;, in which case the &#34;http&#34; scheme is assumed.
 // An error is returned if the value is a different form.
 //
 // A nil URL and nil error are returned if no proxy is defined in the
 // environment, or a proxy should not be used for the given request,
 // as defined by NO_PROXY.
 //
-// As a special case, if req.URL.Host is &quot;localhost&quot; (with or without
+// As a special case, if req.URL.Host is &#34;localhost&#34; (with or without
 // a port number), then a nil URL and nil error will be returned.
 func ProxyFromEnvironment(req *Request) (*url.URL, error) {
 	var proxy string
-	if req.URL.Scheme == &quot;https&quot; {
+	if req.URL.Scheme == &#34;https&#34; {
 		proxy = httpsProxyEnv.Get()
 	}
-	if proxy == &quot;&quot; {
+	if proxy == &#34;&#34; {
 		proxy = httpProxyEnv.Get()
-		if proxy != &quot;&quot; &amp;&amp; os.Getenv(&quot;REQUEST_METHOD&quot;) != &quot;&quot; {
-			return nil, errors.New(&quot;net/http: refusing to use HTTP_PROXY value in CGI environment; see golang.org/s/cgihttpproxy&quot;)
+		if proxy != &#34;&#34; &amp;&amp; os.Getenv(&#34;REQUEST_METHOD&#34;) != &#34;&#34; {
+			return nil, errors.New(&#34;net/http: refusing to use HTTP_PROXY value in CGI environment; see golang.org/s/cgihttpproxy&#34;)
 		}
 	}
-	if proxy == &quot;&quot; {
+	if proxy == &#34;&#34; {
 		return nil, nil
 	}
 	if !useProxy(canonicalAddr(req.URL)) {
 		return nil, nil
 	}
 	proxyURL, err := url.Parse(proxy)
-	if err != nil || !strings.HasPrefix(proxyURL.Scheme, &quot;http&quot;) {
-		// proxy was bogus. Try prepending &quot;http://&quot; to it and
+	if err != nil || !strings.HasPrefix(proxyURL.Scheme, &#34;http&#34;) {
+		// proxy was bogus. Try prepending &#34;http://&#34; to it and
 		// see if that parses correctly. If not, we fall
 		// through and complain about the original one.
-		if proxyURL, err := url.Parse(&quot;http://&quot; + proxy); err == nil {
+		if proxyURL, err := url.Parse(&#34;http://&#34; + proxy); err == nil {
 			return proxyURL, nil
 		}
 	}
 	if err != nil {
-		return nil, fmt.Errorf(&quot;invalid proxy address %q: %v&quot;, proxy, err)
+		return nil, fmt.Errorf(&#34;invalid proxy address %q: %v&#34;, proxy, err)
 	}
 	return proxyURL, nil
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>ProxyFromEnvironment这个函数单从输入输出上来看，是根据request的信息，返回给我们一个url.URL的对象。这个对象里保存着根据我们系统的环境变量生成的代理信息。这个代理信息一般都是真正的服务器地址，也就是说，使用golang实现的服务器会起到一个代理的作用，客户端真正需要的内容需要到另外一台机器上去取。</p>
 
 <p>这个函数工作当中确实没有用过，一直在做cdn管理系统相关的服务，客户端的请求的内容最终都会在我们本地的服务得到应答。所以我们先来看一个对我们来说比较陌生的类型：url.URL</p>
 
 <h2 id="url-url">url.URL</h2>
-
-<pre><code>// A URL represents a parsed URL (technically, a URI reference).
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// A URL represents a parsed URL (technically, a URI reference).
 // The general form represented is:
 //
 //	scheme://[userinfo@]host/path[?query][#fragment]
@@ -370,7 +518,7 @@ func ProxyFromEnvironment(req *Request) (*url.URL, error) {
 //
 // Go 1.5 introduced the RawPath field to hold the encoded form of Path.
 // The Parse function sets both Path and RawPath in the URL it returns,
-// and URL's String method uses RawPath if it is a valid encoding of Path,
+// and URL&#39;s String method uses RawPath if it is a valid encoding of Path,
 // by calling the EscapedPath method.
 //
 // In earlier versions of Go, the more indirect workarounds were that an
@@ -384,32 +532,77 @@ type URL struct {
 	Host       string    // host or host:port
 	Path       string
 	RawPath    string // encoded path hint (Go 1.5 and later only; see EscapedPath method)
-	ForceQuery bool   // append a query ('?') even if RawQuery is empty
-	RawQuery   string // encoded query values, without '?'
-	Fragment   string // fragment for references, without '#'
-}
-</code></pre>
-
+	ForceQuery bool   // append a query (&#39;?&#39;) even if RawQuery is empty
+	RawQuery   string // encoded query values, without &#39;?&#39;
+	Fragment   string // fragment for references, without &#39;#&#39;
+}</pre></td></tr></table>
+</div>
+</div>
 <p>粗略的看了一下该类型的定义就可以知道，这个类型内的成员就是一个合法的url中各个组成部分，我们通过一些方法可以把一条url中的不同元素解析到这个类型的成员里以便我们使用。文档中对一个url进行了划分，并且golang中为我们考虑到了url path在编解码上的问题。URL类型中的Path成员存放的是已经解码的path,而在go1.5版本之后，添加了RawPath这个成员，用于保存已经被编码过的path。</p>
 
 <p>既然ProxyFromEnvironment函数是根据系统的环境变量来确定代理地址的，那么首先就需要获取到我们系统上有关代理的系统变量。</p>
-
-<pre><code>var (
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">var (
 	httpProxyEnv = &amp;envOnce{
-		names: []string{&quot;HTTP_PROXY&quot;, &quot;http_proxy&quot;},
+		names: []string{&#34;HTTP_PROXY&#34;, &#34;http_proxy&#34;},
 	}
 	httpsProxyEnv = &amp;envOnce{
-		names: []string{&quot;HTTPS_PROXY&quot;, &quot;https_proxy&quot;},
+		names: []string{&#34;HTTPS_PROXY&#34;, &#34;https_proxy&#34;},
 	}
 	noProxyEnv = &amp;envOnce{
-		names: []string{&quot;NO_PROXY&quot;, &quot;no_proxy&quot;},
+		names: []string{&#34;NO_PROXY&#34;, &#34;no_proxy&#34;},
 	}
-)
-</code></pre>
-
+)</pre></td></tr></table>
+</div>
+</div>
 <p>代码中我们可以看出，golang中已经预定义了系统中关于Http/Https代理的系统变量名。这些变量名作为envOnce这个类型当中names成员的值。</p>
-
-<pre><code>// envOnce looks up an environment variable (optionally by multiple
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// envOnce looks up an environment variable (optionally by multiple
 // names) once. It mitigates expensive lookups on some platforms
 // (e.g. Windows).
 type envOnce struct {
@@ -426,7 +619,7 @@ func (e *envOnce) Get() string {
 func (e *envOnce) init() {
 	for _, n := range e.names {
 		e.val = os.Getenv(n)
-		if e.val != &quot;&quot; {
+		if e.val != &#34;&#34; {
 			return
 		}
 	}
@@ -435,13 +628,52 @@ func (e *envOnce) init() {
 // reset is used by tests
 func (e *envOnce) reset() {
 	e.once = sync.Once{}
-	e.val = &quot;&quot;
-}
-</code></pre>
-
+	e.val = &#34;&#34;
+}</pre></td></tr></table>
+</div>
+</div>
 <p>envOnce这个类型有三个方法，我们在ProxyEnvironment方法中使用了envOnce.Get。envOnce的Get方法将会通过sync.Once类型变量的Do方法来执行init方法，init方法逻辑上通过遍历预定义的环境变量名来找出该环境变量在我们的系统中被设置的值并保存于val成员内。那么为什么我们不直接调用init方法，反而要把它传递给sync.Once类型的Do方法呢？</p>
-
-<pre><code>// Once is an object that will perform exactly one action.
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// Once is an object that will perform exactly one action.
 type Once struct {
 	m    Mutex
 	done uint32
@@ -476,39 +708,111 @@ func (o *Once) Do(f func()) {
 		defer atomic.StoreUint32(&amp;o.done, 1)
 		f()
 	}
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>原来sync.Once为我们提供了一种机制：在同一个sync.Once类型的对象下，只有Do方法第一次被调用的时候，才会执行参数传递进来的f函数。从第二次开始，无论f传递进来是什么值都不会再调用它。而且要注意到的是，sync.Once类型并没有提供任何方法可以改变done的值，也就是说，只要是Do被执行了一次之后，除了通过新定义一个sync.Once的对象之外，就再也没有别的方式可以对f函数进行二次调用了。这也就为什么在envOnce实现的reset方法中对val成员重新赋值了一个新的sync.Once对象,但是这个reset方法是没导出的，不应该在外部使用。由此可见，sync.Once类型的Do方法是为了那些需要某个函数必须且仅能执行一次的情况。这种机制应用在我们获取系统变量的场景下是非常合适的，因为它可以防止频繁的系统调用</p>
 
 <p>在ProxyFromEnvironment中获取了系统关于代理环境变量的内容之后，我们将会对获取的结果进行判断，如果是空的话，那么直接返回，不需要代理。</p>
-
-<pre><code>	if proxy == &quot;&quot; {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	if proxy == &#34;&#34; {
 		return nil, nil
 	}
 	if !useProxy(canonicalAddr(req.URL)) {
 		return nil, nil
 	}
 	proxyURL, err := url.Parse(proxy)
-	if err != nil || !strings.HasPrefix(proxyURL.Scheme, &quot;http&quot;) {
-		// proxy was bogus. Try prepending &quot;http://&quot; to it and
+	if err != nil || !strings.HasPrefix(proxyURL.Scheme, &#34;http&#34;) {
+		// proxy was bogus. Try prepending &#34;http://&#34; to it and
 		// see if that parses correctly. If not, we fall
 		// through and complain about the original one.
-		if proxyURL, err := url.Parse(&quot;http://&quot; + proxy); err == nil {
+		if proxyURL, err := url.Parse(&#34;http://&#34; + proxy); err == nil {
 			return proxyURL, nil
 		}
 	}
 	if err != nil {
-		return nil, fmt.Errorf(&quot;invalid proxy address %q: %v&quot;, proxy, err)
+		return nil, fmt.Errorf(&#34;invalid proxy address %q: %v&#34;, proxy, err)
 	}
-	return proxyURL, nil
-
-</code></pre>
-
+	return proxyURL, nil</pre></td></tr></table>
+</div>
+</div>
 <p>否则我们将会调用useProxy来判断一个被格式化的请求url是否应该使用我们找到的代理。</p>
-
-<pre><code>func useProxy(addr string) bool {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func useProxy(addr string) bool {
 	if len(addr) == 0 {
 		return true
 	}
@@ -516,7 +820,7 @@ func (o *Once) Do(f func()) {
 	if err != nil {
 		return false
 	}
-	if host == &quot;localhost&quot; {
+	if host == &#34;localhost&#34; {
 		return false
 	}
 	if ip := net.ParseIP(host); ip != nil {
@@ -526,70 +830,91 @@ func (o *Once) Do(f func()) {
 	}
 
 	no_proxy := noProxyEnv.Get()
-	if no_proxy == &quot;*&quot; {
+	if no_proxy == &#34;*&#34; {
 		return false
 	}
 
 	addr = strings.ToLower(strings.TrimSpace(addr))
 	if hasPort(addr) {
-		addr = addr[:strings.LastIndex(addr, &quot;:&quot;)]
+		addr = addr[:strings.LastIndex(addr, &#34;:&#34;)]
 	}
 
-	for _, p := range strings.Split(no_proxy, &quot;,&quot;) {
+	for _, p := range strings.Split(no_proxy, &#34;,&#34;) {
 		p = strings.ToLower(strings.TrimSpace(p))
 		if len(p) == 0 {
 			continue
 		}
 		if hasPort(p) {
-			p = p[:strings.LastIndex(p, &quot;:&quot;)]
+			p = p[:strings.LastIndex(p, &#34;:&#34;)]
 		}
 		if addr == p {
 			return false
 		}
-		if p[0] == '.' &amp;&amp; (strings.HasSuffix(addr, p) || addr == p[1:]) {
-			// no_proxy &quot;.foo.com&quot; matches &quot;bar.foo.com&quot; or &quot;foo.com&quot;
+		if p[0] == &#39;.&#39; &amp;&amp; (strings.HasSuffix(addr, p) || addr == p[1:]) {
+			// no_proxy &#34;.foo.com&#34; matches &#34;bar.foo.com&#34; or &#34;foo.com&#34;
 			return false
 		}
-		if p[0] != '.' &amp;&amp; strings.HasSuffix(addr, p) &amp;&amp; addr[len(addr)-len(p)-1] == '.' {
-			// no_proxy &quot;foo.com&quot; matches &quot;bar.foo.com&quot;
+		if p[0] != &#39;.&#39; &amp;&amp; strings.HasSuffix(addr, p) &amp;&amp; addr[len(addr)-len(p)-1] == &#39;.&#39; {
+			// no_proxy &#34;foo.com&#34; matches &#34;bar.foo.com&#34;
 			return false
 		}
 	}
 	return true
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>我们首先通过检测host和解析成ip之后是否是本地的地址，如果是的话就不应该使用代理了。紧接着会获取no_proxy环境变量,通过判断addr是否能够匹配到no_proxy中的某一条内容来决定是否使用代理。
 如果需要使用代理的话，ProxyFromEnvironment函数会调用url.Parse来将Proxy解析成一个合法的url.URL值返回给调用者。</p>
 
 <h1 id="proxyurl">ProxyURL</h1>
 
 <p>ProxyURL函数和ProxyFromEnvironment有着一样的形式，他们都可以赋值给TransPort类型中的Proxy成员，只不过ProxyURL是原样返回了作为参数传递进来的url.URL。</p>
-
-<pre><code>// ProxyURL returns a proxy function (for use in a Transport)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// ProxyURL returns a proxy function (for use in a Transport)
 // that always returns the same URL.
 func ProxyURL(fixedURL *url.URL) func(*Request) (*url.URL, error) {
 	return func(*Request) (*url.URL, error) {
 		return fixedURL, nil
 	}
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <h1 id="redirect">Redirect</h1>
 
 <p>Redirect函数将根据我们提供的urlStr，将重定向后的Location字段中的url写入到ResponseHeader中。需要注意的是，location字段的url必须是以绝对路径的形式出现的。如果不是以绝对路径出现的话，我们要通过request的url值提取host和scheme部分加到urlStr之前。</p>
-
-<pre><code>func Redirect(w ResponseWriter, r *Request, urlStr string, code int)
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func Redirect(w ResponseWriter, r *Request, urlStr string, code int)</pre></td></tr></table>
+</div>
+</div>
 <h1 id="serve">Serve</h1>
-
-<pre><code>func Serve(l net.Listener, handler Handler) error {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func Serve(l net.Listener, handler Handler) error {
  		srv := &amp;Server{Handler: handler}
   		return srv.Serve(l)
- }
-</code></pre>
-
+ }</pre></td></tr></table>
+</div>
+</div>
 <p>Serve函数和ListenAndServe函数实际的效果是一样的，只不过Serve函数允许我们自己传递一个listener对象，而ListenAndServe函数是自己new了一个监听特定端口的tcp链接的listerner。</p>
 
 <h1 id="servefile">ServeFile</h1>
@@ -603,15 +928,100 @@ func ProxyURL(fixedURL *url.URL) func(*Request) (*url.URL, error) {
 </ol>
 
 <p>如果最后判定name所指向的文件是一个目录的话，那么就会去该目录下找到一个index.html的文件，将此文件的内容作为请求的响应内容。如果在目录下没有找到index.html文件的话，就会根据If-Modified-Since来判断客户端缓存的最后时间和服务器该文件修改的时间是否是有偏差的，如果客户端的缓存已经过期了，那么该请求的响应中就会列出该文件目录下的所有内容。</p>
-
-<pre><code>func serveFile(w ResponseWriter, r *Request, fs FileSystem, name string, redirect bool) {
-	const indexPage = &quot;/index.html&quot;
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func serveFile(w ResponseWriter, r *Request, fs FileSystem, name string, redirect bool) {
+	const indexPage = &#34;/index.html&#34;
 
 	// redirect .../index.html to .../
-	// can't use Redirect() because that would make the path absolute,
+	// can&#39;t use Redirect() because that would make the path absolute,
 	// which would be a problem running under StripPrefix
 	if strings.HasSuffix(r.URL.Path, indexPage) {
-		localRedirect(w, r, &quot;./&quot;)
+		localRedirect(w, r, &#34;./&#34;)
 		return
 	}
 
@@ -635,30 +1045,30 @@ func ProxyURL(fixedURL *url.URL) func(*Request) (*url.URL, error) {
 		// r.URL.Path always begins with /
 		url := r.URL.Path
 		if d.IsDir() {
-			if url[len(url)-1] != '/' {
-				localRedirect(w, r, path.Base(url)+&quot;/&quot;)
+			if url[len(url)-1] != &#39;/&#39; {
+				localRedirect(w, r, path.Base(url)+&#34;/&#34;)
 				return
 			}
 		} else {
-			if url[len(url)-1] == '/' {
-				localRedirect(w, r, &quot;../&quot;+path.Base(url))
+			if url[len(url)-1] == &#39;/&#39; {
+				localRedirect(w, r, &#34;../&#34;+path.Base(url))
 				return
 			}
 		}
 	}
 
-	// redirect if the directory name doesn't end in a slash
+	// redirect if the directory name doesn&#39;t end in a slash
 	if d.IsDir() {
 		url := r.URL.Path
-		if url[len(url)-1] != '/' {
-			localRedirect(w, r, path.Base(url)+&quot;/&quot;)
+		if url[len(url)-1] != &#39;/&#39; {
+			localRedirect(w, r, path.Base(url)+&#34;/&#34;)
 			return
 		}
 	}
 
 	// use contents of index.html for directory, if present
 	if d.IsDir() {
-		index := strings.TrimSuffix(name, &quot;/&quot;) + indexPage
+		index := strings.TrimSuffix(name, &#34;/&#34;) + indexPage
 		ff, err := fs.Open(index)
 		if err == nil {
 			defer ff.Close()
@@ -671,13 +1081,13 @@ func ProxyURL(fixedURL *url.URL) func(*Request) (*url.URL, error) {
 		}
 	}
 
-	// Still a directory? (we didn't find an index.html file)
+	// Still a directory? (we didn&#39;t find an index.html file)
 	if d.IsDir() {
 		if checkIfModifiedSince(w, r, d.ModTime()) == condFalse {
 			writeNotModified(w)
 			return
 		}
-		w.Header().Set(&quot;Last-Modified&quot;, d.ModTime().UTC().Format(TimeFormat))
+		w.Header().Set(&#34;Last-Modified&#34;, d.ModTime().UTC().Format(TimeFormat))
 		dirList(w, f)
 		return
 	}
@@ -685,20 +1095,28 @@ func ProxyURL(fixedURL *url.URL) func(*Request) (*url.URL, error) {
 	// serveContent will check modification time
 	sizeFunc := func() (int64, error) { return d.Size(), nil }
 	serveContent(w, r, d.Name(), d.ModTime(), sizeFunc, f)
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>serveContent函数里面将针对请求中是否开启range缓存以及range缓存的参数来向请求的响应中填充文件的内容。</p>
 
 <h1 id="setcookie">SetCookie</h1>
-
-<pre><code>func SetCookie(w ResponseWriter, cookie *Cookie) {
-		if v := cookie.String(); v != &quot;&quot; {
-			w.Header().Add(&quot;Set-Cookie&quot;, v)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func SetCookie(w ResponseWriter, cookie *Cookie) {
+		if v := cookie.String(); v != &#34;&#34; {
+			w.Header().Add(&#34;Set-Cookie&#34;, v)
 		}
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>SetCookie方法将会向http响应的头部写入Set-Cookie字段以及相应的值。</p>
 
 <h1 id="statustext">StatusText</h1>

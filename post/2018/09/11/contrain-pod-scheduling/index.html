@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-09-11T16:52:58&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-11T16:52:58&#43;08:00" />
-<meta itemprop="wordCount" content="3685">
+<meta itemprop="wordCount" content="3771">
 
 
 
@@ -244,8 +244,24 @@
 <h3 id="pod">Pod</h3>
 
 <p>对于 Pod 来说，我们需要在它的 spec 段内，加入 nodeSelector 段。并且在 nodeSelector 段中填入「目的 Node」 所携带的 Label。比如我们想将一个 Pod 强制调度到 Node A 上，那么在构造 Pod 的基本信息的时候，就要相应的做如下修改（以 yaml 文件为例）：</p>
-
-<pre><code>apiVersion: v1
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">apiVersion: v1
 kind: Pod
 metadata:
   name: nginx
@@ -257,9 +273,9 @@ spec:
     image: nginx
     imagePullPolicy: IfNotPresent
   nodeSelector:
-    disktype: ssd
-</code></pre>
-
+    disktype: ssd</pre></td></tr></table>
+</div>
+</div>
 <p>(该 Pod 将会被强制调度到 Node Label 中有 disktype=ssd 的 Node 上)
 一个可被调度的 Node 中的 labels 必须包含 Pod 的 nodeSelector 中指定的 labels。</p>
 
@@ -287,8 +303,37 @@ spec:
 <p>两种类型的相同点在于后半部分： IgnoredDuringExecution。也就是说，如果某一个 Pod 所在的 Node 的 label 发生了变化，导致一些已经运行在该 Node 上的 Pod 不符合运行条件，那么这些 Pod 也不会受到影响。总结下来就是，目前的「调度策略」都是在调度的过程中生效，至于已经调度完成的 Pod 不会受到影响。</p>
 
 <p>为了更加直观的了解 NodeAffinity 的功能，我们通过一个例子来了解：</p>
-
-<pre><code>apiVersion: v1
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">apiVersion: v1
 kind: Pod
 metadata:
   name: with-node-affinity
@@ -313,9 +358,9 @@ spec:
             - another-node-label-value
   containers:
   - name: with-node-affinity
-    image: k8s.gcr.io/pause:2.0
-</code></pre>
-
+    image: k8s.gcr.io/pause:2.0</pre></td></tr></table>
+</div>
+</div>
 <p>首先，如果在一个 Pod.Spec 段内同时指定了两种 NodeAffinity 的话，那么最好的情况下是调度到两个调度策略都满足的 Node 上。否则，优先满足 required 的。</p>
 
 <p>其次，对于 requiredDuringSchedulingIgnoredDuringExecution 和 preferredDuringSchedulingIgnoredDuringExecution 类型来说：</p>
@@ -351,8 +396,40 @@ spec:
 <p>其中 Y 可以被认为是 PodSelector， 即去筛选特定的一类 Pod。X 在这里也不仅仅代表某一个 Node，而是代表了一组 Node。Nodes 以一个特殊的字段作为标准进行分组：<code>topologyKey</code>（其实 topologyKey 就是 NodeLabel 中的一个 Key， 可以认为我们把带有 Label 为 topologyKey 的 Node 划分成了一组）。所以，对于 pod 的 affinity/anti-affinity 来说，我们首先要找到一组候选的 Node，然后再根据这些 Node 上面运行的 Pod 的 Label 来决定该 Pod 是否应该调度（or 不应该调度）到相应的节点上。</p>
 
 <p>为了更加直观的了解，我们可以看一个具体的例子：</p>
-
-<pre><code>apiVersion: v1
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">apiVersion: v1
 kind: Pod
 metadata:
   name: with-pod-affinity
@@ -380,9 +457,9 @@ spec:
           topologyKey: kubernetes.io/hostname
   containers:
   - name: with-pod-affinity
-    image: k8s.gcr.io/pause:2.0
-</code></pre>
-
+    image: k8s.gcr.io/pause:2.0</pre></td></tr></table>
+</div>
+</div>
 <p>该 Pod 设置了 pod affinity/anti-affinity 两个调度条件。
 对于 podAffinity 来说，我们需要先找到一组带有 label 为 failure-domain.beta.kubernetes.io/zone 的 Node。如果这些 Node 上有运行 label key 为 security， value 为 S1 的 Pod，那么应该将 Pod 调度到这些 Node 上。该条件为「硬性」限制。也就是说，如果找不到符合上面要求的 Node，这个 Pod 将会面临着调度失败的情况。</p>
 
@@ -405,31 +482,51 @@ spec:
 <p>当一个 Node 打上了一个或者多个 taints，如果一个 Pod 没有指定 tolerations 或者指定的 tolerations 和 这个 Node 所指定的 taints “不匹配”。这个 Pod 就不能够被调度到这个 Node 上。如果“匹配”，那么这个 Pod 就可以被调度到这个 Node 上。</p>
 
 <p>我们可以通过 kubectl 命令去指定 Node 的 taints <code>kubectl taint nodes node1 key=value: NoSchedule</code>。指定之后，通过 kubectl 观察 Node 的基本信息，可以看到如下内容：</p>
-
-<pre><code>  taints:
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">  taints:
   - effect: NoSchedule
     key: key
-    value: &quot;value&quot;
-</code></pre>
-
+    value: &#34;value&#34;</pre></td></tr></table>
+</div>
+</div>
 <p>这个 taints 的作用就是：不允许任何 Pod 调度到该 Node 上，除非这个 Pod 指定了 tolerations 且和该 taints“匹配”。</p>
 
 <p>taints 的作用通过 effect 字段进行标识。除了 NoSchedule 之外，还有一个 PreferNoSchedule，与 NoSchedule 相比，它是一个「软性」的作用。也就是说，k8s 尽量不把 Pod 调度到 tolerations 和 taints 不匹配的 Node上，但是不排除「特殊情况」。taints 还有另外一个作用就是 NoExecute。当一个 Node 指定了 effect 为 NoExecute 的 taints，如果该 Node 上面的 Pod 的 tolerations 没有匹配它的 taints，这些 Pod 会被 kubelet 给 evicted 掉。(小朋友不要轻易尝试这个操作 o(<em>￣︶￣</em>)o)。不过，对于 tolerations 和 taints 匹配的 Pod，在 effect 为 NoExecute 的时候也不一定是「安全」的。原因在于，我们可以在 pod.Spec 中配置一个 tolerationSeconds 的字段，它的作用是：即使是 pod 的 tolerations 和 Node 的 taints 匹配，该 Pod 也只会存活 tolerationSeconds 秒的时间（从匹配成功开始算起），最终仍然会被 evicted 掉。</p>
 
 <p>tolerations 需要在 pod.Spec 中进行指定：</p>
-
-<pre><code>tolerations:
-- key: &quot;key&quot;
-  operator: &quot;Equal&quot;
-  value: &quot;value&quot;
-  effect: &quot;NoSchedule&quot; // &quot;PreferNoSchedule&quot;
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">tolerations:
+- key: &#34;key&#34;
+  operator: &#34;Equal&#34;
+  value: &#34;value&#34;
+  effect: &#34;NoSchedule&#34; // &#34;PreferNoSchedule&#34;
 
 tolerations:
-- key: &quot;key&quot;
-  operator: &quot;Exists&quot;
-  effect: &quot;NoSchedule&quot;
-</code></pre>
-
+- key: &#34;key&#34;
+  operator: &#34;Exists&#34;
+  effect: &#34;NoSchedule&#34;</pre></td></tr></table>
+</div>
+</div>
 <p>tolerations 和 taints 的匹配过程如下：</p>
 
 <ol>
@@ -449,13 +546,20 @@ tolerations:
 <p>在 k8s 1.6 的版本之后，对于 pod 新增了一些基于 taints 的 evict 策略。在 1.8 版本之后更是增加了「根据 node condition 自动添加 taints」 的特性。综合起来可以认为：nodeController（or kubelet） 会根据 node 当前的健康状态为其添加一些 effect 为 NoExecute 的taints。从而实现「根据 Node 状态 evict Pod」的功能。</p>
 
 <p>例如，当某个 Node 节点的网络情况发生异常的时候，nodeController 就会给该 Node 打上一个如下的 taints：</p>
-
-<pre><code>  taints:
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">  taints:
   - effect: NoExecute
     key: node.kubernetes.io/network-unavailable
-    value: &quot;value&quot;
-</code></pre>
-
+    value: &#34;value&#34;</pre></td></tr></table>
+</div>
+</div>
     </div>
 
     

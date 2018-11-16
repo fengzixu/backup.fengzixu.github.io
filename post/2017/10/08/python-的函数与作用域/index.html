@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-10-08T22:24:17&#43;00:00" />
 <meta itemprop="dateModified" content="2017-10-08T22:24:17&#43;00:00" />
-<meta itemprop="wordCount" content="4818">
+<meta itemprop="wordCount" content="4831">
 
 
 
@@ -281,8 +281,24 @@
 <h3 id="非本地作用域">非本地作用域</h3>
 
 <p>非本地作用域出现的场景是发生有函数嵌套的时候。「非本地」是对于被嵌套的函数而言。一个被嵌套函数的内部可以被称作是本地作用域，但是在这个函数和嵌套他的函数之间这一块区域被称作是非本地作用域。非本地作用域除了必须要发生函数嵌套行为之外，嵌套的层次也会影响到非本地作用域的大小，python 在进行变量解析的时候，会追踪到任意的嵌套层次。</p>
-
-<pre><code>&gt;&gt;&gt; def foo():
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">&gt;&gt;&gt; def foo():
 ...     x = 1
 ...     def foo2():
 ...         def foo3():
@@ -294,9 +310,9 @@
 ...
 &gt;&gt;&gt; a = foo()()()
 &gt;&gt;&gt; a
-3
-</code></pre>
-
+3</pre></td></tr></table>
+</div>
+</div>
 <p>如上面的代码所示，foo3在解析 x 这个变量的时候，一直查找到了嵌套的第二层。也就是说，对于foo3的非本地作用域有foo2和foo1两层这么大，尤其是我们使用了 nonlocal 这个关键字，让上面这段实例更加有说服力，因为 nonlocal 关键字的出现，证明我们不但要对非本地作用域的变量进行读取，还会有修改操作。</p>
 
 <h3 id="内置作用域">内置作用域</h3>

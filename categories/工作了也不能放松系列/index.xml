@@ -368,7 +368,7 @@
       <pubDate>Mon, 24 Apr 2017 10:34:39 +0000</pubDate>
       
       <guid>http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</guid>
-      <description>Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，</description>
+      <description>Transport Field 1 Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的</description>
     </item>
     
     <item>
@@ -377,7 +377,7 @@
       <pubDate>Thu, 06 Apr 2017 23:36:39 +0000</pubDate>
       
       <guid>http://littledriver.net/post/2017/04/06/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%903/</guid>
-      <description>MaxBytesReader // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally or maliciously // sending a large request and wasting server resources.</description>
+      <description>MaxBytesReader 1 2 3 4 5 6 7 8 9 10 11 // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&amp;#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally</description>
     </item>
     
     <item>
@@ -386,7 +386,7 @@
       <pubDate>Wed, 05 Apr 2017 19:58:31 +0000</pubDate>
       
       <guid>http://littledriver.net/post/2017/04/05/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%902/</guid>
-      <description>Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-T</description>
+      <description>Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType 1 func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-</description>
     </item>
     
     <item>

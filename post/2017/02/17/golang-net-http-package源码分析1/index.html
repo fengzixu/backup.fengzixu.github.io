@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-02-17T15:11:16&#43;00:00" />
 <meta itemprop="dateModified" content="2017-02-17T15:11:16&#43;00:00" />
-<meta itemprop="wordCount" content="1228">
+<meta itemprop="wordCount" content="1296">
 
 
 
@@ -221,10 +221,14 @@
       <blockquote>
 <p>平时在工作的过程当中对net包里面的各种库有非常多的使用，本文将先对golang标准库中net/http包进行剖析，文末会向大家展示使用golang编写的简单网络服务的运行机制。基于golang1.8版本。</p>
 </blockquote>
-
-<pre><code>	func CanonicalMIMEHeaderKey(s string) string
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	func CanonicalMIMEHeaderKey(s string) string</pre></td></tr></table>
+</div>
+</div>
 <h3 id="函数功能描述">函数功能描述</h3>
 
 <p>该函数将会按照mime的规范来格式化你传递进来的http header字符串。如你传入keep-alive，该函数就会返回一个Keep-Alive。具体的规范简单来说就是把开头的第一个字母以及如果连字符后面的第一个字母变成大写。</p>
@@ -237,22 +241,95 @@
 </ol>
 
 <p>检测函数内容如下：</p>
-
-<pre><code>// validHeaderFieldByte reports whether b is a valid byte in a header
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// validHeaderFieldByte reports whether b is a valid byte in a header
 // field name. RFC 7230 says:
-//   header-field   = field-name &quot;:&quot; OWS field-value OWS
+//   header-field   = field-name &#34;:&#34; OWS field-value OWS
 //   field-name     = token
-//   tchar = &quot;!&quot; / &quot;#&quot; / &quot;$&quot; / &quot;%&quot; / &quot;&amp;&quot; / &quot;'&quot; / &quot;*&quot; / &quot;+&quot; / &quot;-&quot; / &quot;.&quot; /
-//           &quot;^&quot; / &quot;_&quot; / &quot;`&quot; / &quot;|&quot; / &quot;~&quot; / DIGIT / ALPHA
+//   tchar = &#34;!&#34; / &#34;#&#34; / &#34;$&#34; / &#34;%&#34; / &#34;&amp;&#34; / &#34;&#39;&#34; / &#34;*&#34; / &#34;+&#34; / &#34;-&#34; / &#34;.&#34; /
+//           &#34;^&#34; / &#34;_&#34; / &#34;`&#34; / &#34;|&#34; / &#34;~&#34; / DIGIT / ALPHA
 //   token = 1*tchar
 func validHeaderFieldByte(b byte) bool {
 	return int(b) &lt; len(isTokenTable) &amp;&amp; isTokenTable[b]
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>下面我们来看下这个函数的具体实现：</p>
-
-<pre><code>func CanonicalMIMEHeaderKey(s string) string {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func CanonicalMIMEHeaderKey(s string) string {
 	// Quick check for canonical encoding.
 	upper := true
 	for i := 0; i &lt; len(s); i++ {
@@ -260,13 +337,13 @@ func validHeaderFieldByte(b byte) bool {
 		if !validHeaderFieldByte(c) {
 			return s
 		}
-		if upper &amp;&amp; 'a' &lt;= c &amp;&amp; c &lt;= 'z' {
+		if upper &amp;&amp; &#39;a&#39; &lt;= c &amp;&amp; c &lt;= &#39;z&#39; {
 			return canonicalMIMEHeaderKey([]byte(s))
 		}
-		if !upper &amp;&amp; 'A' &lt;= c &amp;&amp; c &lt;= 'Z' {
+		if !upper &amp;&amp; &#39;A&#39; &lt;= c &amp;&amp; c &lt;= &#39;Z&#39; {
 			return canonicalMIMEHeaderKey([]byte(s))
 		}
-		upper = c == '-'
+		upper = c == &#39;-&#39;
 	}
 	return s
 }
@@ -283,7 +360,7 @@ func canonicalMIMEHeaderKey(a []byte) string {
 		if validHeaderFieldByte(c) {
 			continue
 		}
-		// Don't canonicalize.
+		// Don&#39;t canonicalize.
 		return string(a)
 	}
 
@@ -293,25 +370,24 @@ func canonicalMIMEHeaderKey(a []byte) string {
 		// and upper case after each dash.
 		// (Host, User-Agent, If-Modified-Since).
 		// MIME headers are ASCII only, so no Unicode issues.
-		if upper &amp;&amp; 'a' &lt;= c &amp;&amp; c &lt;= 'z' {
+		if upper &amp;&amp; &#39;a&#39; &lt;= c &amp;&amp; c &lt;= &#39;z&#39; {
 			c -= toLower
-		} else if !upper &amp;&amp; 'A' &lt;= c &amp;&amp; c &lt;= 'Z' {
+		} else if !upper &amp;&amp; &#39;A&#39; &lt;= c &amp;&amp; c &lt;= &#39;Z&#39; {
 			c += toLower
 		}
 		a[i] = c
-		upper = c == '-' // for next time
+		upper = c == &#39;-&#39; // for next time
 	}
 	// The compiler recognizes m[string(byteSlice)] as a special
-	// case, so a copy of a's bytes into a new string does not
+	// case, so a copy of a&#39;s bytes into a new string does not
 	// happen in this map lookup:
-	if v := commonHeader[string(a)]; v != &quot;&quot; {
+	if v := commonHeader[string(a)]; v != &#34;&#34; {
 		return v
 	}
 	return string(a)
-}
-
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>内层的canonicalMIMEHeaderKey函数在转换之前需要检查所有的字符是否符合规范，如果符合规范则开始转换。检测的过程当中，通过判断当前字符是否是连接符来决定是否应该转换字符为大写。在规范的http请求头中，第一个字符和连接线后第一个字符都应该是大写的。至于其余的字符，都应该是小写才对。第一个if分支用来将第一个小写字符和连接符后的小写字符变为大写，第二个if分支用来将除上述两个字符之外的字符变为小写。commonHeader检测我们转换后的字符串，如果是已知的，则直接返回我们预定义的，否则返回转换后的。</p>
 
 <p>外层的CanonicalMIMEHeaderKey则决定是否要进行进一步的检测和转换，如果传递进来的字符串是符合规范的，那么外层的逻辑可保证不会进行多余的转换。外层的两个if逻辑和上面内层叙述的两个if逻辑是一样的。都是按照标准的http header来检测每一个字符来决定是否要进行下一步的转换。</p>

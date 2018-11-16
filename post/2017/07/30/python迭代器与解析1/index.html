@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-07-30T15:33:45&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-30T15:33:45&#43;00:00" />
-<meta itemprop="wordCount" content="1788">
+<meta itemprop="wordCount" content="1809">
 
 
 
@@ -227,24 +227,42 @@
 <h1 id="可迭代对象">可迭代对象</h1>
 
 <p>简单来说，可迭代对象就是一个具有 <code>__next__</code>方法的对象。当这个对象被用在 for 循环等一系列迭代的场景的时候，这个方法就会起到相应的作用。如，python 当中的文件对象想按照逐行的顺序来进行迭代的话，有以下几种方式：</p>
-
-<pre><code class="language-python">	# 1
-	for line in open('test.py'):
-		print(line.upper(), end='')
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python">	<span class="c1"># 1</span>
+	<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;test.py&#39;</span><span class="p">):</span>
+		<span class="k">print</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 		
-	# 2
-	for line in open('test.py').readlines():
-		print(line.upper(), end='')
+	<span class="c1"># 2</span>
+	<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;test.py&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+		<span class="k">print</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 		
-	# 3
+	<span class="c1"># 3</span>
 	
-	while True:
-		line = file.readLine()
-		if not line:
-			beak;
-		print(line.upper(), end='')
-</code></pre>
-
+	<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+		<span class="n">line</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">readLine</span><span class="p">()</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+			<span class="n">beak</span><span class="p">;</span>
+		<span class="k">print</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>首先第一种方式，应该是迭代一个文件对象的最优选择：</p>
 
 <ol>
@@ -269,37 +287,68 @@
 </blockquote>
 
 <p>除了上面说到的，range，zip 等内置函数生成的可迭代对象在不同版本有一些不同之处之外。range 生成的可迭代对象和 zip, filter 等函数生成的可迭代对象也有不小的差异。对于 zip, filter, map等内置函数生成的可迭代对象，他们都是自带迭代器的，和上面我们说到的文件对象是一样的。他们返回的结果，在一些迭代的场景下，如 for 循环中，可以直接进行迭代行为，而不需要把他们调用的结果传递给他 iter 函数获取迭代器之后再进行迭代。这就引发了一个问题，zip 等函数生成的迭代器只能够使用一次，也就是说，必须从头迭代到尾，没有其他机会在可迭代对象的基础上，生成多个不同位置的迭代器，进行迭代。说起来可能比较抽象，看一下例程应该会清楚很多</p>
-
-<pre><code class="language-python"># running in python3.x
-&gt;&gt;&gt; a = zip((1,2), (3, 4))
-&gt;&gt;&gt; type(a)
-&lt;class 'zip'&gt;
-&gt;&gt;&gt; ita1 = iter(a)
-&gt;&gt;&gt; ita2 = iter(a)
-&gt;&gt;&gt; type(ita1)
-&lt;class 'zip'&gt;
-&gt;&gt;&gt; ita1.__next__()
-(1, 3)
-&gt;&gt;&gt; ita2.__next__()
-(2, 4)
-
-
-&gt;&gt;&gt; b = range(1, 4)
-&gt;&gt;&gt; type(b)
-&lt;class 'range'&gt;
-&gt;&gt;&gt; itb1 = iter(b)
-&gt;&gt;&gt; itb2 = iter(b)
-&gt;&gt;&gt; itb1.__next__()
-1
-&gt;&gt;&gt; itb1.__next__()
-2
-&gt;&gt;&gt; itb2.__next__()
-1
-&gt;&gt;&gt; itb2.__next__()
-2
-&gt;&gt;&gt;
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="c1"># running in python3.x</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="k">class</span> <span class="err">&#39;</span><span class="nc">zip</span><span class="s1">&#39;&gt;</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; ita1 = iter(a)</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; ita2 = iter(a)</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; type(ita1)</span><span class="err">
+</span><span class="err"></span><span class="s1">&lt;class &#39;</span><span class="nb">zip</span><span class="s1">&#39;&gt;</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; ita1.__next__()</span><span class="err">
+</span><span class="err"></span><span class="s1">(1, 3)</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; ita2.__next__()</span><span class="err">
+</span><span class="err"></span><span class="s1">(2, 4)</span><span class="err">
+</span><span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; b = range(1, 4)</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; type(b)</span><span class="err">
+</span><span class="err"></span><span class="s1">&lt;class &#39;</span><span class="nb">range</span><span class="s1">&#39;&gt;</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; itb1 = iter(b)</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; itb2 = iter(b)</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; itb1.__next__()</span><span class="err">
+</span><span class="err"></span><span class="s1">1</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; itb1.__next__()</span><span class="err">
+</span><span class="err"></span><span class="s1">2</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; itb2.__next__()</span><span class="err">
+</span><span class="err"></span><span class="s1">1</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt; itb2.__next__()</span><span class="err">
+</span><span class="err"></span><span class="s1">2</span><span class="err">
+</span><span class="err"></span><span class="s1">&gt;&gt;&gt;</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>例程当中对于 zip 和 range 生成的可迭代对象分别创建了两个迭代器，zip 返回的可迭代对象本身就是一个迭代器，所以在整个迭代范围内，即使创建了两个，但是看起来行为使用的确是同一个迭代器。因为例程的本意是想两个迭代器的迭代步调不一致的。对于 range 返回的可迭代对象就比较符合我们预期的行为，range 调用返回的对象并不是一个迭代器，所以需要通过 iter 函数来构建，在这种情形下，每个迭代器都是独立的，所以可以有属于自己的迭代位置。</p>
 
     </div>

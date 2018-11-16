@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-10-24T16:16:21&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-24T16:16:21&#43;08:00" />
-<meta itemprop="wordCount" content="3231">
+<meta itemprop="wordCount" content="3264">
 
 
 
@@ -272,47 +272,88 @@
 <h2 id="docker-的-hostname-隔离机制-linux-uts-namespace">Docker 的 Hostname 隔离机制——Linux UTS Namespace</h2>
 
 <p>简单来说，这是 Linux 提供的一种针对多个进程间的 Hostname 的隔离机制。它允许一个进程在其内部设置自己的 hostname。让我们通过一个例子来了解：</p>
-
-<pre><code class="language-c">/*
-下面的实例来自于陈皓老师的博客（https://coolshell.cn/articles/17010.html），感谢陈皓老师的文章
-*/
-#define _GNU_SOURCE
-#include &lt;sys/types.h&gt;
-#include &lt;sys/wait.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;sched.h&gt;
-#include &lt;signal.h&gt;
-#include &lt;unistd.h&gt;
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="cm">/*
+</span><span class="cm">下面的实例来自于陈皓老师的博客（https://coolshell.cn/articles/17010.html），感谢陈皓老师的文章
+</span><span class="cm">*/</span>
+<span class="cp">#define _GNU_SOURCE
+</span><span class="cp">#include</span> <span class="cpf">&lt;sys/types.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;sys/wait.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;sched.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;signal.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span><span class="cp"></span> 
+<span class="cm">/* 定义一个给 clone 用的栈，栈大小1M */</span>
+<span class="cp">#define STACK_SIZE (1024 * 1024)
+</span><span class="cp"></span><span class="k">static</span> <span class="kt">char</span> <span class="n">container_stack</span><span class="p">[</span><span class="n">STACK_SIZE</span><span class="p">];</span>
  
-/* 定义一个给 clone 用的栈，栈大小1M */
-#define STACK_SIZE (1024 * 1024)
-static char container_stack[STACK_SIZE];
- 
-char* const container_args[] = {
-    &quot;/bin/bash&quot;,
-    NULL
-};
+<span class="kt">char</span><span class="o">*</span> <span class="k">const</span> <span class="n">container_args</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#34;/bin/bash&#34;</span><span class="p">,</span>
+    <span class="nb">NULL</span>
+<span class="p">};</span>
 
-int container_main(void* arg)
-{
-    printf(&quot;Container - inside the container!\n&quot;);
-    **sethostname(&quot;container&quot;,10); /* 设置hostname */**
-    execv(container_args[0], container_args);
-    printf(&quot;Something's wrong!\n&quot;);
-    return 1;
-}
+<span class="kt">int</span> <span class="nf">container_main</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">arg</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Container - inside the container!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="o">**</span><span class="n">sethostname</span><span class="p">(</span><span class="s">&#34;container&#34;</span><span class="p">,</span><span class="mi">10</span><span class="p">);</span> <span class="cm">/* 设置hostname */</span><span class="o">**</span>
+    <span class="n">execv</span><span class="p">(</span><span class="n">container_args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">container_args</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Something&#39;s wrong!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
  
-int main()
-{
-    printf(&quot;Parent - start a container!\n&quot;);
-    int container_pid = clone(container_main, container_stack+STACK_SIZE, 
-            **CLONE_NEWUTS | SIGCHLD, NULL); /*启用CLONE_NEWUTS Namespace隔离 */**
-    waitpid(container_pid, NULL, 0);
-    printf(&quot;Parent - container stopped!\n&quot;);
-    return 0;
-}
-</code></pre>
-
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Parent - start a container!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="kt">int</span> <span class="n">container_pid</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="n">container_main</span><span class="p">,</span> <span class="n">container_stack</span><span class="o">+</span><span class="n">STACK_SIZE</span><span class="p">,</span> 
+            <span class="o">**</span><span class="n">CLONE_NEWUTS</span> <span class="o">|</span> <span class="n">SIGCHLD</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span> <span class="cm">/*启用CLONE_NEWUTS Namespace隔离 */</span><span class="o">**</span>
+    <span class="n">waitpid</span><span class="p">(</span><span class="n">container_pid</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Parent - container stopped!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>上面的例程是通过创建一个子进程的方式来测试 Linux UTS Namespace 提供的隔离机制。其中被双星号标记的两行代码是比较关键的部分:  <code>CLONE_NEWUTS</code> 是启动 Hostname 隔离机制的一个系统调用参数，当以这个参数创建进程的时候，就会开启隔离。<code>sethostname</code>同样是一个系统的调用，它在自己进程内部设置了单独的 Hostname，且不会影响到宿主机。反之，如果没有上面的两行代码的话，子进程中的 Hostname 和宿主机应该是一致的。</p>
 
 <h2 id="docker-的-ipc-隔离机制-linux-ipc-namespace">Docker 的 IPC 隔离机制——Linux IPC Namespace</h2>

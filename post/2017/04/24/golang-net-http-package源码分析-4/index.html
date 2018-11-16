@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="xuran" />
-  <meta name="description" content="Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，" />
+  <meta name="description" content="Transport Field 1 Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的" />
 
 
 
@@ -57,25 +57,25 @@
 
 
 <meta property="og:title" content="golang-net-http-package源码分析-4" />
-<meta property="og:description" content="Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，" />
+<meta property="og:description" content="Transport Field 1 Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/" /><meta property="article:published_time" content="2017-04-24T10:34:39&#43;00:00"/>
 <meta property="article:modified_time" content="2017-04-24T10:34:39&#43;00:00"/>
 
 <meta itemprop="name" content="golang-net-http-package源码分析-4">
-<meta itemprop="description" content="Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，">
+<meta itemprop="description" content="Transport Field 1 Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的">
 
 
 <meta itemprop="datePublished" content="2017-04-24T10:34:39&#43;00:00" />
 <meta itemprop="dateModified" content="2017-04-24T10:34:39&#43;00:00" />
-<meta itemprop="wordCount" content="7636">
+<meta itemprop="wordCount" content="8031">
 
 
 
 <meta itemprop="keywords" content="SourceCodeAnalyse," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="golang-net-http-package源码分析-4"/>
-<meta name="twitter:description" content="Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，"/>
+<meta name="twitter:description" content="Transport Field 1 Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -221,61 +221,124 @@
       <h1 id="transport">Transport</h1>
 
 <h2 id="field">Field</h2>
-
-<pre><code> Proxy func(*Request) (*url.URL, error)
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"> Proxy func(*Request) (*url.URL, error)</pre></td></tr></table>
+</div>
+</div>
 <p>Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，他们有着同样的类型。</p>
-
-<pre><code>DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
-Dial func(network, addr string) (net.Conn, error)
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
+Dial func(network, addr string) (net.Conn, error)</pre></td></tr></table>
+</div>
+</div>
 <p>上面两个Field都是函数类型的对象，调用之后可以生成一个未加密的tcp链接。但是文档中明确提示我们，应该使用DialContext来代替Dail，因为前者可以在我们不需要这个链接的时候主动将它结束。如果一个Transport类型对象中这两个属性都赋值了，那么DialContext的优先级是要比Dial高的。</p>
-
-<pre><code>DialTLS func(network, addr string) (net.Conn, error)
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">DialTLS func(network, addr string) (net.Conn, error)</pre></td></tr></table>
+</div>
+</div>
 <p>DialTLS的调用将会建立一个TLS的链接。如果DialTLS成员被初始化，那么对于https的request就会被DialTLS成员给Hook住，否则就由Dial和TLSClientConfig两个成员配合起来做这件事。DialTLS调用之后返回的链接默认是Tls握手已经完成的状态。</p>
-
-<pre><code>TLSClientConfig *tls.Config
-TLSHandshakeTimeout time.Duration
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">TLSClientConfig *tls.Config
+TLSHandshakeTimeout time.Duration</pre></td></tr></table>
+</div>
+</div>
 <p>客户端上https的相关配置以及https握手的超时时间。但是在DialTLS成员被赋值了之后，这两个成员的值就将会被忽略了。</p>
-
-<pre><code>DisableKeepAlives bool
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">DisableKeepAlives bool</pre></td></tr></table>
+</div>
+</div>
 <p>如果这个属性被置为true,那么在两次不同的请求之间就不会对同一条tcp链接进行重用了，即关闭了Keep-Alive功能。</p>
-
-<pre><code>MaxIdleConns int
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">MaxIdleConns int
 MaxIdleConnsPerHost int
-IdleConnTimeout time.Duration
-</code></pre>
-
+IdleConnTimeout time.Duration</pre></td></tr></table>
+</div>
+</div>
 <p>MaxIdleConns属性为一个Transport对所有的host开启的最大空闲连接数，是一个总量，MaxIdleConnsPerHost为对每一个host所能开启的最大空闲连接数。IdleConnTimeout为空闲链接保持多久将会关闭它。</p>
-
-<pre><code>ResponseHeaderTimeout time.Duration
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">ResponseHeaderTimeout time.Duration</pre></td></tr></table>
+</div>
+</div>
 <p>ResponseHeaderTimeout指定了一个从发送了所有的request到得到服务端发送的response的Header的超时时间。</p>
-
-<pre><code>MaxResponseHeaderBytes int64
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">MaxResponseHeaderBytes int64</pre></td></tr></table>
+</div>
+</div>
 <p>MaxResponseHeaderBytes指定了客户端所能接受服务端发送response的最大字节数。</p>
 
 <h2 id="method">Method</h2>
-
-<pre><code>func (t *Transport) CancelRequest(req *Request) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (t *Transport) CancelRequest(req *Request) {
 	t.cancelRequest(req, errRequestCanceled)
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>cancelRequest函数内部读取了一个map[*Request]func(error)类型的map，key为request，value是request对应的cancel方法。先把request对应的cancel method拷贝出来，然后从map中删除这一条记录，最后调用这个cancel方法，关闭连接。</p>
-
-<pre><code>func (t *Transport) CloseIdleConnections() {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (t *Transport) CloseIdleConnections() {
 	t.nextProtoOnce.Do(t.onceSetNextProtoDefaults)
 	t.idleMu.Lock()
 	m := t.idleConn
@@ -292,17 +355,34 @@ IdleConnTimeout time.Duration
 	if t2 := t.h2transport; t2 != nil {
 		t2.CloseIdleConnections()
 	}
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>CloseIdleConnections函数主要用来关闭因之前的请求建立并且其目前处于空闲的链接。Transport内部有一个idleConn成员，他是一个map类型的变量，其value是persistConn类型，表示了一个已经建立的链接。CloseIdleConnections刚一执行，就将Transport内和空闲链接相关的field都清空，并且将idleConn成员copy了一份。之后它就遍历这个存有很多空闲链接的map，将他们一一关闭。在关闭每一个空闲链接的时候，最终调用了persistConn类型的closeLocked方法，在其内部调用了net包内Conn类型的close方法以真正关闭这条tcp链接。</p>
-
-<pre><code>func (t *Transport) RegisterProtocol(scheme string, rt RoundTripper) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (t *Transport) RegisterProtocol(scheme string, rt RoundTripper) {
 	t.altMu.Lock()
 	defer t.altMu.Unlock()
 	oldMap, _ := t.altProto.Load().(map[string]RoundTripper)
 	if _, exists := oldMap[scheme]; exists {
-		panic(&quot;protocol &quot; + scheme + &quot; already registered&quot;)
+		panic(&#34;protocol &#34; + scheme + &#34; already registered&#34;)
 	}
 	newMap := make(map[string]RoundTripper)
 	for k, v := range oldMap {
@@ -310,72 +390,147 @@ IdleConnTimeout time.Duration
 	}
 	newMap[scheme] = rt
 	t.altProto.Store(newMap)
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>RegisterProtocol函数将会注册一个scheme和处理使用这个scheme请求的RoundTripper方法到map中。在处理请求的时候，会根据请求使用的scheme对map中的roundtripe方法进行匹配。如果没有根据scheme注册特殊的RoundTripper方法，那么会调用默认的RoundTripper</p>
 
 <h3 id="roundtrip">RoundTrip</h3>
 
 <p>RoundTrip其实是RoundTriper这个Interface的一个方法，你给它一个请求，它吐给你一个响应。在golang的http框架中，Client发送请求接受响应的逻辑主要就是依赖于对RoundTrip函数的实现，Client定义中有一个名为Transport的成员，它的类型是RoundTripper，一般来说都是调用这个成员的RoundTrip方法。在我们创建一个Client对象的时候，如果没为其特意指定一个实现了RoundTrip方法的对象，那么Client会使用一个预定义的Transport类型的变量。所以说，Transport应该才是Client的核心实现。</p>
-
-<pre><code>	t.nextProtoOnce.Do(t.onceSetNextProtoDefaults)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	t.nextProtoOnce.Do(t.onceSetNextProtoDefaults)
 	ctx := req.Context()
 	trace := httptrace.ContextClientTrace(ctx)
 
 	if req.URL == nil {
 		req.closeBody()
-		return nil, errors.New(&quot;http: nil Request.URL&quot;)
+		return nil, errors.New(&#34;http: nil Request.URL&#34;)
 	}
 	if req.Header == nil {
 		req.closeBody()
-		return nil, errors.New(&quot;http: nil Request.Header&quot;)
+		return nil, errors.New(&#34;http: nil Request.Header&#34;)
 	}
 	scheme := req.URL.Scheme
-	isHTTP := scheme == &quot;http&quot; || scheme == &quot;https&quot;
+	isHTTP := scheme == &#34;http&#34; || scheme == &#34;https&#34;
 	if isHTTP {
 		for k, vv := range req.Header {
 			if !httplex.ValidHeaderFieldName(k) {
-				return nil, fmt.Errorf(&quot;net/http: invalid header field name %q&quot;, k)
+				return nil, fmt.Errorf(&#34;net/http: invalid header field name %q&#34;, k)
 			}
 			for _, v := range vv {
 				if !httplex.ValidHeaderFieldValue(v) {
-					return nil, fmt.Errorf(&quot;net/http: invalid header field value %q for key %v&quot;, v, k)
+					return nil, fmt.Errorf(&#34;net/http: invalid header field value %q for key %v&#34;, v, k)
 				}
 			}
 		}
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>在RoundTrip前半部分的代码中我们可以看到，它主要做了了些参数检查工作，如url，header等字段值的合法性。</p>
-
-<pre><code>	altProto, _ := t.altProto.Load().(map[string]RoundTripper)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	altProto, _ := t.altProto.Load().(map[string]RoundTripper)
 	if altRT := altProto[scheme]; altRT != nil {
 		if resp, err := altRT.RoundTrip(req); err != ErrSkipAltProtocol {
 			return resp, err
 		}
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>接下来RoundTrip方法将在altProto这个atmoic.Value类型的变量中取出一个值，并且将它转换为一个map。其中这个map的value就是一个实现了RoundTrip方法的对象。altProto看起来是Transport这个类型对象中的一个成员，它是atomic.Value类型，里面存储了一个map，注册和请求协议相对应的RoundTrip方法。如果之前已经对某个协议指定了处理使用该协议发送请求的方法，那么在这里就会直接调用RoundTrip方法进行处理。</p>
 
 <p>如果没有已经事先准备好的RoundTrip方法，那么就需要客户端先与服务端建立tcp连接，以便之后的通信。</p>
-
-<pre><code>		// Get the cached or newly-created connection to either the
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">		// Get the cached or newly-created connection to either the
 		// host (for http or https), the http proxy, or the http proxy
-		// pre-CONNECTed to https server. In any case, we'll be ready
+		// pre-CONNECTed to https server. In any case, we&#39;ll be ready
 		// to send it requests.
 		pconn, err := t.getConn(treq, cm)
 		if err != nil {
 			t.setReqCanceler(req, nil)
 			req.closeBody()
 			return nil, err
-		}
-</code></pre>
-
+		}</pre></td></tr></table>
+</div>
+</div>
 <p>RoundTrip方法中，transport对象调用了getConn方法，这个方法获取一条连接，这条连接可能是之前请求处理完空闲等待使用的，也有可能是新建立的。</p>
-
-<pre><code>func (t *Transport) getConn(treq *transportRequest, cm connectMethod) (*persistConn, error) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (t *Transport) getConn(treq *transportRequest, cm connectMethod) (*persistConn, error) {
 	req := treq.Request
 	trace := treq.trace
 	ctx := req.Context()
@@ -395,12 +550,51 @@ IdleConnTimeout time.Duration
 	}
 	
 	...
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>getConn函数一进来就先调用getIdleConn去获取已经建立但是目前闲置的链接。</p>
-
-<pre><code>func (t *Transport) getIdleConn(cm connectMethod) (pconn *persistConn, idleSince time.Time) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (t *Transport) getIdleConn(cm connectMethod) (pconn *persistConn, idleSince time.Time) {
 	key := cm.key()
 	t.idleMu.Lock()
 	defer t.idleMu.Unlock()
@@ -429,15 +623,15 @@ IdleConnTimeout time.Duration
 		}
 		if pconn.idleTimer != nil &amp;&amp; !pconn.idleTimer.Stop() {
 			// We picked this conn at the ~same time it
-			// was expiring and it's trying to close
-			// itself in another goroutine. Don't use it.
+			// was expiring and it&#39;s trying to close
+			// itself in another goroutine. Don&#39;t use it.
 			continue
 		}
 		return pconn, pconn.idleAt
 	}
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>在getIdleConn函数内将运行一个死循环，循环内部会在idleConn这个map内根据connectMethod类型内的一些和请求有关的信息，找到一条满足条件的链接返回给外部使用。</p>
 
 <ol>
@@ -450,8 +644,72 @@ IdleConnTimeout time.Duration
 <p>无论是在调用getIdleConn之前还是之后，都会看到一个ClientTrace类型的变量trace来调用GetConn和GotConn。其实ClientTrace这个类型里面的成员以及方法都是对一个请求具有钩子功能的，其内部的成员和方法可以用来时刻跟踪一个请求在真正发送给服务端之前的各种情况。如果成功获取到空闲的网络连接之后，还将调用setReqCanceler函数，它将设置和本次请求有关的一个取消函数以便在之后可以有效检查一个req是否已经被取消处理。</p>
 
 <p>如果getIdleConn函数成功获取到一个空闲链接，那么getConn函数将返回这个链接以供外面使用。如果没有获取到合适的空闲链接，那么接下来的逻辑将会创建一条新的链接。</p>
-
-<pre><code>	cancelc := make(chan error, 1)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	cancelc := make(chan error, 1)
 	t.setReqCanceler(req, func(err error) { cancelc &lt;- err })
 
 	go func() {
@@ -484,14 +742,14 @@ IdleConnTimeout time.Duration
 			}
 			return nil, err
 		default:
-			// It wasn't an error due to cancelation, so
+			// It wasn&#39;t an error due to cancelation, so
 			// return the original error message:
 			return nil, v.err
 		}
 	case pc := &lt;-idleConnCh:
 		// Another request finished first and its net.Conn
 		// became available before our dial. Or somebody
-		// else's dial that they didn't use.
+		// else&#39;s dial that they didn&#39;t use.
 		// But our dial is still going, so give it away
 		// when it finishes:
 		handlePendingDial()
@@ -511,14 +769,49 @@ IdleConnTimeout time.Duration
 			err = errRequestCanceledConn
 		}
 		return nil, err
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>可以看出，再创建新的链接时候，主要是靠dialConn这个函数，在一个goroutine里面调用它之后，利用select语句来等待处理建立链接过程当中的各种情况。这里是阻塞的，因为select的case都是阻塞的channel在等待接受到来的值。当链接顺利建立完成的之后，dialc这个channel将会接收到一个值，因此将会命中select的第一个case。如果其接收到的值当中的persistConn类型的成员部位nil那么就应该返回它，一个新的网络链接就已经建立好了。</p>
 
 <p>那么接下来，我们就来看一下dialConn函数都做了些什么：</p>
-
-<pre><code>pconn := &amp;persistConn{
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">pconn := &amp;persistConn{
 		t:             t,
 		cacheKey:      cm.key(),
 		reqch:         make(chan requestAndChan, 1),
@@ -528,15 +821,15 @@ IdleConnTimeout time.Duration
 		writeLoopDone: make(chan struct{}),
 	}
 	trace := httptrace.ContextClientTrace(ctx)
-	tlsDial := t.DialTLS != nil &amp;&amp; cm.targetScheme == &quot;https&quot; &amp;&amp; cm.proxyURL == nil
+	tlsDial := t.DialTLS != nil &amp;&amp; cm.targetScheme == &#34;https&#34; &amp;&amp; cm.proxyURL == nil
 	if tlsDial {
 		...
 	} else {
-		conn, err := t.dial(ctx, &quot;tcp&quot;, cm.addr())
+		conn, err := t.dial(ctx, &#34;tcp&#34;, cm.addr())
 		if err != nil {
 			if cm.proxyURL != nil {
 				// Return a typed error, per Issue 16997:
-				err = &amp;net.OpError{Op: &quot;proxyconnect&quot;, Net: &quot;tcp&quot;, Err: err}
+				err = &amp;net.OpError{Op: &#34;proxyconnect&#34;, Net: &#34;tcp&#34;, Err: err}
 			}
 			return nil, err
 		}
@@ -549,16 +842,36 @@ IdleConnTimeout time.Duration
 	pconn.bw = bufio.NewWriter(persistConnWriter{pconn})
 	go pconn.readLoop()
 	go pconn.writeLoop()
-	return pconn, nil
-</code></pre>
-
+	return pconn, nil</pre></td></tr></table>
+</div>
+</div>
 <p>在不考虑https和代理的情况下，dialConn函数首先会通过t.dial函数建立一个网络链接。之后，通过bufio.NewReader和bufio.NewWriter分别初始化了persistConn类型对象内的br和bw成员。这两个成员一个负责从连接中读取数据，另外一个负责向链接中写入数据。接下来启动两个goroutine，运行读循环和写循环。</p>
 
 <p>暂时不关心读写循环中做的事情，链接建立之后，回到RoundTrip函数中.</p>
 
 <p>如果新的链接已经创建好了，那么我们就会拿到一个persistConn类型的连接对象。如果此次http通信的请求还是建立在1.1的版本上的话，就会调用persistConn类型对象的roundTrip函数。</p>
-
-<pre><code>		pconn, err := t.getConn(treq, cm)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">		pconn, err := t.getConn(treq, cm)
 		if err != nil {
 			t.setReqCanceler(req, nil)
 			req.closeBody()
@@ -574,9 +887,9 @@ IdleConnTimeout time.Duration
 			resp, err = pconn.roundTrip(treq)
 		}
 		if err == nil {
-			
-</code></pre>
-
+			</pre></td></tr></table>
+</div>
+</div>
 <p>到目前为止，尽管这一路看下来其中的逻辑比较复杂，又是空闲链接，又是读写循环的。但是我们在看这部分源码的时候，要始终记住一条线。客户端与服务端建立链接，在次连接上发送请求，从此链接上获取请求响应。那么到目前为止，客户端已经与服务端建立了一个连接了，接下来就是在这条连接上进行Http的通信。那么发送请求和接收响应的的逻辑主要就是在roundTrip这个方法内了。因为我们可以清楚的看到，这个方法传进去一个request，返回一个response.</p>
 
 <blockquote>
@@ -584,8 +897,75 @@ IdleConnTimeout time.Duration
 </blockquote>
 
 <p>roundTrip方法内具体是怎么做的，我们跟进去看看。</p>
-
-<pre><code>func (pc *persistConn) roundTrip(req *transportRequest) (resp *Response, err error) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (pc *persistConn) roundTrip(req *transportRequest) (resp *Response, err error) {
 	....
 	writeErrCh := make(chan error, 1)
 	pc.writech &lt;- writeRequest{req, writeErrCh, continueCh}
@@ -613,7 +993,7 @@ WaitResponse:
 					err = cerr
 				}
 				re = responseAndError{err: err}
-				pc.close(fmt.Errorf(&quot;write error: %v&quot;, err))
+				pc.close(fmt.Errorf(&#34;write error: %v&#34;, err))
 				break WaitResponse
 			}
 			if d := pc.t.ResponseHeaderTimeout; d &gt; 0 {
@@ -645,15 +1025,29 @@ WaitResponse:
 		pc.t.setReqCanceler(req.Request, nil)
 	}
 	if (re.res == nil) == (re.err == nil) {
-		panic(&quot;internal error: exactly one of res or err should be set&quot;)
+		panic(&#34;internal error: exactly one of res or err should be set&#34;)
 	}
 	return re.res, re.err
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>roundTrip方法前面做了很多检查参数，以及我根本看不到为啥要这么做的逻辑。暂时先忽略，我们要关注的还是核心的发送请求和接收响应的逻辑。所以，我们需要额外注意两行代码：</p>
-
-<pre><code>	writeErrCh := make(chan error, 1)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	writeErrCh := make(chan error, 1)
 	pc.writech &lt;- writeRequest{req, writeErrCh, continueCh}
 
 	resc := make(chan responseAndError)
@@ -663,22 +1057,57 @@ WaitResponse:
 		addedGzip:  requestedGzip,
 		continueCh: continueCh,
 		callerGone: gone,
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>上面这段代码看起来很普通，但是确实开启发请求和读相应的重要部分。代码对pc.writech和pc.reqch两个channel进行了赋值操作。在go语言中，对阻塞性的channel赋值，往往都意味着gorountine之间的通信。那么这两个管道的两段究竟链接了哪些goroutine呢？</p>
 
 <p>通过查看这两个channel的定义我们就一目了然了：</p>
-
-<pre><code>	reqch     chan requestAndChan // written by roundTrip; read by readLoop
-	writech   chan writeRequest   // written by roundTrip; read by writeLoop
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	reqch     chan requestAndChan // written by roundTrip; read by readLoop
+	writech   chan writeRequest   // written by roundTrip; read by writeLoop</pre></td></tr></table>
+</div>
+</div>
 <p>这两个channel，正是连接了之前在dialConn函数内开启的两个读写goroutine以及我们目前所看到的roundTrip方法所在的goroutine。这么一看，貌似和之前看到的东西一下子就串起来了。所以说再看源码的时候，不要死磕一个地方，往往你顺着一条线接着向后看看，自然而然的就能够领会到作者这么实现的精妙之处。</p>
 
 <p>看起来，这一个读goroutine和一个写goroutine都是运行在这条前面所建立的连接上的。猜测一下，读循环负责从连接上读取服务端返回的resp，写循环负责将req传递给服务端。带着这个猜想，我们可以来看看读写goroutine的实现了。</p>
-
-<pre><code>func (pc *persistConn) writeLoop() {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (pc *persistConn) writeLoop() {
 	defer close(pc.writeLoopDone)
 	for {
 		select {
@@ -704,9 +1133,9 @@ WaitResponse:
 			return
 		}
 	}
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>从上面的代码中我们可以看出，pc.writech这个用于写循环的管道在接收了roundtrip方法对其的赋值操作后，有三个关键的操作。</p>
 
 <ol>
@@ -720,13 +1149,20 @@ WaitResponse:
 <p>既然writech.ch这个成员是为了通知外部的roundTrip方法的，那么writeErrCh这个channel又是用来做什么的呢？首先，在看channel作用的时候，还是要遵守一个原则，channel肯定是连接了两个goroutine。那么这两个goroutine是哪两个呢？查看这个channel的引用我们就可以看到，在readLoop中，我们会调用一个wroteRequest的方法，这个方法内会接受writeErrch这个channel所发送过来的消息。也就是说这个channel是负责链接writeloop和readloop这两个gorountine的。</p>
 
 <p>其次，我们要看下这个channel的定义，它连接读写循环的gorountine具体起了什么作用。</p>
-
-<pre><code>	// writeErrCh passes the request write error (usually nil)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	// writeErrCh passes the request write error (usually nil)
 	// from the writeLoop goroutine to the readLoop which passes
 	// it off to the res.Body reader, which then uses it to decide
-	// whether or not a connection can be reused. Issue 7569.
-</code></pre>
-
+	// whether or not a connection can be reused. Issue 7569.</pre></td></tr></table>
+</div>
+</div>
 <p>源码中的注释说，writeErrCh这个channel，是为了能将请求写入的错误从写循环的goroutine中传递到读循环的goroutine中，以此来判定目前的这条连接是否可用，如果在这条连接上写入数据的时候都出错了，那么想在这条连接读数据也会有问题。
 看完了写循环中的几个关键操作，那么是时候先跟着wr.ch的脚步，回到外层的roundTrip中了。</p>
 
@@ -734,8 +1170,35 @@ WaitResponse:
 基本上writeloop所做的事情就是这样。下面让我们来看下readloop。</p>
 
 <p>在看readLoop的时候，我们可以换一个思路，这次先看roundTrip方法对读循环channel的监控情况。roundTrip在select中监控了传递给readloop的pc.reqch这个变量里面的ch成员，也就是resc这个channel。可以看出，在成功接收了这个channel返回回来的response之后，roundTrip的任务就完成了，如果期间没有发生任何错误的话，那么这个response就会返回给这个客户端的调用者。</p>
-
-<pre><code>	for alive {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	for alive {
 		pc.readLimit = pc.maxHeaderResponseSize()
 		_, err := pc.br.Peek(1)
 
@@ -758,24 +1221,34 @@ WaitResponse:
 			closeErr = err
 		}
 	...
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>读循环中的关键逻辑如上，在readLoop中起了循环，起循环的前提条件是通信的这条连接的是活跃的。也就是通过alive来判断的。运行到rc := &lt;- pc.reqch这一句的时候，如果pc.reqch这个channel如果还没有接受到数据的时候，会在这里卡住。当外层的roundTrip方法向这个channel发送数据的时候，rc接收到数据，开始进入pc.readResponse的逻辑，这个逻辑就是从连接中读取响应数据的关键。</p>
 
 <p>在pc.readResponse这个方法里，会调用一个同名的大写方法resp, err = ReadResponse(pc.br, rc.req)。这个方法将会从pc.br这个*bufio.Reader类型的对象内，不断的读取response的内容。先逐行的将Http响应的头部的基本信息都解析出来，最后通过readTransfer函数将body以及其他的响应信息都解析出来。</p>
 
 <p>解析完服务端发回来的响应之后，</p>
-
-<pre><code>	if resp.StatusCode == 100 {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	if resp.StatusCode == 100 {
 		pc.readLimit = pc.maxHeaderResponseSize() // reset the limit
 		resp, err = ReadResponse(pc.br, rc.req)
 		if err != nil {
 			return
 		}
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>go还会检查一下服务端吐出来的statusCode是否是100，如果是100就要继续去读取真正的响应，并且把读取数据的长度限制重置。这里要请求一点的时候，为什么接收到100的状态码之后，客户端仅仅只是继续去读接下来的响应而不是再发一次请求，是因为我们的写循环已经一次性把请求的内容都传递给服务端了。不存在先发送100-continue的请求测试服务端然后再处理的情况。</p>
 
 <p>获取并解析完body之后，readLoop中会发分几种情况来处理这个响应。</p>

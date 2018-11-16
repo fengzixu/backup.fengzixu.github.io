@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-03-09T19:41:34&#43;00:00" />
 <meta itemprop="dateModified" content="2017-03-09T19:41:34&#43;00:00" />
-<meta itemprop="wordCount" content="2557">
+<meta itemprop="wordCount" content="2672">
 
 
 
@@ -225,119 +225,227 @@
 <h1 id="recursive-display">Recursive display</h1>
 
 <p>先来看看我实现的递归输出任意类型内容的demo</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span><span class="lnt">83
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"><span class="kn">package</span> <span class="nx">main</span>
 
-<pre><code>package main
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;fmt&#34;</span>
+	<span class="s">&#34;reflect&#34;</span>
+	<span class="s">&#34;strconv&#34;</span>
+<span class="p">)</span>
 
-import (
-	&quot;fmt&quot;
-	&quot;reflect&quot;
-	&quot;strconv&quot;
-)
+<span class="kd">func</span> <span class="nf">display</span><span class="p">(</span><span class="nx">path</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">v</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Value</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">switch</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Kind</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Invalid</span><span class="p">:</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%s = invalid\n&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">)</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Slice</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Array</span><span class="p">:</span>
+		<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Len</span><span class="p">();</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+			<span class="nf">display</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s[%d]&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">,</span> <span class="nx">i</span><span class="p">),</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Index</span><span class="p">(</span><span class="nx">i</span><span class="p">))</span>
+		<span class="p">}</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Struct</span><span class="p">:</span>
+		<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">v</span><span class="p">.</span><span class="nf">NumField</span><span class="p">();</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+			<span class="nf">display</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s.%s&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Type</span><span class="p">().</span><span class="nf">Field</span><span class="p">(</span><span class="nx">i</span><span class="p">).</span><span class="nx">Name</span><span class="p">),</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="nx">i</span><span class="p">))</span>
+		<span class="p">}</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Map</span><span class="p">:</span>
+		<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">key</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">v</span><span class="p">.</span><span class="nf">MapKeys</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nf">display</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s[%s]&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">,</span> <span class="nf">formatAtom</span><span class="p">(</span><span class="nx">key</span><span class="p">)),</span> <span class="nx">v</span><span class="p">.</span><span class="nf">MapIndex</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span>
+		<span class="p">}</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Ptr</span><span class="p">:</span>
+		<span class="k">if</span> <span class="nx">v</span><span class="p">.</span><span class="nf">IsNil</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%s = nil\n&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">)</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			<span class="nf">display</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;(*%s)&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">),</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Elem</span><span class="p">())</span>
+		<span class="p">}</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Interface</span><span class="p">:</span>
+		<span class="k">if</span> <span class="nx">v</span><span class="p">.</span><span class="nf">IsNil</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%s = nil\n&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">)</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%s.type = %s\n&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Elem</span><span class="p">().</span><span class="nf">Type</span><span class="p">())</span>
+			<span class="nf">display</span><span class="p">(</span><span class="nx">path</span><span class="o">+</span><span class="s">&#34;.Value&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Elem</span><span class="p">())</span>
+		<span class="p">}</span>
+	<span class="k">default</span><span class="p">:</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%s = %s\n&#34;</span><span class="p">,</span> <span class="nx">path</span><span class="p">,</span> <span class="nf">formatAtom</span><span class="p">(</span><span class="nx">v</span><span class="p">))</span>
+	<span class="p">}</span>
+<span class="p">}</span>
 
-func display(path string, v reflect.Value) {
-	switch v.Kind() {
-	case reflect.Invalid:
-		fmt.Printf(&quot;%s = invalid\n&quot;, path)
-	case reflect.Slice, reflect.Array:
-		for i := 0; i &lt; v.Len(); i++ {
-			display(fmt.Sprintf(&quot;%s[%d]&quot;, path, i), v.Index(i))
-		}
-	case reflect.Struct:
-		for i := 0; i &lt; v.NumField(); i++ {
-			display(fmt.Sprintf(&quot;%s.%s&quot;, path, v.Type().Field(i).Name), v.Field(i))
-		}
-	case reflect.Map:
-		for _, key := range v.MapKeys() {
-			display(fmt.Sprintf(&quot;%s[%s]&quot;, path, formatAtom(key)), v.MapIndex(key))
-		}
-	case reflect.Ptr:
-		if v.IsNil() {
-			fmt.Printf(&quot;%s = nil\n&quot;, path)
-		} else {
-			display(fmt.Sprintf(&quot;(*%s)&quot;, path), v.Elem())
-		}
-	case reflect.Interface:
-		if v.IsNil() {
-			fmt.Printf(&quot;%s = nil\n&quot;, path)
-		} else {
-			fmt.Printf(&quot;%s.type = %s\n&quot;, path, v.Elem().Type())
-			display(path+&quot;.Value&quot;, v.Elem())
-		}
-	default:
-		fmt.Printf(&quot;%s = %s\n&quot;, path, formatAtom(v))
-	}
-}
+<span class="kd">func</span> <span class="nf">formatAtom</span><span class="p">(</span><span class="nx">v</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Value</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+	<span class="k">switch</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Kind</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Int</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Int64</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Int8</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Int32</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Int16</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">FormatInt</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Int</span><span class="p">(),</span> <span class="mi">10</span><span class="p">)</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">String</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">Quote</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">String</span><span class="p">())</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Bool</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">FormatBool</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Bool</span><span class="p">())</span>
+	<span class="k">case</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Chan</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Func</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Type</span><span class="p">().</span><span class="nf">String</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#34;0x&#34;</span> <span class="o">+</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">FormatUint</span><span class="p">(</span><span class="nb">uint64</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Pointer</span><span class="p">()),</span> <span class="mi">16</span><span class="p">)</span>
+	<span class="k">default</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Type</span><span class="p">().</span><span class="nf">String</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#34; value&#34;</span>
 
-func formatAtom(v reflect.Value) string {
-	switch v.Kind() {
-	case reflect.Int, reflect.Int64, reflect.Int8, reflect.Int32, reflect.Int16:
-		return strconv.FormatInt(v.Int(), 10)
-	case reflect.String:
-		return strconv.Quote(v.String())
-	case reflect.Bool:
-		return strconv.FormatBool(v.Bool())
-	case reflect.Chan, reflect.Func:
-		return v.Type().String() + &quot;0x&quot; + strconv.FormatUint(uint64(v.Pointer()), 16)
-	default:
-		return v.Type().String() + &quot; value&quot;
+	<span class="p">}</span>
+<span class="p">}</span>
 
-	}
-}
+<span class="kd">type</span> <span class="nx">A</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">Domain</span>     <span class="kt">string</span>
+	<span class="nx">StateSlice</span> <span class="p">[]</span><span class="kt">string</span>
+	<span class="nx">LineMap</span>    <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span>
+	<span class="nx">Ptr</span>        <span class="o">*</span><span class="kt">int</span>
+	<span class="nx">Inter</span>      <span class="kd">interface</span><span class="p">{}</span>
+<span class="p">}</span>
 
-type A struct {
-	Domain     string
-	StateSlice []string
-	LineMap    map[string]int
-	Ptr        *int
-	Inter      interface{}
-}
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">m</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span><span class="p">)</span>
+	<span class="nx">m</span><span class="p">[</span><span class="s">&#34;fuck&#34;</span><span class="p">]</span> <span class="p">=</span> <span class="mi">2</span>
+	<span class="nx">m</span><span class="p">[</span><span class="s">&#34;you&#34;</span><span class="p">]</span> <span class="p">=</span> <span class="mi">1</span>
+	<span class="nx">p</span> <span class="o">:=</span> <span class="mi">3</span>
+	<span class="nx">i</span> <span class="o">:=</span> <span class="mi">4</span>
+	<span class="nx">a</span> <span class="o">:=</span> <span class="nx">A</span><span class="p">{</span>
+		<span class="nx">Domain</span><span class="p">:</span>     <span class="s">&#34;xuran.qbox.net&#34;</span><span class="p">,</span>
+		<span class="nx">StateSlice</span><span class="p">:</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;a&#34;</span><span class="p">,</span> <span class="s">&#34;b&#34;</span><span class="p">,</span> <span class="s">&#34;c&#34;</span><span class="p">,</span> <span class="s">&#34;d&#34;</span><span class="p">},</span>
+		<span class="nx">LineMap</span><span class="p">:</span>    <span class="nx">m</span><span class="p">,</span>
+		<span class="nx">Ptr</span><span class="p">:</span>        <span class="o">&amp;</span><span class="nx">p</span><span class="p">,</span>
+		<span class="nx">Inter</span><span class="p">:</span>      <span class="nx">i</span><span class="p">,</span>
+	<span class="p">}</span>
 
-func main() {
-	m := make(map[string]int)
-	m[&quot;fuck&quot;] = 2
-	m[&quot;you&quot;] = 1
-	p := 3
-	i := 4
-	a := A{
-		Domain:     &quot;xuran.qbox.net&quot;,
-		StateSlice: []string{&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;},
-		LineMap:    m,
-		Ptr:        &amp;p,
-		Inter:      i,
-	}
-
-	display(&quot;a&quot;, reflect.ValueOf(a))
-	return
-}
-
-</code></pre>
-
+	<span class="nf">display</span><span class="p">(</span><span class="s">&#34;a&#34;</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">a</span><span class="p">))</span>
+	<span class="k">return</span>
+<span class="p">}</span></pre></td></tr></table>
+</div>
+</div>
 <p>运行结果如下</p>
-
-<pre><code>a.StateSlice[1] = &quot;b&quot;
-a.StateSlice[2] = &quot;c&quot;
-a.StateSlice[3] = &quot;d&quot;
-a.LineMap[&quot;fuck&quot;] = 2
-a.LineMap[&quot;you&quot;] = 1
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">a.StateSlice[1] = &#34;b&#34;
+a.StateSlice[2] = &#34;c&#34;
+a.StateSlice[3] = &#34;d&#34;
+a.LineMap[&#34;fuck&#34;] = 2
+a.LineMap[&#34;you&#34;] = 1
 (*a.Ptr) = 3
 a.Inter.type = int
-a.Inter.Value = 4
-</code></pre>
-
+a.Inter.Value = 4</pre></td></tr></table>
+</div>
+</div>
 <p>实现的逻辑还是非常简单的，但是使用golang的反射一定要小心小心再小心，因为reflect.Value虽然有很多方法可以调用，但是并不是每个都像String方法那么友好，对于内部包含了某种特定动态类型的reflect.Value值使用一些不恰当的方法的时候，是很有可能会直接panic的。我实现的版本中在调用特定的方法之前都利用kind()配合switch/case检查了reflect.Value类型数据所包含的动态类型是否支持我要做的操作，比如display函数中对Slice类型单个元素的操作，如果我没有检查，对一个内置动态类型为string的reflect.Value数据使用了index方法，那么就会导致panic。文档中对于Index这个函数式这样描述的：</p>
-
-<pre><code>Index returns v's i'th element. It panics if v's Kind is not Array, Slice, or String or i is out of range.
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">Index returns v&#39;s i&#39;th element. It panics if v&#39;s Kind is not Array, Slice, or String or i is out of range.</pre></td></tr></table>
+</div>
+</div>
 <p>对于reflect.Value类型，文档也有相应的描述</p>
-
-<pre><code>Value is the reflection interface to a Go value.
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">Value is the reflection interface to a Go value.
 Not all methods apply to all kinds of values. Restrictions, 
 if any, are noted in the documentation for each method.
 Use the Kind method to find out the kind of value before
-calling kind-specific methods. Calling a method inappropriate to the kind of type causes a run time panic.
-</code></pre>
-
+calling kind-specific methods. Calling a method inappropriate to the kind of type causes a run time panic.</pre></td></tr></table>
+</div>
+</div>
 <p>可见，golang文档中对于reflect.Value方法的使用也倾向于先使用Kind来确定类型在操作这种形式。</p>
 
 <p>在实现的时候，需要注意以下几点：
@@ -348,47 +456,80 @@ calling kind-specific methods. Calling a method inappropriate to the kind of typ
 <h2 id="对递归实现的一些思考">对递归实现的一些思考</h2>
 
 <p>reflect中的zero value和golang中普通的zero value值是不一样的， 一般来讲普通的zero value指的是特定类型的默认值，如int是0，string是&rdquo;&ldquo;。reflect.ValueOf的文档描述中，有这样的解释：</p>
-
-<pre><code>ValueOf returns a new Value initialized to the concrete value stored in the 
-interface i. ValueOf(nil) returns the zero Value.
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">ValueOf returns a new Value initialized to the concrete value stored in the 
+interface i. ValueOf(nil) returns the zero Value.</pre></td></tr></table>
+</div>
+</div>
 <p>也就是说，ValueOf通过传进来的interface值内部的动态类型的值初始化创建一个reflect.Value,如果传递进来的interface的值本身就为nil，而不是interface内部动态类型值为nil，那么valueOf出来的结果就是reflect中的zero value.他的类型应该是Invalid。对于zero value的reflect.Value值，除了调用Kind和String两个方法之外，其余的方法都会造成panic。</p>
 
 <p>测试代码如下</p>
-
-<pre><code>	var haha *int
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	var haha *int
 	//haha = nil
 	fmt.Println(reflect.ValueOf(haha).IsValid()) true
 	fmt.Println(reflect.ValueOf(haha)) &lt;nil&gt;
 	var hehe interface{}
-	fmt.Println(reflect.ValueOf(hehe).IsValid() false
-</code></pre>
-
+	fmt.Println(reflect.ValueOf(hehe).IsValid() false</pre></td></tr></table>
+</div>
+</div>
 <p>通过上面的代码就可以看出，valueof一个包含了指向nil的指针的interface值得到的reflect.Value是非zero value，但是valueof一个值为nil的interface变量就是 zero value。</p>
 
 <p>仔细思考过上面代码的同学就可以看出一些额外的端倪，当我们在处理a.Inter的时候，看程序的执行结果是命中了reflect.Interface的case。但是假设我们现在写这样的两行代码：</p>
-
-<pre><code>	var ff interface{} = 3
-	fmt.Println(reflect.Value(ff).Kind())
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	var ff interface{} = 3
+	fmt.Println(reflect.Value(ff).Kind())</pre></td></tr></table>
+</div>
+</div>
 <p>输出的结果却是int。返回来看之前valueOf函数的说明是可以得出一些线索的。valueof构造出来的reflect.Value和field(i)构造出来的reflect.Value调用kind的方法得出的结果并不是一致的。即使看起来两个reflect.Value都是通过一个interface的值构造出来的。虽然现在还不能明确搞清楚其中的原因，但是直觉上我觉得，valueof是通过interface包含的动态类型的值来构造reflect.Value的，虽然valueof接受的是一个Interface，但实际上却用了Interface内包含的3，field(4)返回的仅仅是Inter这个interface类型的变量。所以他的kind是reflect.Interface,如果再向下递归查找，就可以得出和上面一样的结果。</p>
-
-<pre><code>	fmt.Println(reflect.ValueOf(a).Field(4).Kind()) // interface
-	fmt.Println(reflect.ValueOf(a).Field(4).Elem().Kind() // int
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	fmt.Println(reflect.ValueOf(a).Field(4).Kind()) // interface
+	fmt.Println(reflect.ValueOf(a).Field(4).Elem().Kind() // int</pre></td></tr></table>
+</div>
+</div>
 <p>再举一个例子来说明上面的情况</p>
-
-<pre><code>	var i interface{} = 3
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	var i interface{} = 3
 	fmt.Println(reflect.ValueOf(i).Kind()) //int
 	
 	fmt.Println(reflect.ValueOf(&amp;i).Kind()) //ptr
 	fmt.Println(reflect.ValueOf(&amp;i).Elem().Kind()) //interface
-	fmt.Println(reflect.ValueOf(&amp;i).Elem().Elem().Kind()) //int
-</code></pre>
-
+	fmt.Println(reflect.ValueOf(&amp;i).Elem().Elem().Kind()) //int</pre></td></tr></table>
+</div>
+</div>
 <p>可见valueOf这个函数会像剥洋葱一样，一层一层的递归查找下去，而不是一下子就找到最底层的类型来创建reflect.Value类型的值。</p>
 
 <h1 id="本文代码">本文代码</h1>

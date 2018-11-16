@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-08-14T15:45:25&#43;08:00" />
 <meta itemprop="dateModified" content="2018-08-14T15:45:25&#43;08:00" />
-<meta itemprop="wordCount" content="5382">
+<meta itemprop="wordCount" content="5392">
 
 
 
@@ -360,16 +360,26 @@
 <p><img src="http://o6sfmikvw.bkt.clouddn.com/steal.jpg" alt="golang idle model" /></p>
 
 <p>一个更加通用的调度过程的描述如下：</p>
-
-<pre><code>runtime.schedule() {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">runtime.schedule() {
     // only 1/61 of the time, check the global runnable queue for a G.
     // if not found, check the local queue.
     // if not found,
     //     try to steal from other Ps.
     //     if not, check the global runnable queue.
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>在描述 steady 状态的调度过程的时候，我们提到过老版本的 Go 中没有和 P 绑定的 runable goroutine queue， 而只有一个全局的 gloabl runable goroutine queue。虽然在之后的版本中不再使用锁+全局队列的机制来实现调度器，但它仍然被保存了下来，并且在查找可被调度的 goroutine 时还会被访问到。至于原因，我们会在后面说到。</p>
 
 <h4 id="syscall">syscall</h4>
@@ -409,12 +419,18 @@
 <p>举例来说，在具有1个 M和1个 P的一个程序中，如果正在执行的 M 已经被 syscall block 住，那么仍然需要和 P 数量相同的「Spining Thread」才能够让等待的 runable goroutine 继续执行。所以，在此期间， M 的数量是要多余 P 的数量的（一个 Spinning Thread+一个被 block 住的 thread）。这也就是为什么，当<code>runtime. GOMAXPROCS</code>函数设置的值为1的时候，程序仍然是处于多线程运行的状态的。</p>
 
 <p>根据上面的描述，「Spining Thread」是一个特殊的 M，当一个 M 具有以下几个特点中的一个的时候，它就可以被称作是一个「Spining Thread」：</p>
-
-<pre><code>1. An M with a P assignment is looking for a runnable goroutine.
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">1. An M with a P assignment is looking for a runnable goroutine.
 2. An M without a P assignment is looking for available Ps.
-3. Scheduler also unparks an additional thread and spins it when it is readying a goroutine if there is an idle P and there are no other spinning threads.
-</code></pre>
-
+3. Scheduler also unparks an additional thread and spins it when it is readying a goroutine if there is an idle P and there are no other spinning threads.</pre></td></tr></table>
+</div>
+</div>
 <p>针对一开始我们谈到的两个问题现在也不难给出答案：</p>
 
 <ol>

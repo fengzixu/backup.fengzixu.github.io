@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-08-27T16:00:20&#43;08:00" />
 <meta itemprop="dateModified" content="2018-08-27T16:00:20&#43;08:00" />
-<meta itemprop="wordCount" content="6340">
+<meta itemprop="wordCount" content="6381">
 
 
 
@@ -223,11 +223,16 @@
 </blockquote>
 
 <p>先说明几个这篇 blog 使用的名词</p>
-
-<pre><code>- 「Redis Sentinel」指通过 Sentinel 实现的 Redis 高可用方案
-- 「Sentinel 节点」指 Redis 集群中运行的某一个 Sentinel 节点（redis-server）
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">- 「Redis Sentinel」指通过 Sentinel 实现的 Redis 高可用方案
+- 「Sentinel 节点」指 Redis 集群中运行的某一个 Sentinel 节点（redis-server）</pre></td></tr></table>
+</div>
+</div>
 <p><strong>Q: 什么是「Redis Sentinel」?</strong></p>
 
 <p>Redis Sentinel 是一套「方案」。它能够提升 Redis 集群的可用性，也就是我们常说的「高可用」</p>
@@ -235,25 +240,43 @@
 <p><strong>Q: Sentinel 通过哪些功能可以实现 Redis 集群的「高可用」？</strong></p>
 
 <p>Redis 集群的「高可用」，在我理解，可以分为「用户」和「服务」两个维度进行讨论</p>
-
-<pre><code>- 用户维度
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">- 用户维度
     - Sentinel 通过某些命令可以让用户实时获取当前集群的 Master 节点的地址（Sentinel 会进行故障转移操作）
     - 预设了一些「通知」机制，可以在 Redis 集群内部发生异常的时候通知给集群的维护者或者使用者
 - 服务维度
     - 监控集群中主从节点以及 Sentinel 节点的健康状态
-    - 集群 Master 发生故障时可自动进行「故障转移」操作来恢复集群
-</code></pre>
-
+    - 集群 Master 发生故障时可自动进行「故障转移」操作来恢复集群</pre></td></tr></table>
+</div>
+</div>
 <p>总结下来，这套「高可用」方案既可以保证 Redis 集群自身的健康，同时也在发生故障的时候尽量降低对集群使用者的影响。Redis 的作者对这套高可用方案有着更加清晰的概括</p>
-
-<pre><code>	So the three different roles of Redis Sentinel can be  summarized in the following three big aspects:
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	So the three different roles of Redis Sentinel can be  summarized in the following three big aspects:
 	
 	1. Monitoring.
 	2. Notification.
 	3. Automatic failover.
-		
-</code></pre>
-
+		</pre></td></tr></table>
+</div>
+</div>
 <p><strong>Q: 「Redis Sentinel」将以何种方式实现？</strong></p>
 
 <p>「Redis Sentinel」将通过多个 Sentinel 节点一起合作实现。一个 Sentinel 节点也是一个 redis-server。与普通数据节点不同的是，「Sentinel 节点」将会以特殊的 mode 运行，只接受「Redis Sentinel」 相关的命令。在代码层面上，「Sentinel 节点」和数据节点将会共用很多代码，避免重复实现</p>
@@ -267,18 +290,29 @@
 <p><strong>Q: 以上的服务拓扑关系是如何建立起来的？</strong></p>
 
 <p>以 Sentinel 为起点来说，它需要与整个集群内部所有的节点都建立链接，这些链接有些是用来监控对方的健康状态，有些则是需要获取一些有用的信息。</p>
-
-<pre><code>- Sentinel-&gt;Master: 这条连接被用作 Sentinel 监控 Master。它可以对 Sentinel 节点执行一条命令来建立： `Sentinel monitor &lt;Master-group-name&gt; &lt;ip&gt; &lt;port&gt; &lt;quorum&gt;`
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">- Sentinel-&gt;Master: 这条连接被用作 Sentinel 监控 Master。它可以对 Sentinel 节点执行一条命令来建立： `Sentinel monitor &lt;Master-group-name&gt; &lt;ip&gt; &lt;port&gt; &lt;quorum&gt;`
 - Sentinel-&gt;slaves: 这条连接被用作 Sentinel 监控 slave节点。它通过 Sentinel 节点对 Master 节点执行 `INFO`命令来获取集群中与 mater 节点建立了主从关系的 slave 节点。
-- Master-&gt;slave: Master 和 slave 之间的链接主要用于主从数据同步。这条连接也是通过一条命令建立起来的`SLAVEOF host port`。初始启动时，两个数据节点可能都是以 Master 的身份启动的。此时如果没有特殊需求，可对任意一个 slave 节点执行这条命令，主从节点之间的链接便会成功建立。
-</code></pre>
-
+- Master-&gt;slave: Master 和 slave 之间的链接主要用于主从数据同步。这条连接也是通过一条命令建立起来的`SLAVEOF host port`。初始启动时，两个数据节点可能都是以 Master 的身份启动的。此时如果没有特殊需求，可对任意一个 slave 节点执行这条命令，主从节点之间的链接便会成功建立。</pre></td></tr></table>
+</div>
+</div>
 <p>图中不同 Sentinel 节点之间建立关系的过程要比上面所描述的复杂一些，我们首先来看下 Sentinel 节点之间建立的链接有何作用：</p>
-
-<pre><code>a) 监控除自己之外的 Sentinel 节点 
-b) 在集群发生故障的时候，通过这条连接 Sentinel 节点相互之间要进行通信&amp;合作，从而实现「故障转移」的功能。
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">a) 监控除自己之外的 Sentinel 节点 
+b) 在集群发生故障的时候，通过这条连接 Sentinel 节点相互之间要进行通信&amp;合作，从而实现「故障转移」的功能。</pre></td></tr></table>
+</div>
+</div>
 <p>事实上，Sentinel 节点在启动的时候并不知道它所在的集群中是否还有其他的节点。Sentinel 节点是通过一种消息的「订阅/发布」机制来进行服务发现的。这个 msg 的「集散地」就是 Master 节点，因为在任意一个 Sentinel 节点启动时都只知道 Master 节点的信息（上述监控 Master 节点的 monitor 命令我们一般都会放在 Sentinel 启动的配置文件中）。每一个 Sentinel 在启动之后都会向 Master 节点的一个 channel Pub 一条消息，这条消息的内容包括了 Sentinel 节点自身的信息(runid, IP, port)。除了执行 Pub 操作之外，每个 Sentinel 节点也会订阅（Sub）这个 channel，以便接收其他 Sentinel 节点发送来的消息进行服务发现。</p>
 
 <p><strong>Q: Sentinel 节点是如何监控集群中「其他节点」的呢？</strong></p>
@@ -290,11 +324,16 @@ b) 在集群发生故障的时候，通过这条连接 Sentinel 节点相互之�
 <p>一个 Redis 集群内，往往至少要有三个 Sentinel 节点才能正常的使用它提供的「高可用方案」。通过对上一个问题的了解，我们知道每一个 Sentinel 节点都会对 Master 节点进行监控，从而对他的健康状态做出一个判断。既然是分开判断的，那么肯定会发生判断结果不一致的情况。所以在「Redis Sentinel」 中，将会通过以下几种方式来保证对 Master 节点状态做出的判断是可靠的。</p>
 
 <p>首先，Sentinel 节点将不健康的 Master 状态以较粗的粒度划分为了两类：</p>
-
-<pre><code>- Subjectively Down(aka S_DOWN): 主观下线。顾名思义就是「Master节点已经不健康」的判断仅来源一个 Sentinel 节点，只代表了它自己的观点。
-- Objectively Down(aka O_DOWN): 客观下线。集群中「一定数量」（quorom）的 Sentinel 节点都做出了「Master节点已经不健康」的判断，代表了大部分甚至是全部 Sentinel 节点的观点。
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">- Subjectively Down(aka S_DOWN): 主观下线。顾名思义就是「Master节点已经不健康」的判断仅来源一个 Sentinel 节点，只代表了它自己的观点。
+- Objectively Down(aka O_DOWN): 客观下线。集群中「一定数量」（quorom）的 Sentinel 节点都做出了「Master节点已经不健康」的判断，代表了大部分甚至是全部 Sentinel 节点的观点。</pre></td></tr></table>
+</div>
+</div>
 <blockquote>
 <p>这里需要提及的一点就是：「一定数量」的 Sentinel 节点到底指的是多少个。它其实是一个参数：quorom，可以由 Redis 集群的创建者进行设置的。之前在<a href="http://littledriver.net/posts/redis-Sentinel-explanation-1/">Redis-Sentinel-Explanation</a>一文中有提到过这个参数的意义。</p>
 </blockquote>
@@ -322,23 +361,39 @@ b) 在集群发生故障的时候，通过这条连接 Sentinel 节点相互之�
 <p>首先，既然要选取 Sentinel Leader，那么肯定就需要先确定 Candidate。那究竟什么样的 Sentinel 节点才可以作为 Candidate 呢？很简单，只要是可以连通的 Sentinel 节点都可以作为 Candidate。</p>
 
 <p>在明确了 Candidate 之后，「Redis Sentinel」 将会使用一种「投票」的机制，选出一个 Leader。「投票」机制核心内容是很简单的：所有的 Candidate 都把票投给 runid 最小的那个 Sentinel 节点。如果对 Redis 不熟悉的读者可能在这里会对以下三个问题比较疑惑：</p>
-
-<pre><code>* Q1: runid 是什么？
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">* Q1: runid 是什么？
 * Q2: 多个不同的 Sentinel 节点之间是如何知道彼此的 runid 的？
 * Q3: 选举出来的 leader 如何知道它已经被其他 Sentinel 节点认可了呢？
 
 * A1: runid， IP，port 三个元素将会构成一个三元组，唯一的标识一个集群中正在运行的 Sentinel 节点。runid 在每次节点重启之后都会变化，所以它能够标识正在集群中运行的 Sentinel 节点，而不是旧的。因为 Sentinel 节点的 IP 和 port可能都是不变的，尤其是在物理机运行的时候。
 * A2: 回忆一下 Sentinel 节点如何做服务发现的过程就可以知道，Sentinel 节点向 Master 节点的 channel Pub 消息的时候会带上自己的详细信息，而这些详细信息里面就包括：runid， IP， port。
-* A3: 当集群中的每一个 Sentinel 节点都选出了自己的 Subjective Leader（主观 leader）之后，Sentinel 节点之间还是会每隔 1s 中会相互发送一个`Sentinel is-Master-down-by-addr`命令。每个 Sentinel 节点在回复这个 command 的时候都会带上自己选出的 Subjective Leader的 runid。
-</code></pre>
-
+* A3: 当集群中的每一个 Sentinel 节点都选出了自己的 Subjective Leader（主观 leader）之后，Sentinel 节点之间还是会每隔 1s 中会相互发送一个`Sentinel is-Master-down-by-addr`命令。每个 Sentinel 节点在回复这个 command 的时候都会带上自己选出的 Subjective Leader的 runid。</pre></td></tr></table>
+</div>
+</div>
 <p>当某一个 Sentinel 节点收到了其他 Sentinel 节点的投票结果之后，它接下来会做如下几个判断：</p>
-
-<pre><code>1. 有没有投自己一票 
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">1. 有没有投自己一票 
 2. 至少有 quorom-1个 Sentinel 节点对 Master 节点的状态做出了 O_DOWN 的判定
-3. 至少有 sum(Sentinels) / 2 + 1 个（也就是半数以上）的 Sentinel 节点将票投给了自己
-</code></pre>
-
+3. 至少有 sum(Sentinels) / 2 + 1 个（也就是半数以上）的 Sentinel 节点将票投给了自己</pre></td></tr></table>
+</div>
+</div>
 <p>当上述三个条件全部成立的时候，该 Sentinel 节点将作为 Leader 执行接下来的步骤。</p>
 
 <p>截止到目前为止，「Redis Sentinel」已经确认了 Master 的故障状态，且选举出来了一个 Leader。在真正完成「故障转移」操作之前，Leader 还需要在集群中找出一个合适的 Slave 节点。为什么要找一个 Slave 节点呢？要解释这个问题，就必须提前介绍一下「故障转移」操作的的本质：「切主」。</p>
@@ -350,31 +405,48 @@ b) 在集群发生故障的时候，通过这条连接 Sentinel 节点相互之�
 </blockquote>
 
 <p>可供选择的 Slave Candidate 一般都会具有如下两个条件：</p>
-
-<pre><code>- Slave 节点本身是可正常访问的
-- Slave 节点不能与 Master 节点断开连接时间过长
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">- Slave 节点本身是可正常访问的
+- Slave 节点不能与 Master 节点断开连接时间过长</pre></td></tr></table>
+</div>
+</div>
 <p>其中第一个条件很容易理解，而第二个条件则是保证「切主」后 Master 节点的数据不会过于陈旧。陈旧的数据对于将 Redis 作为缓存来使用的服务会产生较大的影响。对于符合了上述两个条件的 Slave 节点，我们会根据他们的「priority（优先级）」进行排序，选取一个低优先级的节点。priority 相当于每一个 Slave 节点的权重，priority 越低，证明这个节点在集群中的同类节点里权重越大（priority 可以通过 Slave 节点的启动配置文件中的 slave-priority 进行配置）。若有多个节点的 priority 相同的话，Leader 将会选取runid 较小的一个节点。</p>
 
 <p><strong>Q: 「故障转移」都做了些什么？</strong></p>
 
 <p>「故障转移」主要是由 Leader Sentinel 节点来操作的：</p>
-
-<pre><code>1. 对选取出来的 Slave 节点执行`SLAVEOF NO ONE`命令，将这个 Slave 节点提升为 Master 节点
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">1. 对选取出来的 Slave 节点执行`SLAVEOF NO ONE`命令，将这个 Slave 节点提升为 Master 节点
 2. 对集群中余下的 Slave 节点（如果有）按照顺序依次执行`SLAVEOF NEWMaster PORT`命令，尝试重新建立主从节点之间的链接
 3. 调用「监控脚本」（如果有）通知用户当前正在进行「故障转移」
-4. 开始监控新的 Master 节点，将旧的 Master 节点的相关信息从自己的配置文件中删除
-</code></pre>
-
+4. 开始监控新的 Master 节点，将旧的 Master 节点的相关信息从自己的配置文件中删除</pre></td></tr></table>
+</div>
+</div>
 <p><strong>Q: Sentinel Leader 在执行「故障转移」的时候，其余的 Sentinel 节点在做什么？</strong></p>
 
 <p>稍微思考一下就可以知道，对于其他的 Sentinel 节点来说，可能需要做的事情有两件：</p>
-
-<pre><code>1. 观察「故障转移」的执行结果
-2. 重新进行服务发现
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">1. 观察「故障转移」的执行结果
+2. 重新进行服务发现</pre></td></tr></table>
+</div>
+</div>
 <p>Sentinel 节点不再依靠和 Leader 通信来获取「故障转移」的相关信息。由于「故障转移」最终实现的就是一个「切主」的操作，所以其余的Sentinel 节点将会通过观察 Slave 节点的信息来判断「故障转移」的执行情况。接下来，我们统一把这些扮演观察者角色的 Sentinel 节点称作 Observer Sentinel，并了解一下它们在这期间具体都做了些什么：</p>
 
 <p>当 Leader 选中了一个合适的 Slave 节点并想将其提升为新的 Master 节点的时候，它会为这个 Slave 节点打上一个名为<code>FAILOVER_IN_PROGRESS</code>的 flag。Observer Sentinel 将会持续关注所有的 Slave 节点。当其中一个 Slave 节点被提升为 Master 且其余的 Slave 节点都和其建立了新的主从关系之后，Observer Sentinel就认为此时「故障转移」操作已经完成了。「故障转移」完成之后，Leader 会去掉新 Master 节点上<code>FAILOVER_IN_PROGRESS</code>的 flag。而这一些的操作 Observer Sentinel都是非常清楚的。当 Sentinel 节点已经明确了它所要监控的 Master 节点之后，就会很容易的按照我们之前描述的步骤重新建立集群的拓扑结构。至于故障的旧的 Master 节点，我们可以手动或者使用<code>代码</code>将它启动起来，作为 Slave 节点与新的 Master 节点建立主从关系。</p>
@@ -382,11 +454,16 @@ b) 在集群发生故障的时候，通过这条连接 Sentinel 节点相互之�
 <p><strong>Q: 有哪些因素会影响 Sentinel 节点执行「故障转移」？</strong></p>
 
 <p>在对「Redis Sentinel」 这套高可用方案有了一个简单的了解之后，我们可以粗略的归纳出：影响「故障转移」操作正常执行的因素有两个：</p>
-
-<pre><code>- 网络环境
-- Sentinel 节点本身是否健康
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">- 网络环境
+- Sentinel 节点本身是否健康</pre></td></tr></table>
+</div>
+</div>
 <p>因为 Sentinel 节点在执行「故障转移」操作期间会频繁的与其他节点交换信息或者执行一些命令，如果此时网络环境较差，那么将会发生很多不可预期的情况，如脑裂。</p>
 
 <p>除此之外， Sentinel 节点本身的健康状态也是非常重要的。尤其是对于 Leader 节点来说，如果在执行「故障转移」的过程中或者准备执行之前发生了一些异常，那么也将会导致很多非预期的行为。除了 Sentinel 节点间的监控之外，在「Redis Sentinel」 中，每一个 Sentinel 节点会每隔 100ms 运行一个定时任务。这个定时任务主要的内容就是计算一下上一次执行的该任务的时间与目前的时间之间的差值。如果这个差值已经过大或者说已经是负值的话，该 Sentinel 节点将会进入一种「保护模式」——— TILT。在这种模式下，Sentinel 节点除了会执行常规的监控操作之外会暂停所有其他的活动。所以对于「Redis Sentinel」 这套高可用的方案来说，它会尽最大的努力来保证「故障转移」操作的正常执行。</p>

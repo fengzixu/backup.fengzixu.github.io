@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-04-21T21:23:55&#43;08:00" />
 <meta itemprop="dateModified" content="2018-04-21T21:23:55&#43;08:00" />
-<meta itemprop="wordCount" content="1909">
+<meta itemprop="wordCount" content="1915">
 
 
 
@@ -267,15 +267,24 @@
 <blockquote>
 <p>最佳实现2： 当你的请求非常要求时效性，且很耗费资源的时候。如果客户端取消了 gRPC 请求，服务端没必要在进行处理。所以正确的做法是在服务端执行处理请求的逻辑之前检测请求带过来的 context 参数是否已经处于异常状态，如：超时，取消等</p>
 </blockquote>
-
-<pre><code>if ctx.Err() == context.Canceled {
-	return status.New(codepb.CANCELLED, &quot;Client cancelled, abandoning.&quot;)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">if ctx.Err() == context.Canceled {
+	return status.New(codepb.CANCELLED, &#34;Client cancelled, abandoning.&#34;)
 
 if ctx.Err() == context.DeadlineExceeded {
-	return status.New(codepb.DEADLINEEXCEEDED, &quot;Client deadline exceeded.&quot;)
-}
-</code></pre>
-
+	return status.New(codepb.DEADLINEEXCEEDED, &#34;Client deadline exceeded.&#34;)
+}</pre></td></tr></table>
+</div>
+</div>
 <h3 id="如果你的服务经常在功能上需要变动-那么你应该对你服务中的-grpc-请求增加监控">如果你的服务经常在功能上需要变动，那么你应该对你服务中的 gRPC 请求增加监控</h3>
 
 <p>正如我在「什么是一个合适的 Deadline」 一节中提到的那样。如果我们的服务功能经常会有变化，那我们一定要对 gRPC 的请求增加监控，在功能变化的前后要密切注意各项指标，尤其是 gRPC ErrorCode 出现的比例。因为很可能你之前设置的 Deadline 时间是100ms，但是随着服务功能的复杂化，100ms 显然不够用了，这个时候，客户端对于和这个功能有关的请求可能会出现大量的报错。</p>

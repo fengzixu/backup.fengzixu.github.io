@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-03-05T19:40:29&#43;00:00" />
 <meta itemprop="dateModified" content="2017-03-05T19:40:29&#43;00:00" />
-<meta itemprop="wordCount" content="2997">
+<meta itemprop="wordCount" content="3062">
 
 
 
@@ -229,8 +229,31 @@
 <h1 id="0x002">0x002</h1>
 
 <p>一个能体现go反射存在意义的最好的例子就是fmt.Fprintf函数，他接收任意类型的值，包括用户自定义的。然后根据传递进来的值的类型进行格式化，最终返回一个字符串。我们先可以按照它的例子也实现一个简单的Sprint格式化函数。</p>
-
-<pre><code>	type Stringer struct {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	type Stringer struct {
 		String() string
 	}
 	
@@ -240,18 +263,18 @@
 				return x.String()
 			case bool:
 				if x {
-					return &quot;true&quot;
+					return &#34;true&#34;
 				}else {
-					return &quot;false&quot;
+					return &#34;false&#34;
 				}
 			case int:
 				return strconv.Itoa(x)
 			default:
-				return &quot;???&quot;
+				return &#34;???&#34;
 		}
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>我们实现的函数接收一个interface的值，进入函数的逻辑之后，首先x.(type)得到x变量所包含值的具体的动态类型是什么。如果是Stringer类型，那么说明这个类型实现了String方法，可以直接调用。但是对于其他的类型，我们就需要自己来做转换。但是上面函数一个很大的缺陷，就是我们需要去维护那个switch语句，因为只要我们需要去处理不同类型的数据，我们就要在这个switch里面加入相应的case。并且，如果需要处理的类型是我们自定义，亦或是其余第三方包定义的类型，虽然他们的底层类型可能都是一些基础的数据类型，但是case里面的基础类型是不会匹配到底层类型的，而且，如果匹配的是自定义的类型，那么势必这个函数会对很多包产生不必要的依赖。</p>
 
 <p>在使用反射之前，我们貌似没有任何办法去查看未知类型变量的表示。</p>
@@ -261,13 +284,18 @@
 <p>go语言的reflect当中定义了两种非常重要的类型，reflect.Value, reflect.Type。其中reflect.Type可以表示一个具体的go的类型，它实现了很多的方法，可以区分reflect.Type具体包含的是哪种类型的变量，并且还可以检查对应类型一些更详细的信息。reflect.Type的实现细节和Interface类型实现相同，其内部包含了所存储数据具体的动态类型。</p>
 
 <p>reflect包还提供了一个TypeOf方法，这个方法可以接受一个interface的参数，并且以reflect.Type的形式返回这个interface值内所保存数据的动态类型到底是什么。</p>
-
-<pre><code>   t := reflect.TypeOf(3)
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">   t := reflect.TypeOf(3)
    fmt.Println(t.String()) “int”
-   fmt.Println(t) &quot;int&quot;
-
-</code></pre>
-
+   fmt.Println(t) &#34;int&#34;</pre></td></tr></table>
+</div>
+</div>
 <p>在上面代码中，我们将3以隐式转换的形式赋值给TypeOf的interface类型的参数，通过调用TypeOf函数，我们可以得出所传参数具体的golang类型是什么。当我们将3转换成一个interface值的时候，这个interface类型的参数实际上包含了两个重要的信息：</p>
 
 <ol>
@@ -281,12 +309,18 @@
 
 <p>reflect.Value是reflect包中另外一个非常重要的类型,其实reflect.Value和reflect.Type是一样的，reflect.Value可以保存任何类型的数据，
 对应的reflect.ValueOf方法也接受一个Interface{}的值(任意类型的数据)，最后以reflect.Value的形式返回interface变量内包含的动态值。这里需要注意的是，reflect.Value虽然可以从其他任意类型的值转换而来，但是需要通过valueOf这种方法才行，上面说的意思并不代表你可以把任意类型的值直接赋值给reflect.Value类型的变量。</p>
-
-<pre><code>		s := 3
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">		s := 3
 		fmt.Println(reflect.ValueOf(s)) // 3
-		fmt.Println(reflect.ValueOf(s).String()) &lt;int value&gt;
-</code></pre>
-
+		fmt.Println(reflect.ValueOf(s).String()) &lt;int value&gt;</pre></td></tr></table>
+</div>
+</div>
 <p>上面代码通过valueOf得到了s被转换为Interface类型变量后的动态值。第一行直接输出了动态值3，第二行调用String方法却并没有输出3，那是因为int类型并没有实现Stringer接口中的String方法，所以reflect包就返回了这个动态值的类型。
 reflect.Type和refletc.Value虽然都包含了很多的方法，但是这些方法并不是对他们所包含的所有的类型和值都适用。上面的代码就表现了，reflect.Value包含的具体的值并不支持String这个方法。</p>
 
@@ -297,8 +331,40 @@ reflect.Type和refletc.Value虽然都包含了很多的方法，但是这些方�
 <p>最后关于reflect.Value还要提到的一点是，它支持一个名做kind的方法，这个方法将返回一个reflect.Kind的类型值。Kind类型对golang中已有的基础类型做了归类，虽然我们可以在golang使用无数的新类型(这些新类型大多是基础类型的组合)，但是一些基础的类型目前确实有限的，恰恰kind对此做了一层包装。</p>
 
 <p>比如在我们之前实现的sprint函数中，我们可能担心无法处理[]float64,[]string这种类型的变量，但是实际上他们都有一个共同的特点就是使用了slice这种引用类型。kind就把无限的数据类型，归纳到了有限的几个大家公用的基础类型上面。kind内包装的基础类型增长缓慢，即使用了switch也不会造成频繁改动case的问题。</p>
-
-<pre><code>	const (
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	const (
         Invalid Kind = iota
         Bool
         Int
@@ -326,12 +392,25 @@ reflect.Type和refletc.Value虽然都包含了很多的方法，但是这些方�
         String
         Struct
         UnsafePointer
-)
-</code></pre>
-
+)</pre></td></tr></table>
+</div>
+</div>
 <p>所以有了它，我们可以将我们之前实现的sprint函数改动一下</p>
-
-<pre><code>	func Sprint(x relect.Value) string { 
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	func Sprint(x relect.Value) string { 
 		switch x := x.kind(){
 			case reflect.Int, reflect.Int8:
 				...
@@ -340,9 +419,9 @@ reflect.Type和refletc.Value虽然都包含了很多的方法，但是这些方�
 			case reflect.Array, reflect.Slice:
 				...
 		}
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <p>改动之后的版本就非常的清晰了，Kind的出现可以将我们从处理具体类型的泥潭中解救出来，根据一切具体类型都是通过对基本类型的聚合甚至就是基本类型的前提，我们可以对基本类型进行分类，只处理有限的情况。</p>
     </div>
 

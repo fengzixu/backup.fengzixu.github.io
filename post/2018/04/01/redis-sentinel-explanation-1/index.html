@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-04-01T19:49:35&#43;00:00" />
 <meta itemprop="dateModified" content="2018-04-01T19:49:35&#43;00:00" />
-<meta itemprop="wordCount" content="2486">
+<meta itemprop="wordCount" content="2495">
 
 
 
@@ -253,30 +253,49 @@ Sentinel 也是一个小型的分布式系统，在多个 Sentinel Process 的�
 </ol>
 
 <p>一个最基本的 Sentinel 节点启动配置文件如下：</p>
-
-<pre><code>sentinel monitor mymaster 127.0.0.1 6379 2
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">sentinel monitor mymaster 127.0.0.1 6379 2
 sentinel down-after-milliseconds mymaster 60000
 sentinel failover-timeout mymaster 180000
-sentinel parallel-syncs mymaster 1
-</code></pre>
-
-<pre><code>sentinel monitor mymaster 127.0.0.1 6379 2
-</code></pre>
-
+sentinel parallel-syncs mymaster 1</pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">sentinel monitor mymaster 127.0.0.1 6379 2</pre></td></tr></table>
+</div>
+</div>
 <p>你需要为你的 Sentinel 节点指定集群中 Master 节点的地址，端口号，还有一个 quorum 值。这个 quorum 值是和 Sentinel 的健康监测，故障自动处理的功能息息相关的，它的值取决于在你的集群中部署了多少个 Sentinel 节点。具体的作用，我们在之后介绍健康监测和故障自动处理时再来说，此时，你只需要知道，当你最少部署了3个 Sentinel 节点的时候，这个 quorum 值应该为2。</p>
-
-<pre><code>sentinel down-after-milliseconds mymaster 60000
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">sentinel down-after-milliseconds mymaster 60000</pre></td></tr></table>
+</div>
+</div>
 <p>你需要告知 Sentinel 节点，多少时间之后，它监控的实例没反应了，才认为这个实例已经 down 掉了。时间单位为毫秒。Sentinel 通过 Redis 中的 PING 命令去探测其他的 Redis 实例是否正常。当在down-after-milliseconds时间内，对方没有回复 PING 命令，或者回复报错，那么都会认为这个实例已经 down 了。</p>
 
 <blockquote>
 <p>这个值的设置其实还是很关键的，笔者目前没有找到什么最佳实践。因为这个值直接取决于 Sentinel 对故障的敏感度，如果设置的过大，那么可能一些故障要过很久才会被发现，如果设置的过小，那么可能会出现误报的现象。</p>
 </blockquote>
-
-<pre><code>sentinel failover-timeout mymaster 180000
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">sentinel failover-timeout mymaster 180000</pre></td></tr></table>
+</div>
+</div>
 <p>Sentinel 在进行故障自动处理的时候，会设置一个超时时间。也就是说，如果故障自动处理的过程没有在 failover-timeout 规定的时间内完成的话，就认为本次的故障处理已经超时失败了。虽然看起来这是一个全局性的参数，但是它实际上会对 Sentinel 故障转移的各个阶段都会有用。
 首先来梳理一下，Sentinel 发起一个故障转移，都有哪些过程：</p>
 
@@ -297,10 +316,14 @@ sentinel parallel-syncs mymaster 1
 </ol>
 
 <p>最重要的一点：当本次故障转移失败之后，下一次 Sentinel 的故障转移超时时间将会是当前的两倍。</p>
-
-<pre><code>sentinel parallel-syncs mymaster 1
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">sentinel parallel-syncs mymaster 1</pre></td></tr></table>
+</div>
+</div>
 <p>parallel-syncs 值是同一时刻，向 master 节点进行数据同步的 slave 节点个数。parallel-syncs 值的大小，会直接影响到两个方面：
 1. 故障自动处理的时间
 2. 主节点机器的资源负载，从节点的可用性
@@ -309,10 +332,14 @@ sentinel parallel-syncs mymaster 1
 <p>如果从数据复制的层面上来考虑，Redis 数据库在做数据同步的时候，采用的是异步的方式。虽然不会阻塞master，但是多个 slave 同时向 master发起数据同步请求，对 master 所在机器的资源开销是非常大的一个压力。同时，slave 在 load 大量数据的时候，可能会停止对正常命令的响应，外部表现会不可用。所以，parallel-syncs我们一般都设置为1。</p>
 
 <p>最终在启动 Sentinel 的时候，我们使用如下的命令：</p>
-
-<pre><code>redis-server /path/to/sentinel.conf --sentinel
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">redis-server /path/to/sentinel.conf --sentinel</pre></td></tr></table>
+</div>
+</div>
 <h1 id="总结">总结</h1>
 
 <ol>

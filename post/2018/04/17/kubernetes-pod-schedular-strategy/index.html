@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-04-17T14:34:48&#43;00:00" />
 <meta itemprop="dateModified" content="2018-04-17T14:34:48&#43;00:00" />
-<meta itemprop="wordCount" content="1983">
+<meta itemprop="wordCount" content="2029">
 
 
 
@@ -274,8 +274,20 @@
 <p>在使用 PodLabel 的时候，必须要限定 Pod 所在的 Namespace，否则匹配是没有意义的。其次，在 Pod 粒度的调度策略中，可以通过topologyKey（通过 NodeLabel 实现）指定一组 Node，这些 Node 上可能每一台都有与调度策略匹配的 Pod，也可能没有。但是 Pod 都可以调度到这一组的任何一个 Node 上。因为这里强调的可调度 Node 单位不再是一台 Node，而是一组 Node。举例来说：</p>
 
 <p>集群中现在有两个 Node（A， B），他们都有一个 Label 为 kubernetes.io/hostname=abc。 现在 A 上有一个 Pod，label 为 app=poda。此时被调度的 Pod 的调度策略为：</p>
-
-<pre><code>podAffinity:
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">podAffinity:
   requiredDuringSchedulingIgnoredDuringExecution:
   - labelSelector:
       matchExpressions:
@@ -283,9 +295,9 @@
         operator: In
         values:
         - poda
-    topologyKey: kubernetes.io/hostname
-</code></pre>
-
+    topologyKey: kubernetes.io/hostname</pre></td></tr></table>
+</div>
+</div>
 <p>此时这条调度策略可以做如下翻译：</p>
 
 <p>Pod 可以被调度到一组 Node 的任意一个 Node上，当这些 Node 具有 kubernetes.io/hostname Label, 并且与 PodLabel 为 poda 的 Pod 所在 Node 的 kubernetes.io/hostname Label 的值相同。用英文可能更好表述：</p>
@@ -315,8 +327,25 @@
 <p>前提：实例中所用集群Node 数量为3</p>
 
 <h3 id="redis">Redis</h3>
-
-<pre><code>apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
 metadata:
   name: redis-cache
@@ -329,15 +358,40 @@ spec:
     spec:
       containers:
       - name: redis-server
-        image: redis:3.2-alpine
-
-</code></pre>
-
+        image: redis:3.2-alpine</pre></td></tr></table>
+</div>
+</div>
 <p>首先在集群的三个节点上以 Deployment 的方式部署三个 redis 实例，PodLabel 为 app：store</p>
 
 <h3 id="webserver">webServer</h3>
-
-<pre><code>apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">apiVersion: apps/v1beta1 # for versions before 1.6.0 use extensions/v1beta1
 kind: Deployment
 metadata:
   name: web-server
@@ -357,11 +411,11 @@ spec:
                 operator: In
                 values:
                 - store
-            topologyKey: &quot;kubernetes.io/hostname&quot;
+            topologyKey: &#34;kubernetes.io/hostname&#34;
       containers:
-      - name: web-app
-</code></pre>
-
+      - name: web-app</pre></td></tr></table>
+</div>
+</div>
 <p>部署 Webserver 的时候，指定 PodAffinity 调度策略，要求目的 Node 与运行 PodLabel 为 app=store 的 Pod的 Node 在同一个分组，分组标准为kubernetes.io/hostname的 NodeLabel。此时，当被调度 Pod 数小于等于集群 Node 数时，会对策略匹配成功的 Node 节点进行轮询选取。否则，可能会出现多个Pod 被调度到同一个 Node 上的情况。</p>
 
 <p>最终调度结果如下：</p>

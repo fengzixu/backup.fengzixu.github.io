@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-05-03T13:39:17&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-03T13:39:17&#43;08:00" />
-<meta itemprop="wordCount" content="2465">
+<meta itemprop="wordCount" content="2511">
 
 
 
@@ -250,9 +250,30 @@
 <p>日志输出级别上的 Warn 和监控报警级别中的 Warn 显然不是一回事，前者是将输出的日志信息划分等级，以此来帮助我们追查问题和观察程序运行的情况。后者则是用来像我们报告服务的某些指标已经很接近 Error 报警的阈值，提醒我们要注意。并且监控报警中的 Warn 级别也是提倡要善用的，滥用同样会导致噪声。</p>
 
 <p>即使在 logrus 日志工具库中提供了 Warn 日志级别，它的注释中也对这种日志级别定义的比较模糊：</p>
-
-<pre><code class="language-//">
-&gt; Best Practice1: 不要在你的服务中使用 Warn 的日志级别。根据日志输出的性质不同，选择更加明确的日志级别
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-// WarnLevel level. Non-critical entries that deserve eyes.```" data-lang="// WarnLevel level. Non-critical entries that deserve eyes.```"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-// WarnLevel level. Non-critical entries that deserve eyes.```" data-lang="// WarnLevel level. Non-critical entries that deserve eyes.```">&gt; Best Practice1: 不要在你的服务中使用 Warn 的日志级别。根据日志输出的性质不同，选择更加明确的日志级别
 
 
 ## Fatal
@@ -270,10 +291,9 @@
 
 ### 在 Main 中
 
-我们通常看到 Fatal 出现频率最高的地方估计就是启动一个 Server 的时候了：
-
-</code></pre>
-
+我们通常看到 Fatal 出现频率最高的地方估计就是启动一个 Server 的时候了：</code></pre></td></tr></table>
+</div>
+</div>
 <p>s := &amp;http.Server{
     Addr:           &ldquo;:8080&rdquo;,
     Handler:        myHandler,
@@ -282,8 +302,27 @@
     MaxHeaderBytes: 1 &lt;&lt; 20,
 }
 log.Fatal(s.ListenAndServe())</p>
-
-<pre><code>然而启动一个 Server 的逻辑也大都出现在 Main 函数中。
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">然而启动一个 Server 的逻辑也大都出现在 Main 函数中。
 
 所以，如果要使用 Fatal ，也不要在 Library 中进行使用。即使在 Main 函数中，可能还有另外一个问题需要注意----「Gracefully Shutdown」。因为直接调用 `os.Exit` 函数，一些包含在 defer 执行的函数内的「清理」操作就都不会被执行了，所以在使用 Fatal 的时候，要注意一下「Gracefully Shutdown」的问题，尤其是在使用一些第三方的日志工具库的时候。
 
@@ -298,28 +337,46 @@ Error 这个日志级别应该是我们在开发过程中最常使用的。但�
 1. Return the caller
 2. Handle at once
 
-对于第一个选择来说，它绝不意味着下面的代码：
-
-</code></pre>
-
-<pre><code>if err := SayHello(); err != nil {
+对于第一个选择来说，它绝不意味着下面的代码：</pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">if err := SayHello(); err != nil {
     logger.Error(err)
     return err
-}
-</code></pre>
+}</pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">仔细想想上面的这段代码，它的目的是非常不清晰的。如果是想将错误抛给调用者，那么应该直接 `return err`而不是在 return 之前还要用 Error 输出一下错误信息。上面的实现方式，明显是把错误处理和错误返回混合在一起使用了，并且错误处理的方式就是----输出错误信息（(⊙﹏⊙)b。
 
-<pre><code>仔细想想上面的这段代码，它的目的是非常不清晰的。如果是想将错误抛给调用者，那么应该直接 `return err`而不是在 return 之前还要用 Error 输出一下错误信息。上面的实现方式，明显是把错误处理和错误返回混合在一起使用了，并且错误处理的方式就是----输出错误信息（(⊙﹏⊙)b。
-
-对于第二种选择来说，如果想在调用报错的位置处理错误，如进行重试等，则可以输出错误信息并执行相应的错误处理函数
-
-</code></pre>
-
-<pre><code>if err := SayHello(); err != nil {
+对于第二种选择来说，如果想在调用报错的位置处理错误，如进行重试等，则可以输出错误信息并执行相应的错误处理函数</pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">if err := SayHello(); err != nil {
     logger.Error(err)
     HandleError()
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>```</p>
 
 <p>现在看来，除了在能够处理错误的地方可以输出错误信息之外，其余的地方都是不适合的。但是这仅限于 Library 和 Package 中的功能性函数里，如果是在一些对外暴露的 HTTP 接口中，在将错误信息返回给 client 之前，输出错误信息还是非常必要的。不过，如果在你的代码中，error 一直向上抛，结果抛到顶层了还没有处理他的地方，或处理不了退出整个程序的地方，可能就是你的程序有问题了。需要再仔细的检查下你代码。</p>

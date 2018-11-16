@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2016-11-09T19:36:42&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-09T19:36:42&#43;00:00" />
-<meta itemprop="wordCount" content="3131">
+<meta itemprop="wordCount" content="3176">
 
 
 
@@ -229,8 +229,25 @@
 <p>如果以一个不含有重复元素并且元素个数为N的数组为排序对象的话，选择排序将从索引为0的数组元素开始，进行N趟排序，每趟排序都将确定一个元素是有序的。在进行第i趟排序的时候(i&gt;=0)，待排序的元素为array[i],选择排序将会遍历a[i+1&hellip;..N-1]的所有元素，找到i~N-1区间内的最小元素，然后和array[i]交换位置。每一趟排序，在寻找最小元素的时候，只是记录下当前最小元素的索引，直到本趟排序遍历结束才交换array[i]和找到的最小元素。当然，第i趟待排序的array[i]很可能就是当前最小的元素。</p>
 
 <h2 id="实现">实现</h2>
-
-<pre><code>	void sort(int[] a) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	void sort(int[] a) {
 		for(int i = 0; i &lt; len(a); i++){
 			int min = i;
 			for(int j = i+1; j &lt; len(a); j++) {
@@ -243,9 +260,9 @@
 			a[i] = a[min];
 			a[min] = temp;
 		}
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <h2 id="性能分析">性能分析</h2>
 
 <p>由上面的实现代码可以看书，选择排序最昂贵的操作是元素之间的比较。从索引为i的元素开始(i &gt;= 0)，a[i]这个元素需要N-i-1次比较，依次类推，直到数组当中的最后一个需要排序的元素a[N-2],需要1次比较。由等差数列求合公式可知（1 + 2 + 3 + &hellip; + N-1）= (N^2 - N)/2，所以选择排序的比较次数约为N^2/2。</p>
@@ -264,8 +281,23 @@
 <p>插入排序的思想也非常的简单。当我们对索引为i(i &gt; 0)的元素array[i]进行排序的时候，认为array[0&hellip;.i-1]区间内的元素是已经有序的。我们只需要倒序遍历0~i-1区间内的元素，找到一个array[i]合适的位置插入到那里即可。如果是以升序来排的话，从i-1一直遍历到0，发现比array[i]大的元素则记录下这个元素的索引为j，直到发现比array[i]小的元素或到达了数组的边界为止。然后，将array[j&hellip;.i-1]区间内的元素均向后移动一位，把array[i]插入到索引为j的位置。</p>
 
 <h2 id="实现-1">实现</h2>
-
-<pre><code>	void sort(int[] a) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	void sort(int[] a) {
 		for (int i = 1; i &lt; len(a); i++){
 			int j = i;
 			int tmp = a[i];
@@ -276,9 +308,9 @@
 			
 			a[j] = tmp;
 		}
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <h2 id="性能分析-1">性能分析</h2>
 
 <p>由上面的实现代码可知，影响插入排序性能的操作插是移动数组内元素的次数以及元素之间的比较的次数。与选择排序不同，插入排序的性能和输入数据的有序性是有关的。假定输入的数组中元素不会重复。</p>
@@ -311,8 +343,30 @@
 <p>希尔排序是对插入排序的改进，那么插入排序的瓶颈在哪里呢？就是输入数据的有序性，数据的有序性越高，插入排序算法就越快。想提高数据的有序性，肯定就需要通过一些列的操作来调整数据的顺序。普通的插入排序由于移动元素的步长为1，所以效率较低。希尔排序则选择了提高移动元素的步长，假设步长为h(1 &lt;= h &lt; N)，原始的输入数据就会被分为几个元素之间间隔为h的子数组。此时我们对间隔为h的子数组进行插入排序，子数组的元素较少，而且移动元素的步长也很大，因此速度也会很快,子数组的有序程度取决于我们选择的步长。随后，步长的值会依次递减，直到变为1为止。在这个过程当中，每个元素会以最小的代价向其最合适的位置逼近。整个数组也会变得越来越有序，直到移动元素的步长减为1.希尔排序便退化成插入排序，但此时的数组内元素的有序性已经很符合插入排序的要求了。</p>
 
 <h3 id="实现-2">实现</h3>
-
-<pre><code>	void sort(int[] a) {
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">	void sort(int[] a) {
         int h = 1;
         int N = len(a);
         while (h &lt; N / 3) h = 3 * h + 1;
@@ -330,9 +384,9 @@
 
             h = h / 3;
         }
-	}
-</code></pre>
-
+	}</pre></td></tr></table>
+</div>
+</div>
 <h3 id="性能分析-2">性能分析</h3>
 
 <p>希尔排序的性能主要取决于步长h的选择，由上面的分析可知，步长h是一个递增的序列，从1开始。那么如何构造这个递增的序列，肯定会有一个响应的数学公式。对这个递增序列的探讨太过复杂，涉及到的数学知识比较多，我在此就不深追究了。我们的重点是学习算法的思想，而不是过度的拘泥于其中的数学证明部分。</p>

@@ -69,7 +69,7 @@
 
 <meta itemprop="datePublished" content="2017-07-30T15:31:38&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-30T15:31:38&#43;00:00" />
-<meta itemprop="wordCount" content="1873">
+<meta itemprop="wordCount" content="1905">
 
 
 
@@ -226,15 +226,24 @@
 <p>对于变量，在数学中我们已经了解过，就是一个值可能会改变的量。在C++中，我们对变量的认识应该相当于一个标识符，创建一个变量，即开辟一块内存然后给这块内存起个名字，那么这个名字就是“变量”，当然，这个变量的含义和内存地址以及指针都是不相同的。</p>
 
 <p>那么在Python中，变量意味着什么呢？按照我的理解，一言蔽之，就是一个指针。这确实和之前学过的强类型语言是有不同的。为什么这么说呢？首先，python中的变量是没有类型的，有类型的是“对象”，而不是变量。变量没有类型，那么就意味着它可以随意指向任何对象。在强类型语言中，变量其实都是有具体的类型来限制的，规定一个类型的变量只能被赋值与该类型相同或兼容的值。但是在python中，显然变量的自由度更大。其次，之前学过体系结构的同学都应该了解，指针的内存空间大小是与类型无关的，其内存空间只是保存了所指向数据的内存地址。之所以说指针也有类型，是因为在计算偏移量的时候，确实需要类型相关的信息。所以，从深层次的含以上来理解，python中的变量与强类型语言中的指针非常相似。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">In [1]: a = 3
 
-<pre><code>In [1]: a = 3
-
-In [2]: a = &quot;abc&quot;
+In [2]: a = &#34;abc&#34;
 
 In [3]: a
-Out[3]: 'abc'
-</code></pre>
-
+Out[3]: &#39;abc&#39;</pre></td></tr></table>
+</div>
+</div>
 <p>从上述代码中也可以明显的印证我们上面对python中变量行为的总结是正确的，与指针的行为非常相似。</p>
 
 <h1 id="什么是对象">什么是对象</h1>
@@ -246,8 +255,28 @@ Out[3]: 'abc'
 <p>引用在Python中的语义应该是一种关系，即变量和对象之间的关系，其实也就是指针指向某一块内存空间的关系。既然是变量和对象之间的关系，那么其实就意味着，对于一个对象来说，和不同的变量可能存在着多个“引用”关系。因为变量是无类型的，他想关联谁就可以指向谁，这也就牵扯到了一个“引用计数”的概念，python中的gc大体上就是使用这种原理在做的。</p>
 
 <p>既然说到多个变量可以引用同一个对象，那么就不得不说一下，如果其中一个引用改变了值，会影响到其他指向这个对象的变量么？</p>
-
-<pre><code>In [4]: a = 2
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">In [4]: a = 2
 
 In [5]: b = a
 
@@ -263,10 +292,9 @@ In [9]: a
 Out[9]: 2
 
 In [10]: b
-Out[10]: 3
-
-</code></pre>
-
+Out[10]: 3</pre></td></tr></table>
+</div>
+</div>
 <p>从上面的代码结果来看，答案应该是否定的。如果了解清楚变量和对象的语义就能对这个问题很容易做出判断，变量值的改变，就相当于指针变量内存空间内值的改变，也就是指向的对象换了一个，但其实之前所指向对象的内容是并没有收到影响的。</p>
 
 <p>但是也有特例，比如列表，指向列表的变量通过索引访问的方式，可以直接改动列表在该索引处存储的值。这个时候，如果有两个变量同时引用一个列表对象，那么其中任何一个变量利用这种方式对列表的修改，都会影响到另外一个。</p>
@@ -276,8 +304,20 @@ Out[10]: 3
 <h1 id="变量的比较">变量的比较</h1>
 
 <p>对于变量的比较，见得最多的，莫过于“==”和“is”。前者比较的是对象所存储的数据的值是否相等，后者则比较的是两个变量是否都引用了同一个对象。这些显而易见的东西，很多人应该不以为然，但是一些因语言内部优化的小细节，可能会打破你之前的认识。</p>
-
-<pre><code>In [12]: a = 3
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">In [12]: a = 3
 
 In [13]: b = 3
 
@@ -285,9 +325,9 @@ In [14]: a == b
 Out[14]: True
 
 In [15]: a is b
-Out[15]: True
-</code></pre>
-
+Out[15]: True</pre></td></tr></table>
+</div>
+</div>
 <p>按照我们之前所讲的，a和b两个变量应该是引用了两个不同的对象，但是这两个对象内存中的值都是3。但是，a is b得到的结果却是True。原因有如下两点：</p>
 
 <p>Python在底层做了一定的优化，对于使用过整数以及字符串都会被缓存起来。所以上述b引用的应该是被缓存过的3

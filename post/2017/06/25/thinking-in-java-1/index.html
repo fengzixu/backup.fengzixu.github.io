@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2017-06-25T17:13:19&#43;00:00" />
 <meta itemprop="dateModified" content="2017-06-25T17:13:19&#43;00:00" />
-<meta itemprop="wordCount" content="3080">
+<meta itemprop="wordCount" content="3085">
 
 
 
@@ -223,17 +223,26 @@
 <p>Java编程中，最重要的不是语法，感觉是一种oop的思想。最近刚刚开始学java，但是还是感觉java这门语言在被设计的时候，还是站在解决问题的 这个角度去考虑的，并且对oop思想贯彻的非常好。相比C艹来说，java更关注解决问题，而不是效率等一些高级的问题。</p>
 
 <p>Java中其实有对象和引用这两个概念，说白了，对象就是内存中的内容，而引用则可以认为是和指针一样的东西，用来标识这块内存。这样一来，在想操作这个对象的时候，我们就可以通过操作这个引用来实现。因为对象和引用两个概念是分开的，所以在Java中，引用是可以脱离对象独立存在的。如：</p>
-
-<pre><code>String s;
-String a = &quot;xuran&quot;
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">String s;
+String a = &#34;xuran&#34;</pre></td></tr></table>
+</div>
+</div>
 <p>s就是一个还没有和特定String类型对象关联起来的一个引用，a也是一个引用，但是已经和“xuran&rdquo;这个字符串对象关联起来了。
 除了上述a这个引用和对象关联起来的方式之外，还可以用一种更加通用的方式：</p>
-
-<pre><code>String a = new String(&quot;xuran&quot;);
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">String a = new String(&#34;xuran&#34;);</pre></td></tr></table>
+</div>
+</div>
 <p>new这个关键字的作用就在于创建一个新的对象。将这个对象赋值给a，就相当于将a这个引用和新建的对象关联起来。因Java对象的生存周期是其内部的GC机制来控制的，所以Java通过new关键字创建的对象，都存储于堆上。引用和对象不同，在Java语言中，一个引用变量的生命周期通常都是在程序运行前就已经确定的，这也就是为什么有了作用域这一概念的原因（我理解是这样),所以Java当中的对象引用一般都是创建在堆栈上面的。堆栈上面的创建和回收操作要比堆上面的效率更高，因为堆栈中的每一项大小都是固定的，在分配和回收的时候，只需要移动栈顶指针即可。但是堆不同，它的创建和回收都比堆栈要复杂的多。</p>
 
 <p>Java中对于一些基本的数据类型的存储方式上面也比较特殊，比如int类型，是一种基本的整数类型。但是在Java中同时还提供了一种Integer的类型。前者在创建的时候，采用直接声明的方式int a = 3;这种形式的创建并非创建了一个引用变量a，而是创建了一种”自动“变量，这个变量存储于堆栈中，里面存放的是赋值给他的值。而Integer a = new Integer(3);这种形式，就和上面所说的一样，是创建了一个引用变量，并且把引用和具体的对象建立了联系。并且在Java中，基本数据类型的种类要比C艹少了很多，比如没有无符号数，也没有int8，int16这种，java中所有基本的数据类型的大小都是固定的。</p>
@@ -256,11 +265,16 @@ String a = &quot;xuran&quot;
 <p>对于使用构造函数来初始化类内成员的方式，需要注意一点的就是，Java对于类成员默认的初始化行为是一直存在的，即使你自己定义了构造器。举例来讲，基本数据类型的成员会变成类型对应的0值，而引用类型会被初始化为NULL。当默认的初始化行为结束之后，才会自动调用类的构造器对类成员进行第二次初始化。</p>
 
 <p>除了使用构造函数可以初始化类内成员，还可以直接在类中进行初始化。如：</p>
-
-<pre><code class="language-Class">int a = 3;
-}
-</code></pre>
-
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-Class Test {" data-lang="Class Test {"><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-Class Test {" data-lang="Class Test {">int a = 3;
+}</code></pre></td></tr></table>
+</div>
+</div>
 <p>静态成员的初始化比较特殊，有以下几点需要注意：</p>
 
 <ol>
