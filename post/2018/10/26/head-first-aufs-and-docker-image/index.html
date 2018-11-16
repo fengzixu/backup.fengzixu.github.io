@@ -554,7 +554,7 @@ CMD [&#34;python&#34;, &#34;app.py&#34;]</pre></td></tr></table>
 <span class="err">…</span></code></pre></td></tr></table>
 </div>
 </div>
-<p>Dockerfile 中一共有7个命令，所以layer 信息的数量也同样有7个。这个7个 layer，每一个 layer 都对应到 _var_lib_docker_aufs_diff 目录下的一个目录。但是上述代码段中的 sha256 ID 不是直接映射到 /var_lib_docker_aufs/diff 目录下的目录名的，这之间有一个比较复杂的映射关系。（由于这个映射关系比较复杂，且难以描述，所以这里暂不详细叙述。读者也不用过于纠结这里的映射关系，重点在于理解 AUFS 和镜像分层的工作机制）。</p>
+<p>Dockerfile 中一共有7个命令，所以layer 信息的数量也同样有7个。这个7个 layer，每一个 layer 都对应到 /var/lib/docker/aufs/diff 目录下的一个目录。但是上述代码段中的 sha256 ID 不是直接映射到 /var/lib/docker/aufs/diff 目录下的目录名的，这之间有一个比较复杂的映射关系。（由于这个映射关系比较复杂，且难以描述，所以这里暂不详细叙述。读者也不用过于纠结这里的映射关系，重点在于理解 AUFS 和镜像分层的工作机制）。</p>
 
 <p>接下来，我们运行一下刚刚构建好的镜像：</p>
 <div class="highlight"><div class="chroma">
@@ -569,7 +569,7 @@ root@rds-k8s-18-svr0:~# docker ps | grep hello
 9d040e5b9999        hello                                                                                                                       &#34;bash&#34;                   7 minutes ago       Up 7 minutes        81/tcp              laughing_northcutt</pre></td></tr></table>
 </div>
 </div>
-<p>通过 <code>docker ps</code>命令，可以看到当前运行的容器进程 ID 为 9d040e5b9999。按照上面所描述的，一个容器启动之后，会在 aufs_mnt 下挂载一个目录 /var_lib_docker_aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4，这个目录就是容器当中看到的文件系统。</p>
+<p>通过 <code>docker ps</code>命令，可以看到当前运行的容器进程 ID 为 9d040e5b9999。按照上面所描述的，一个容器启动之后，会在 aufs/mnt 下挂载一个目录 /var/lib/docker/aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4，这个目录就是容器当中看到的文件系统。</p>
 
 <p><img src="http://o6sfmikvw.bkt.clouddn.com/B2452573-13C1-448A-8D8A-956C2AB4061D.png" alt="" /></p>
 
@@ -582,7 +582,7 @@ root@rds-k8s-18-svr0:~# docker ps | grep hello
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="n">none</span> <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">mnt</span><span class="o">/</span><span class="mi">755</span><span class="n">ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</span> <span class="n">aufs</span> <span class="n">rw</span><span class="p">,</span><span class="n">relatime</span><span class="p">,</span><span class="n">si</span><span class="o">=</span><span class="n">fcff2ee8dd687806</span><span class="p">,</span><span class="n">dio</span><span class="p">,</span><span class="n">dirperm1</span> <span class="mi">0</span> <span class="mi">0</span></code></pre></td></tr></table>
 </div>
 </div>
-<p>hello 这个容器挂载的 AUFS 的 SID 为 fcff2ee8dd687806。我们将通过这个 ID，可以在 _sys_fs/aufs 的目录下找到对应的 AUFS  的详细信息：</p>
+<p>hello 这个容器挂载的 AUFS 的 SID 为 fcff2ee8dd687806。我们将通过这个 ID，可以在 /sys/fs/aufs 的目录下找到对应的 AUFS  的详细信息：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt"> 1
@@ -597,7 +597,7 @@ root@rds-k8s-18-svr0:~# docker ps | grep hello
 </span><span class="lnt">10
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">fs</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">si_fcff2ee8dd687806</span><span class="cp"># cat br[0-9]*
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">root</span><span class="err">@</span><span class="n">rds</span><span class="o">-</span><span class="n">k8s</span><span class="o">-</span><span class="mi">18</span><span class="o">-</span><span class="nl">svr0</span><span class="p">:</span><span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">fs</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">si</span><span class="o">/</span><span class="n">fcff2ee8dd687806</span><span class="cp"># cat br[0-9]*
 </span><span class="cp"></span><span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mi">755</span><span class="n">ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</span><span class="o">=</span><span class="n">rw</span>
 <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mi">755</span><span class="n">ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</span><span class="o">-</span><span class="n">init</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
 <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">docker</span><span class="o">/</span><span class="n">aufs</span><span class="o">/</span><span class="n">diff</span><span class="o">/</span><span class="mf">678e5401</span><span class="n">f758378d36dbc6f410c9324f9c5599db498aea5909b83d6a974af446</span><span class="o">=</span><span class="n">ro</span><span class="o">+</span><span class="n">wh</span>
