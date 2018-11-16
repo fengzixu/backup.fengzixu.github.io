@@ -631,7 +631,7 @@ Warning：设计文档的对应的 k8s 版本为1.7&lt;/p&gt;
 
 &lt;p&gt;GC 是 Garbage Collector 的简称。从功能层面上来说，它和编程语言当中的「GC」 基本上是一样的。它清理 Kubernetes 中「符合特定条件」的 Resource Object。（在 k8s 中，你可以认为万物皆资源，很多逻辑的操作对象都是 Resource Object。）&lt;/p&gt;
 
-&lt;h3 id=&#34;q-what-are-dependent-mechanisms-to-clear-needless-resource-objects&#34;&gt;Q: What are dependent mechanisms to clear needless resource objects?&lt;/h3&gt;
+&lt;h3 id=&#34;q-what-are-dependent-mechanisms-to-clear-needless-resource-objects&#34;&gt;Q: What are dependent mechanisms to clear needless resource objects ?&lt;/h3&gt;
 
 &lt;p&gt;&lt;em&gt;A:&lt;/em&gt;&lt;/p&gt;
 
@@ -1936,7 +1936,7 @@ root@rds-k8s-18-svr0:~# docker ps | grep hello
 
 &lt;p&gt;调度程序激活机制启用后，内核会为每一个进程分配一个或多个的虚拟 CPU，用户态 Runtime 系统可以将线程分配到这些虚拟的 CPU 上。虚拟 CPU 代表这个进程可以使用的 CPU 核心数。当一个线程被同进程的另外一个线程所阻塞，它会被用户态 Runtime 系统处理，并调度新的进程运行。此时，不会发生用户态和内核态的切换，对于内核来说，这些操作都是透明的。当一个线程被进程之外的因素阻塞住时（阻塞的系统调用，缺页终端），内核会感知到这个问题，它会通知用户态 Runtime 系统，需要重新调度一个就绪的线程运行。而当阻塞的事件被完成的时候，内核也会将这个事件通知给用户态 Runtime 系统，让它自己来决定，下一步应该调度哪个线程运行。&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;https://images2015.cnblogs.com/blog/737467/201512/737467-20151203215129689-2110854317.png&#34; alt=&#34;https://images2015.cnblogs.com/blog/737467/201512/737467-20151203215129689-2110854317.png&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/E5F7EC18-D476-44B5-844B-90E7F62E7F04.png&#34; alt=&#34;http://o6sfmikvw.bkt.clouddn.com/E5F7EC18-D476-44B5-844B-90E7F62E7F04.png&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;这种内核调用用户态 Runtime 系统的机制被称作为「上行调用」。在CPU中用户空间为上层，内核为下层层，常规调用应该是上层调用下层，下层不应该调用上层，上行调用就是指内核调用用户空间的 Runtime 系统。&lt;/p&gt;
 
