@@ -1,94 +1,51 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LittleDriver  | Reflection in golang (3)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Reflection in golang (3) | LittleDriver</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
-    <header>
 
-  
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="http://littledriver.net/">/home/littledriver</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/">~/home</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/categories/">~/categories</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/blog.css" />
+</head>
+<body>
 
-      
-      
-      <li class="pull-right">
-        <a href="/index.xml">~/subscribe</a>
-      </li>
-      
+    
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="http://littledriver.net/">Home</a>
+        </div>
+    </nav>
+    
 
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">Reflection in golang (3)</span></h1>
-
-<h2 class="date">2017/03/11</h2>
-<p class="terms">
-  
-  
-  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
-  
-  
-  
-  Tags: <a href="/tags/golang">Golang</a> 
-  
-  
-</p>
-</div>
+    
+    <section class="hero is-info is-medium">
+        <div class="hero-body" style="background-image: url(http://littledriver.net/img/bg-blog.jpg);">
+            <div class="container has-text-centered">
+                <br>
+                <h1 class="title is-size-1">
+                    
+                        Reflection in golang (3)
+                    
+                </h1>
+                
+            </div>
+        </div>
+    </section>
 
 
-<nav id="TableOfContents">
-<ul>
-<li><a href="#前景提要">前景提要</a></li>
-<li><a href="#encoding">Encoding</a></li>
-<li><a href="#set-value">Set value</a>
-<ul>
-<li><a href="#从变量说起">从变量说起</a></li>
-<li><a href="#更新变量">更新变量</a></li>
-</ul></li>
-<li><a href="#本文代码">本文代码</a></li>
-</ul>
-</nav>
+<div class="container">
+    <div class="section">
+    
 
-
-<main>
-<p></p>
-
-<h1 id="前景提要">前景提要</h1>
+<div class="columns">
+    <div class="column is-9">
+        <div class="tile is-child box">
+            <div class="content">
+                <h1 id="前景提要">前景提要</h1>
 
 <p>上一篇文章当中，主要以实现了一个display函数为主要内容，阐述了如何通过golang的reflect包将一个自定义类型的数据格式化输出，它类似于一个简洁版的fmt.Printf函数。但是这个函数只是简单的实现了从具体类型的数据到字符串的输出功能。在日常的工作中，我们时常要通过http/https请求调用一些第三方服务的接口，传输的数据不但需要保持一定的编码格式，还需要按照被调用服务接口接收数据的规范来构造我们的请求数据。</p>
 
@@ -295,7 +252,7 @@ func main() {
 
 <pre><code>👉  go run encode.go
 ((Domain &quot;hahah.com&quot;) (Cache (&quot;1&quot; &quot;2&quot; &quot;3&quot;)) (CdnState ((&quot;tc&quot; &quot;success&quot;) (&quot;ws&quot; &quot;success&quot;))) (Time 2) (B ((Fuck &quot;fff&quot;) (You 3))))
-    
+	
 </code></pre>
 
 <p>可以看出，Encoding函数已经简单的将普通数据类型的数据编码成了s-expression的形式。其实编码的格式并不一定要局限于一些目前公认标准的格式，我们也完全可以定义一套自己的规则。只要这套规则在编码和解码的过程中都能够保证数据的完整性和正确性即可。</p>
@@ -310,15 +267,15 @@ func main() {
 
 <p>对于reflect.Value值来说，它和interface一样，本身可以接受任何类型的数据。那么任意reflect.Value的值都可以像变量一样随意的更改么？我们写一个demo试试就知道了</p>
 
-<pre><code>    a := 2
-    x := reflect.ValueOf(a)
-    fmt.Println(x.CanSet())  //false
+<pre><code>	a := 2
+	x := reflect.ValueOf(a)
+	fmt.Println(x.CanSet())  //false
 
-    y := reflect.ValueOf(&amp;a)
-    fmt.Println(y.CanSet())  //false
+	y := reflect.ValueOf(&amp;a)
+	fmt.Println(y.CanSet())  //false
 
-    z := y.Elem()
-    fmt.Println(z.CanSet()  //true
+	z := y.Elem()
+	fmt.Println(z.CanSet()  //true
 </code></pre>
 
 <p>通过调用reflect.Value.CanSet方法，根据其返回的结果是true还是false就可以确定一个reflect.Value值是不是可以改变的。 x在调用的时候返回了false,这是因为在构造x的时候，使用的是a这个变量内存储的值2，但是它自己并没有申请内存来存这个值. y也同样是这样，虽然它是通过a变量的地址值来构造的。事实上，任何通过reflect.ValueOf构造出来的reflect.Value都是不可寻址的，也就是说，我们只是copy了一份值来显示，并不能去改动他。</p>
@@ -336,9 +293,9 @@ func main() {
 
 <p>当我们想要更新一个reflect.Value所引用的变量的值时，可以通过Set方法来做到。</p>
 
-<pre><code>    x := []int{1,2}
-    z := reflect.ValueOf(x).Index(0) //get an addressable reflectValue
-    z.Set(reflect.ValueOf(3)) // update value
+<pre><code>	x := []int{1,2}
+	z := reflect.ValueOf(x).Index(0) //get an addressable reflectValue
+	z.Set(reflect.ValueOf(3)) // update value
 </code></pre>
 
 <p>需要注意的是，在调用Set方法进行赋值操作的时候，reflect包会像普通数据类型的赋值操作一样，检查赋值的合法性。比如z标识的可寻址值是一个int类型的，如果此时在调用set方法的时候，赋值给其一个int64类型的值就会导致panic。所以在使用set之前，我们必须保证我们将要给某个变量赋的值是它能够接受的。但是Set方法有一些变体，如SetInt, SetUint等.只要调用这些函数的值是有符号整数类型甚至是其底层的数据类型符合以上的条件，setInt等方法无论接收多大的数值都会通过截断的方式，构造出一个调用这个函数的值能接受的结果并赋值给它。</p>
@@ -348,40 +305,105 @@ func main() {
 <h1 id="本文代码">本文代码</h1>
 
 <p><a href="https://github.com/fengzixu/golangLearning/blob/master/reflect/encode.go">点这里</a></p>
-</main>
-
-    <footer>
-      
-<script>
-(function() {
-  function center_el(tagName) {
-    var tags = document.getElementsByTagName(tagName), i, tag;
-    for (i = 0; i < tags.length; i++) {
-      tag = tags[i];
-      var parent = tag.parentElement;
-      
-      if (parent.childNodes.length === 1) {
+            </div>
+        </div>
+    </div>
+    <div class="column is-3">
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Tags</h1>
+        <div class="tags">
         
-        if (parent.nodeName === 'A') {
-          parent = parent.parentElement;
-          if (parent.childNodes.length != 1) continue;
-        }
-        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
-      }
-    }
-  }
-  var tagNames = ['img', 'embed', 'object'];
-  for (var i = 0; i < tagNames.length; i++) {
-    center_el(tagNames[i]);
-  }
-})();
-</script>
+            <span class="tag"><a href="http://littledriver.net/tags/apue">APUE</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/algorithm">Algorithm</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/bestpractice">BestPractice</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/datastructure">DataStructure</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/docker">Docker</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/golang">Golang</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/java">Java</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/kubernetes">Kubernetes</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/linux">Linux</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/lua">Lua</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/mq">MQ</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">NetWork</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">Network</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/nginx">Nginx</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/operatingsystem">OperatingSystem</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/python">Python</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/rds">RDS</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/redis">Redis</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/servicemesh">ServiceMesh</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/sourcecodeanalyse">SourceCodeAnalyse</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workexperience">WorkExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workingexperience">WorkingExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/grpc">gRPC</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/%E9%9A%8F%E7%AC%94">随笔</a></span>
+        
+        </div>          
+    </div>
+</div><br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Recent posts</h1>
+        
+            <h1><a href="http://littledriver.net/post/2018/11/16/my-first-post/">My First Post</a></h1>
+            <time class="has-text-grey-light is-size-7">16 November 2018</time>
+        
+    </div>
+</div>
+    <br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Archives</h1>
+        
+            <a href="http://littledriver.net/archives/2018">2018</a> (1)<br>
+        
+    </div>
+</div>
 
-      
-      <hr/>
-      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
-      
-    </footer>
-  </body>
+    </div>
+</div>
+
+
+    </div>
+</div>
+
+<footer class="footer has-background-grey-darker has-text-white">
+    <div class="content has-text-centered">
+        <p>
+            <span class="icon is-large"><a href="https://twitter.com/" class="mysocial"><i class="fab fa-twitter fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://www.youtube.com/" class="mysocial"><i class="fab fa-youtube fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://github.com/" class="mysocial"><i class="fab fa-github fa-3x"></i></a></span>&nbsp;&nbsp;
+            <br><br>
+            Copyright &copy; LittleDriver 2018 - Theme by <a href="https://jeffprod.com" class="mysocial">JeffProd.com</a>
+            - <a class="mysocial" href="http://littledriver.net/about">About</a>
+        </p>
+    </div>
+</footer>
+
+<script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+</body>
 </html>
-

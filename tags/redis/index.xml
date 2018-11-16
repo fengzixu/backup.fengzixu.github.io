@@ -6,67 +6,54 @@
     <description>Recent content in Redis on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 14 Oct 2018 18:37:32 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 16 Nov 2018 15:41:12 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/redis/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>Detect Redis Config File</title>
+      <link>http://littledriver.net/post/2018/11/16/detect-redis-config-file/</link>
+      <pubDate>Fri, 16 Nov 2018 15:41:12 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/16/detect-redis-config-file/</guid>
+      <description>Include Part Include include 可以允许用户在 Redis 的 Conf 文件中引用一份「已经准备好」的配置。一般来说，我们都会把一些通用的且很少变化的配置放在一个「配置模板」中，然后在</description>
+    </item>
+    
+    <item>
       <title>Head First SDS in Redis</title>
-      <link>http://littledriver.net/posts/head-first-sds-in-redis/</link>
+      <link>http://littledriver.net/post/2018/10/14/head-first-sds-in-redis/</link>
       <pubDate>Sun, 14 Oct 2018 18:37:32 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-sds-in-redis/</guid>
-      <description>Redis 设计与实现之动态字符串 Q: 什么是 SDS
-A:
-SDS 是 Redis 在实现过程中使用的一种「动态字符串」。由于 Redis 的代码基本都是通过 C 语言来实现的，所以 SDS 在最底层还是依赖于char buf[]来存储数据。SDS 对象的数据结构大致如下图所示
-可以看出，SDS 结构体成员中有三个属性：len，free，buf。其中 len 标识一个 SDS 对象管理的字符串有效字符是多少个，而 free 则代表这个 SDS 在不扩充空间的前提下还可以存储多少个有效字符，buf 则是一个char[]类型的指针，它指向一段连续的内存空间，这里才是真正存储字符串的地方（有效字符串是指除\0以外的字符串集合）。
-Q: 有了 C 字符串，为什么还需要 SDS？
-A:
-通过阅读相关数据以及对 Redis 文档的查阅，可以总结出以下几点使用 SDS 而不适用原生 C 字符串的好处
- * 更高效的获取一个 SDS 对象内保存的字符串的长度 * 杜绝缓冲区溢出 * 减少因字符串的修改导致的频繁分配和回收内存空间操作 * 二进制安全 * 和 C 语言有关字符串的库函数有一个更高的兼容性  其实看到这里，如果你之前使用其他语言中的「普通数组」实现过一个「动态数组」的话，那么除了「二进制安全」这一条好处可能不太理解之外，其余的应该都比较熟悉。下面我们就来分别说一下这几个好处。
-Q: 如何更高效的获取字符串的长度？
-A:
-这个问题在传统的 C 字符串中算是一个痛点。在一个线性的数据结构中，我们都只能通过遍历这个数据结构中所有的有效元素才能够获取它准确的长度，这个操作的时间复杂度是 O(N) 级别。但是当我们只是把 C 字符串作为 SDS 这个数据结构中的一个成员时，我们就可以通过增加另外一个成员len来实时的计算字符串的准确长度。计算的方式也很简单，就是在字符串做「新增元素」的操作时对len+1，做「减少元素」的操作时对len-1。这样一来，就可以通过访问len来获取 SDS 内存储的字符串的长度。类似于这样的实现：</description>
+      <guid>http://littledriver.net/post/2018/10/14/head-first-sds-in-redis/</guid>
+      <description>Redis 设计与实现之动态字符串 Q: 什么是 SDS A: SDS 是 Redis 在实现过程中使用的一种「动态字符串」。由于 Redis 的代码基本都是通过 C 语言来实现的，所以 SDS 在最底层还是依</description>
     </item>
     
     <item>
       <title>Heade First Redis Sentinel</title>
-      <link>http://littledriver.net/posts/heade-first-of-redis-sentinel/</link>
+      <link>http://littledriver.net/post/2018/08/27/heade-first-redis-sentinel/</link>
       <pubDate>Mon, 27 Aug 2018 16:00:20 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/heade-first-of-redis-sentinel/</guid>
-      <description>WARNING: 本篇文章是在阅读了 Redis Sentinel 的设计文档之后产出的。但是由于该设计文档已经被官方标识为 draft 且时间也比较久远，笔者在阅读这份文档的时候还是发现了几处与当前新版本实现不同的地方，甚至是有一些错误的。所以本文的目的也就在于：先借助该设计文档对 Sentinel 这套高可用的方案有一个宏观上的了解，具体的实现细节，之后会另写几篇博文对 Sentinel 的源码进行分析。若是有能力直接阅读源码的读者可直接去阅读源码。如果你在阅读这篇文章的时候，发现了一些错误并且愿意帮忙改正的话，请私信联系我。
- 先说明几个这篇 blog 使用的名词
-- 「Redis Sentinel」指通过 Sentinel 实现的 Redis 高可用方案 - 「Sentinel 节点」指 Redis 集群中运行的某一个 Sentinel 节点（redis-server）  Q: 什么是「Redis Sentinel」?
-Redis Sentinel 是一套「方案」。它能够提升 Redis 集群的可用性，也就是我们常说的「高可用」
-Q: Sentinel 通过哪些功能可以实现 Redis 集群的「高可用」？
-Redis 集群的「高可用」，在我理解，可以分为「用户」和「服务」两个维度进行讨论
-- 用户维度 - Sentinel 通过某些命令可以让用户实时获取当前集群的 Master 节点的地址（Sentinel 会进行故障转移操作） - 预设了一些「通知」机制，可以在 Redis 集群内部发生异常的时候通知给集群的维护者或者使用者 - 服务维度 - 监控集群中主从节点以及 Sentinel 节点的健康状态 - 集群 Master 发生故障时可自动进行「故障转移」操作来恢复集群  总结下来，这套「高可用」方案既可以保证 Redis 集群自身的健康，同时也在发生故障的时候尽量降低对集群使用者的影响。Redis 的作者对这套高可用方案有着更加清晰的概括</description>
+      <guid>http://littledriver.net/post/2018/08/27/heade-first-redis-sentinel/</guid>
+      <description>WARNING: 本篇文章是在阅读了 Redis Sentinel 的设计文档之后产出的。但是由于该设计文档已经被官方标识为 draft 且时间也比较久远，笔者在阅读这份文档的时候还是发现了几处与</description>
     </item>
     
     <item>
       <title>Redis 数据持久化机制</title>
-      <link>http://littledriver.net/posts/redis-persistence-1/</link>
+      <link>http://littledriver.net/post/2018/08/05/redis-%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/</link>
       <pubDate>Sun, 05 Aug 2018 20:11:46 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/redis-persistence-1/</guid>
-      <description>Redis 有两种持久化数据的机制  AOF： 将对数据库所有的「写操作」以追加的方式，写入一个文件当中。待 Redis 重启之后，可以通过这些指令恢复数据 RDB： 以生成数据集快照的方式，全量备份数据。生成一个 dump 文件，落盘保存  两种持久化机制可以同时启用，redis-server 默认在启动的时候，会使用它们持久化的数据对自身的数据集进行恢复。但是会优先使用 AOF，因为RDB 在备份的过程中，如果集群出现重启等极端现象，会丢失一部分数据。而 AOF 基本上是间隔一秒执行一次fsync，最大限度的确保不会丢失数据。
-RDB 持久化的大致过程  redis-server 每隔一段时间就执行一次 BGSAVE 命令 redis-server 的主进程会 Fork 一个子进程进行持久化操作 子进程将此时内存中的数据写入进一个临时文件中 写入成功之后，原子的将旧的 rdb 文件替换为新的并删除旧的备份文件  RDB持久化过程享受了 OS 中 COW （ Copy-on-write ） 机制的优势。早期 Linux 内核的 Fork 过程会无脑的直接将父进程的各种资源 Copy 一份给子进程。这种旧的机制在效率上有很大的问题。但是在有了 COW 机制之后，若父进程的内存段中的内容都没有修改，那么就只会分配给子进程很少的一部分资源，如进程描述符等等。实际上此时父子进程是共享内存地址空间的，达到了资源共享的效果。若父子进程共享的内存中的内容有修改，才会真正的去复制一份内存当中的内容给子进程.
-所以，你会发现，在你的redis-server 没有接受任何写操作的时候，你执行 bgsave 和 save 是非常快的。但是，若你一遍在疯狂的写入数据，一边在执行bgsave或者 save，他们的执行时间就会随着写入速度的增加而增加，且有可能发生 OOM 的现象。
-另外还有一个问题就是：Redis 在执行 bgsave 操作的时候，如果此时还有写操作在执行，那么最新的修改会被同步到新的 RDB 的文件中么？根据 COW 的机制思考一下就可以知道，当发生写入操作之后，父子进程的实际物理内存已经分开了两份，而最终本次 RDB 操作产生的备份文件也是根据子进程内存中的内容来的，所以，可以说 RDB 执行完成后文件中的内容，就是 fork 函数执行那一刻，内存中的内容（此时，父子进程共享内存）</description>
+      <guid>http://littledriver.net/post/2018/08/05/redis-%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/</guid>
+      <description>Redis 有两种持久化数据的机制 AOF： 将对数据库所有的「写操作」以追加的方式，写入一个文件当中。待 Redis 重启之后，可以通过这些指令恢复数据 RDB： 以生</description>
     </item>
     
     <item>
       <title>Redis Sentinel Explanation 1</title>
-      <link>http://littledriver.net/posts/redis-sentinel-explanation-1/</link>
+      <link>http://littledriver.net/post/2018/04/01/redis-sentinel-explanation-1/</link>
       <pubDate>Sun, 01 Apr 2018 19:49:35 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/redis-sentinel-explanation-1/</guid>
-      <description>什么是 Sentinel? Sentinel 这个词在 Redis 中有很多不同的含义，它可以代表 Redis 的一种高可用的方案，也可以代表一个以 Sentinel 模式启动的 Redis 实例，甚至是可以代表你的 Redis 集群中，多个以 Sentinel 模式启动的 Redis 实例集合。我们可以这样来理解和定义 Sentinel：
- Sentinel 是一套方案。它在集群模式下为我们的 Redis 集群提供了「高可用」的保证。 Sentinel 也是一个小型的分布式系统，在多个 Sentinel Process 的协同作战下，保证了 Redis 集群的「高可用」。减少故障误报率，在部分 Sentinel Process 异常的情况下，仍能够为集群提供可靠的服务。
- Sentinel 都有哪些功能？ 上面说到，Sentinel 为我们的 Redis 提供「高可用」的保证。那么，他提供了哪些措施去实现「高可用」呢？让我们首先来看一下，在没有 Sentinel 的时候，使用一主一从的模式部署我们的 Redis 集群，可能会在使用上遇到哪些问题：
- 健康检测（monitor）：我们需要一个可靠的检测机制去观察 Redis 实例的健康状态 通知（notification）：当 Redis 实例发生故障的时候，我们需要一个可靠的通知机制来告知集群的管理者 故障自动处理（failover）：一些简单的，处理方式可以被固化的故障能够自动被修复。一方面，能够最大限度的保证集群对用户的可用性，另外一方面，能够加快故障处理速度，减轻维护者的负担 负载均衡（LB）：当集群发生故障的时候，如果进行了主从切换，那么要把最新可用的 Master 节点地址通知给用户 服务发现（Service discovery）：自动的查找并监控集群内所有的实例，不需要人工去配置所有的监控关系  Sentinel 基本上是从以上五个维度对 Redis 做了「高可用」的保证。相对于 Mysql 来说，Redis 的「高可用」方案采取了和集群本身的实例分离的方式来做。也就是说，「高可用」的逻辑并没有和数据节点的逻辑混杂在一起。这一点在部署使用 Sentinel 方案的 Redis 集群就可以看出来：数据节点和 Sentinel 节点是需要分开部署的，使用的配置文件也是不一样的。</description>
+      <guid>http://littledriver.net/post/2018/04/01/redis-sentinel-explanation-1/</guid>
+      <description>什么是 Sentinel? Sentinel 这个词在 Redis 中有很多不同的含义，它可以代表 Redis 的一种高可用的方案，也可以代表一个以 Sentinel 模式启动的 Redis 实例，甚至是可以代表你的 Redis 集群中，多个</description>
     </item>
     
   </channel>

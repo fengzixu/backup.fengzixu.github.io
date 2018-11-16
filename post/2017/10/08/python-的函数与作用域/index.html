@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Python 的函数与作用域 - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="def 是什么 python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2017/10/08/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="Python 的函数与作用域" />
+<meta property="og:description" content="def 是什么 python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2017/10/08/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/" /><meta property="article:published_time" content="2017-10-08T22:24:17&#43;00:00"/>
+<meta property="article:modified_time" content="2017-10-08T22:24:17&#43;00:00"/>
+
+<meta itemprop="name" content="Python 的函数与作用域">
+<meta itemprop="description" content="def 是什么 python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数">
+
+
+<meta itemprop="datePublished" content="2017-10-08T22:24:17&#43;00:00" />
+<meta itemprop="dateModified" content="2017-10-08T22:24:17&#43;00:00" />
+<meta itemprop="wordCount" content="4818">
+
+
+
+<meta itemprop="keywords" content="Python," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Python 的函数与作用域"/>
+<meta name="twitter:description" content="def 是什么 python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Python 的函数与作用域</h1>
+      
+      <div class="post-meta">
+        <time datetime="2017-10-08" class="post-time">
+          2017-10-08
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+
+    
+    <div class="post-content">
+      
+
+<h1 id="def-是什么">def 是什么</h1>
+
+<p>python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数签名。学习Python 的一个很大的误区，就是我们认为 def 也是Python 中定义函数的一个关键字。在Python 中，def 不是一个关键字，而是一个可执行的语句。如果不考虑类，一般来说，函数都实现在某一个模块中，那么当这个模块被导入的时候，def 语句就会自动执行，创建一个函数对象，并且把这个对象赋值给对应的函数名。也就是说，函数的定义和普通变量的定义是没有区别的，函数名仅仅是 def 语句创建出来的函数对象的一个引用而已。</p>
+
+<p>python 中使用 def 语句创建的函数对象，并不要求每一个都要有返回值或者显式的 return 调用。仅当你需要这个函数的返回值的时候，才使用 return 进行返回，否则，函数默认返回一个 None 对象。既然Python 是一个动态类型的语言且没有所谓的「编译」，「链接」阶段，那么也就是说在一个模块被执行之前，某一个函数变量名具体引用了哪一个函数对象我们是不清楚的，这个关系是在模块运行的时候才能够确定的。并且，如果函数内部有一些明显的运行时的 Bug，在 def 语句执行的时候也不会去检测，只有在调用者调用这个函数发生错误的时候才能够清楚。
+å
+所以，在Python 中，函数变量和其他任何变量没有区别。def 是一个可执行语句，并不是一个关键字。</p>
+
+<h1 id="函数中的多态思想">函数中的多态思想</h1>
+
+<p>如果是有编程基础的人，对多态这个词应该不难理解。我是这样理解的</p>
+
+<blockquote>
+<p>多态，就是某一个操作的意义取决于被操作的对象类型</p>
+</blockquote>
+
+<p>一个最直接的例子就是，C++中，子类和父类有一个函数签名相同的方法。定义一个父类类型的指针，当这个指针指向父类对象或者子类对象的时候，执行的同名方法是两个不同类中所分别定义的；或者在 Java 中，「+」这个操作既可以用于字符串的链接，也可以用于数字的四则运算。python 则比 java 还要方便，因为它是一种动态类型的语言，python 的世界中只有对象和引用的区别，没有数据类型之分，一切事物都是对象，被某个变量引用。所以在编写Python 的函数中，尽量不要去用类似「type」等方法检测参数的类型，这其实就是一种典型的用静态语言的思维在使用动态语言。仔细想想Python 的一个便捷之处就是在编程的时候不需要考虑数据类型，一旦某个函数内的某个操作是传递进来的参数所不具有的，让其抛出一个异常也是正确的选择。</p>
+
+<p>所以，只要是在函数内部对参数做的操作，被传递进来的对象都支持，这个函数就能够正常工作，这和参数的数据类型是没关系的。</p>
+
+<h1 id="作用域">作用域</h1>
+
+<p>作用域这个词，从字面意思上来理解，就是某个事物起作用的区域。在编程语言中，通常指某个变量的生存周期。某个变量的作用域和它第一次被赋值的位置是相关的。</p>
+
+<ul>
+<li>非嵌套函数内部：本地作用域</li>
+<li>嵌套函数内部：非本地作用域</li>
+<li>模块内部（文件内部，函数外部，包括Python 内置模块）：全局作用域</li>
+</ul>
+
+<h2 id="本地作用域与全局作用域">本地作用域与全局作用域</h2>
+
+<p>python 中的全局作用域都是要和模块一起提出才是有意义的，这里的「全局」是指模块内全局，模块和模块之间，也就是文件和文件之间是完全隔离开的。一个我们在开发过程中所常见的现象就是某个模块的全局变量对外是作为这个模块的某个属性被使用的。本地作用域一般指调用函数所构造的一个作用域，本地作用域一般和函数调用相关。从操作系统的层面上来讲，每一个函数的调用都会开辟一块栈的空间用来存放函数调用的上下文或者一些本地变量，再结合我们一般说作用域都是和变量的生命周期联系在一起，就不难发现，每一次对函数调用，都会创建一个新的本地作用域。</p>
+
+<p>各个作用域之前可能会存在一个作用域屏蔽的问题，比如在某一个函数内定义的某一个变量和函数外部的某一个变量同名，那么在函数内部对这个变量的更改将不会影响到函数外部的变量。这个现象看起来很像是一个「屏蔽」的效果，函数内的变量屏蔽的外部的。但其实这和解析变量的规则是有关的，后面的段落将会介绍相关的细节。</p>
+
+<p>另外，要谨记的一点就是，只有在发生变量赋值的时候，才会涉及到作用域变化的问题。原地对一个对象的修改是不涉及到任何作用域变更的问题的。原因有以下几点：</p>
+
+<p>1.Python 中，变量和对象是不同的两个概念。变量通常指的是引用变量，指向内存中实际存在的一个对象
+2. 作用域这一概念是针对变量的，而不是针对对象的</p>
+
+<p>举一个简单的例子，函数外定义一个 list 对象并且赋值给一个变量 x。那么在函数中，如果执行 x.append 操作，影响的是全局作用域中的变量 x 所指向的list对象。x 这个变量并没有发生「更改」类型的操作。但是如果在函数内部执行了 x=y 这种操作，那么就视为在函数的本地作用域内定义了一个新的变量 x，它屏蔽了全局作用域中的同名变量。</p>
+
+<h2 id="legb-变量解析原则">LEGB 变量解析原则</h2>
+
+<p>当我们使用一个变量的时候，自然得找到它出现并且被赋值的位置。然而，可以使用的有效的变量一般都是在其有效的作用域内。所以，变量的查找和解析与作用域是分不开的。Python 中解析变量的规则称作为「LEGB」原则。</p>
+
+<p>「LEGB」是四个作用域简称的组合，在解析变量的时候也会依次按照顺序进行查找，只要查找到一处就停下来</p>
+
+<ul>
+<li>L：本地作用域</li>
+<li>E：非本地作用域</li>
+<li>G：全局作用域</li>
+<li>B：内置作用域</li>
+</ul>
+
+<p>上述四个作用域，应该有两个是大家比较迷惑的地方。非本地作用域和内置作用域。</p>
+
+<h3 id="非本地作用域">非本地作用域</h3>
+
+<p>非本地作用域出现的场景是发生有函数嵌套的时候。「非本地」是对于被嵌套的函数而言。一个被嵌套函数的内部可以被称作是本地作用域，但是在这个函数和嵌套他的函数之间这一块区域被称作是非本地作用域。非本地作用域除了必须要发生函数嵌套行为之外，嵌套的层次也会影响到非本地作用域的大小，python 在进行变量解析的时候，会追踪到任意的嵌套层次。</p>
+
+<pre><code>&gt;&gt;&gt; def foo():
+...     x = 1
+...     def foo2():
+...         def foo3():
+...             nonlocal x
+...             x = 3
+...             return x
+...         return foo3
+...     return foo2
+...
+&gt;&gt;&gt; a = foo()()()
+&gt;&gt;&gt; a
+3
+</code></pre>
+
+<p>如上面的代码所示，foo3在解析 x 这个变量的时候，一直查找到了嵌套的第二层。也就是说，对于foo3的非本地作用域有foo2和foo1两层这么大，尤其是我们使用了 nonlocal 这个关键字，让上面这段实例更加有说服力，因为 nonlocal 关键字的出现，证明我们不但要对非本地作用域的变量进行读取，还会有修改操作。</p>
+
+<h3 id="内置作用域">内置作用域</h3>
+
+<p>内置作用域其实本质上来说就是全局作用域。之前已经说过，python 当中的全局作用域是和文件（模块）相关的。那么内置作用域，很显然是和Python 的内置模块相关。python 2.x 版本中内置模块的名字是 <em><strong>buildin</strong></em>,Python 3.x 版本中内置模块的名字是*builtins*。说白了，这两个内置模块也是两个不同的文件，比如一些我们常用的Python 的内置函数，有可能就是这个模块当中的一个全局作用域当中的一个变量。那么也就是说，当我们想引用Python 给我们提供的某些内置功能的时候，除了可以依赖「LEGB」原则，还可以直接通过 import 内置的模块进行显示调用。</p>
+
+<h1 id="修改外部作用域的变量">修改外部作用域的变量</h1>
+
+<p>既然作用域会被氛围很多种，尤其是对本地作用域和全局作用域来讲，因为有了变量隔离机制，所在在本地作用域中对同名变量的读取和修改并不会影响到全局变量。那么，如果我们现在在本地作用域中，不但要读取全局作用域中的变量，还要修改它，这个时候就需要 global 这个关键字了。</p>
+
+<h2 id="global-语句">global 语句</h2>
+
+<p>global 这个语句一般后面会带着一个变量名。它是目前为止，我们所见到的第一个Python 当中具有声明作用的语句。global声明的是一个命名空间，或者说是作用域也可以。例如，global a，声明了 a 这个变量的作用域或者说是命名空间是全局的。一般来说，如果本地作用域和全局作用域没有重名的变量且不会对全局变量做修改的话，任何一个本地作用域内都是可以直接读取本模块内的全局变量的。但是如果是有重名的情况，为了确保我们在本地能够读取和修改的是全局变量，就需要在使用之前用 global 语句来声明这个变量的命名空间。</p>
+
+<p>这里需要注意的是，global 语句只是起到了一个声明的作用，如果 global 后面跟着一个并不存在的变量名，在函数定义的时候，并不会发生报错, 只有当函数被调用的时候，执行逻辑到了 global 语句所在位置的时候，才会抛出异常。包括在定义函数的时候使用了一个不存在的变量也会有相同的结果, 但是这一切的前提都是在 global 语句出现之后，本地作用域内没有对这个全局变量进行赋值操作。一旦有赋值操作，将会自动创建这个变量。</p>
+
+<p>这应该是算作Python 这类动态语言一个「不好」的地方，由于在运行之前并不会做一些常规的语法上的检查就导致了很多错误只有在运行的时候才会暴露出来。不过这也恰恰印证了一点，我们在学Python 的时候，还是需要摒弃一些使用静态语言时的一些习惯。前面也说到了，python 是有意不做一些校验的，猜测它这么做是因为做多了这种校验会让代码变的复杂，灵活性降低。有的时候，直接抛出异常，也未尝不是一个好的错误处理方式。学习和使用动态语言的时候，思维还是要有所转变。</p>
+
+<h2 id="嵌套函数">嵌套函数</h2>
+
+<p>嵌套函数从字面意思上来讲就是一个函数套着一个函数，这种形式在各个语言的「闭包」中出现的最多。伴随着嵌套函数的一个比较重要的概念是嵌套作用域，也就是我们之前说的「LEGB」原则中的 E。如果在一个被嵌套的函数中，想要读取并且修改上层函数的某一个变量，则需要在自己的函数体内声明这个变量为「nonlocal」，python 会自动寻找到离他最近嵌套层次中的同名变量。</p>
+
+<h3 id="工厂函数-闭包-or-装饰器">工厂函数(闭包 or 装饰器)</h3>
+
+<p>工厂函数其实也就是我们常说的的闭包函数，闭包的概念之前是有讲过的，它是一个能够保存嵌套作用域变量的函数。也就是说，即使最后闭包函数的外层嵌套作用域都不存在了，但是在它的内部还是能够访问到之前的变量，这是目前为止我们遇到的，除了类的属性之外能够保存状态的最好的办法。之所以不提全局变量，是因为这个东西使用起来还是有很多坑的，需要考虑很多东西，一旦有了并发等场景就更加复杂，当然，还有默认的可变参数也可以实现这个功能，但是都不推荐使用。闭包函数在 python 中一个典型的应用就是装饰器，但是除了代码编写上还没有发现有什么特别的好处。</p>
+
+<blockquote>
+<p>Ps: 这里有一个比较小的 tips 需要提到：在 python 中一个函数体中可以调用一个在它之后才定义的函数。但是在这个函数调用之前，它所使用的函数都必须已经定义。由此我们可以知道，在 python 中 def 语句只是把函数体中的东西统一的构造除了一个对象然后让一个变量去引用它，至于这个函数体本身有没有问题，还是得执行起来才能够知道。</p>
+</blockquote>
+
+<h3 id="lambda表达式">lambda表达式</h3>
+
+<p>lambda 看起来好像是一个匿名的函数，但本质上它仍然只是一个表达式，一个可以构造函数的表达式。如果这个表达式出现在 def 定义的函数中，无意中就创造了一个嵌套函数模型。在之前没有嵌套作用域概念的时候，想让 lambda 表达式生成的函数访问所在嵌套层次函数内的变量，只能通过默认参数传递的方式进行，但是现在，可以不用多写任何一行代码依赖 python 本身所提供的对嵌套作用域的支持就可以实现这个效果。</p>
+
+<h3 id="嵌套函数的陷阱">嵌套函数的陷阱</h3>
+
+<p>嵌套函数一个最容易被忽略的陷阱就是在函数被嵌套在了一个循环中，并且嵌套函数中还使用了循环变量。如在生成一个函数列表的情况下，这个陷阱导致的直接后果就是，函数列表中的函数内所保存的循环变量的值都是循环范围中最后的那一个值，为什么呢？</p>
+
+<ol>
+<li>循环变量也是一个引用，在循环范围内每次引用一个不同的值</li>
+<li>函数体中的逻辑只有在函数执行的时候才执行，def 语句并不会执行内部逻辑</li>
+</ol>
+
+<p>出现这种情况，最直接的解决问题的思想就是将每一次的循环变量所引用的值都分别保存在嵌套函数的内部，每一个函数都会创建一个自己的本地作用域，所以将循环变量赋值给嵌套函数的参数，即可实现我们所期望的效果。</p>
+
+<h3 id="nonlocal">nonlocal</h3>
+
+<p>nonlocal 关键字从 Python3.x 开始提供，它允许在嵌套函数中读取和修改嵌套作用域中的变量。nonlocal 的出现，在变量解析的过程中直接跳过了本地作用域这一阶段，从嵌套作用域开始。它与「global」相同，「global」是在整个模块中寻找想要操作的变量，而「nonlocal」是在本地作用域与全局作用域之前的嵌套作用域中进行查找。但是，「global」所声明的变量如果在全局作用域内找不到，还可以去内置作用域找，但是「nonlocal」不行，它只能在嵌套作用域内进行查找。</p>
+
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/python/">Python</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/2017/10/30/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">TCP/IP 协议卷一之 IP 网际协议初探</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/2017/09/28/data-structure-review-circular-queue/">
+            <span class="next-text nav-default">Data Structure Review - Circular Queue</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2017/10/08/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>

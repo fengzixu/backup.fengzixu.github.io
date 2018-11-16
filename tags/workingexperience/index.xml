@@ -13,29 +13,29 @@
     
     <item>
       <title>记一次追查 gRPC Server 报错的过程</title>
-      <link>http://littledriver.net/posts/the-process-of-resolving-a-bug-for-grpc-server/</link>
+      <link>http://littledriver.net/post/2018/04/19/%E8%AE%B0%E4%B8%80%E6%AC%A1%E8%BF%BD%E6%9F%A5-grpc-server-%E6%8A%A5%E9%94%99%E7%9A%84%E8%BF%87%E7%A8%8B/</link>
       <pubDate>Thu, 19 Apr 2018 23:56:41 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/the-process-of-resolving-a-bug-for-grpc-server/</guid>
+      <guid>http://littledriver.net/post/2018/04/19/%E8%AE%B0%E4%B8%80%E6%AC%A1%E8%BF%BD%E6%9F%A5-grpc-server-%E6%8A%A5%E9%94%99%E7%9A%84%E8%BF%87%E7%A8%8B/</guid>
       <description></description>
     </item>
     
     <item>
       <title>工作中踩过的的坑之golang的临时变量</title>
-      <link>http://littledriver.net/posts/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</link>
+      <link>http://littledriver.net/post/2017/03/05/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</link>
       <pubDate>Sun, 05 Mar 2017 11:26:36 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/05/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</guid>
+      <description>在使用golang的时候，经常在一些比较小的地方被绊倒，这些“坑”并不是什么难以理解和运用的技术，而是一些语言的细节我们没有了解清楚。这类的</description>
     </item>
     
     <item>
       <title>乐观锁和悲观锁</title>
-      <link>http://littledriver.net/posts/pessimistic-and-optimistic-locker/</link>
+      <link>http://littledriver.net/post/2016/11/27/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/</link>
       <pubDate>Sun, 27 Nov 2016 20:59:27 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/pessimistic-and-optimistic-locker/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2016/11/27/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/</guid>
+      <description>本科的时候学习过数据库，但是只限于书面上的东西，并没有过多的实践。而且我依稀记得，当时教学的重点是在关系代数和数据库三大范式这两方面。 学完之</description>
     </item>
     
   </channel>

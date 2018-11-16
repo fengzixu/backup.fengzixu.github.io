@@ -1,94 +1,51 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LittleDriver  | TCP/IP 协议--UDP用户数据报协议</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TCP/IP 协议--UDP用户数据报协议 | LittleDriver</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
-    <header>
 
-  
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="http://littledriver.net/">/home/littledriver</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/">~/home</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/categories/">~/categories</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/blog.css" />
+</head>
+<body>
 
-      
-      
-      <li class="pull-right">
-        <a href="/index.xml">~/subscribe</a>
-      </li>
-      
+    
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="http://littledriver.net/">Home</a>
+        </div>
+    </nav>
+    
 
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">TCP/IP 协议--UDP用户数据报协议</span></h1>
-
-<h2 class="date">2017/11/27</h2>
-<p class="terms">
-  
-  
-  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
-  
-  
-  
-  Tags: <a href="/tags/network">Network</a> 
-  
-  
-</p>
-</div>
+    
+    <section class="hero is-info is-medium">
+        <div class="hero-body" style="background-image: url(http://littledriver.net/img/bg-blog.jpg);">
+            <div class="container has-text-centered">
+                <br>
+                <h1 class="title is-size-1">
+                    
+                        TCP/IP 协议--UDP用户数据报协议
+                    
+                </h1>
+                
+            </div>
+        </div>
+    </section>
 
 
-<nav id="TableOfContents">
-<ul>
-<li><a href="#什么是-udp-协议">什么是 UDP 协议</a></li>
-<li><a href="#udp-数据报的组成">UDP 数据报的组成</a></li>
-<li><a href="#ip-分片">IP 分片</a></li>
-<li><a href="#icmp-不可达差错报文">ICMP 不可达差错报文</a></li>
-<li><a href="#路径-mtu-发现机制">路径 MTU 发现机制</a></li>
-<li><a href="#udp-和-arp-之间的相互作用">UDP 和 ARP 之间的相互作用</a></li>
-<li><a href="#最大-udp-数据报长度与-icmp-源站抑制差错报文">最大 UDP 数据报长度与 ICMP 源站抑制差错报文</a></li>
-<li><a href="#experiment1-udp-输入队列溢出">Experiment1: UDP 输入队列溢出</a></li>
-<li><a href="#experiment2-udp-限制本地-ip-地址和远端-ip-地址">Experiment2: UDP 限制本地 IP 地址和远端 IP 地址</a></li>
-<li><a href="#最后-与多播和单播的关联">最后：与多播和单播的关联</a></li>
-</ul>
-</nav>
+<div class="container">
+    <div class="section">
+    
 
-
-<main>
-
+<div class="columns">
+    <div class="column is-9">
+        <div class="tile is-child box">
+            <div class="content">
+                
 
 <h1 id="什么是-udp-协议">什么是 UDP 协议</h1>
 
@@ -210,40 +167,105 @@
 
 <p>在一个支持多播的系统上，是允许多个 UDP 服务进程共享一个 UDP 端点的(本地 IP+端口号)。此时，如果该本地 IP 是一个广播地址且规则匹配成功，到达的 UDP 数据报会复制 N 份发送给监听这个端口地址的多个 UDP 服务进程。如果本地 IP 地址是一个单播，那么会依照实现方式的不同，将数据报发送给某一个 UDP 进程。</p>
 
-</main>
-
-    <footer>
-      
-<script>
-(function() {
-  function center_el(tagName) {
-    var tags = document.getElementsByTagName(tagName), i, tag;
-    for (i = 0; i < tags.length; i++) {
-      tag = tags[i];
-      var parent = tag.parentElement;
-      
-      if (parent.childNodes.length === 1) {
+            </div>
+        </div>
+    </div>
+    <div class="column is-3">
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Tags</h1>
+        <div class="tags">
         
-        if (parent.nodeName === 'A') {
-          parent = parent.parentElement;
-          if (parent.childNodes.length != 1) continue;
-        }
-        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
-      }
-    }
-  }
-  var tagNames = ['img', 'embed', 'object'];
-  for (var i = 0; i < tagNames.length; i++) {
-    center_el(tagNames[i]);
-  }
-})();
-</script>
+            <span class="tag"><a href="http://littledriver.net/tags/apue">APUE</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/algorithm">Algorithm</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/bestpractice">BestPractice</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/datastructure">DataStructure</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/docker">Docker</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/golang">Golang</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/java">Java</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/kubernetes">Kubernetes</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/linux">Linux</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/lua">Lua</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/mq">MQ</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">NetWork</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">Network</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/nginx">Nginx</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/operatingsystem">OperatingSystem</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/python">Python</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/rds">RDS</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/redis">Redis</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/servicemesh">ServiceMesh</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/sourcecodeanalyse">SourceCodeAnalyse</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workexperience">WorkExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workingexperience">WorkingExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/grpc">gRPC</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/%E9%9A%8F%E7%AC%94">随笔</a></span>
+        
+        </div>          
+    </div>
+</div><br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Recent posts</h1>
+        
+            <h1><a href="http://littledriver.net/post/2018/11/16/my-first-post/">My First Post</a></h1>
+            <time class="has-text-grey-light is-size-7">16 November 2018</time>
+        
+    </div>
+</div>
+    <br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Archives</h1>
+        
+            <a href="http://littledriver.net/archives/2018">2018</a> (1)<br>
+        
+    </div>
+</div>
 
-      
-      <hr/>
-      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
-      
-    </footer>
-  </body>
+    </div>
+</div>
+
+
+    </div>
+</div>
+
+<footer class="footer has-background-grey-darker has-text-white">
+    <div class="content has-text-centered">
+        <p>
+            <span class="icon is-large"><a href="https://twitter.com/" class="mysocial"><i class="fab fa-twitter fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://www.youtube.com/" class="mysocial"><i class="fab fa-youtube fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://github.com/" class="mysocial"><i class="fab fa-github fa-3x"></i></a></span>&nbsp;&nbsp;
+            <br><br>
+            Copyright &copy; LittleDriver 2018 - Theme by <a href="https://jeffprod.com" class="mysocial">JeffProd.com</a>
+            - <a class="mysocial" href="http://littledriver.net/about">About</a>
+        </p>
+    </div>
+</footer>
+
+<script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+</body>
 </html>
-

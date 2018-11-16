@@ -6,670 +6,522 @@
     <description>Recent content in 工作了也不能放松系列 on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 26 Oct 2018 10:13:21 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 16 Nov 2018 15:41:12 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>Detect Redis Config File</title>
+      <link>http://littledriver.net/post/2018/11/16/detect-redis-config-file/</link>
+      <pubDate>Fri, 16 Nov 2018 15:41:12 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/16/detect-redis-config-file/</guid>
+      <description>Include Part Include include 可以允许用户在 Redis 的 Conf 文件中引用一份「已经准备好」的配置。一般来说，我们都会把一些通用的且很少变化的配置放在一个「配置模板」中，然后在</description>
+    </item>
+    
+    <item>
+      <title>K8s GC Design Principle</title>
+      <link>http://littledriver.net/post/2018/11/15/k8s-gc-design-principle/</link>
+      <pubDate>Thu, 15 Nov 2018 22:40:55 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/15/k8s-gc-design-principle/</guid>
+      <description>Ref: https://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/garbage-collection.md#orphaning-the-descendants-with-orphan-finalizer Warning：设计文档的对应的 k8s 版本为1.7 Q: What is GC of Kuernetes ? A: GC 是 Garbage Collector 的简称。从功能层面上来说，它和编程语言当中的「GC」 基本上是一样的</description>
+    </item>
+    
+    <item>
       <title>Head First AUFS and Docker Image</title>
-      <link>http://littledriver.net/posts/head-first-aufs-and-docker-image/</link>
+      <link>http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/</link>
       <pubDate>Fri, 26 Oct 2018 10:13:21 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-aufs-and-docker-image/</guid>
-      <description>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联系我删除。
- Docker Image 和 AUFS 是什么关系？ Image 是 Docker 部署的基本单位，一个 Image 运行在一个 Docker Container 上面。这个 Image 包含了我们的程序文件，以及这个程序依赖的资源的环境。Docker Image 对外是以一个文件的形式展示的（更准确的说是一个 mount 点）。既然说到文件，那么它肯定是受到文件系统来管理的。
-在 Linux 内核 4.0以及之前的版本上（主要是 Ubuntu 和 Debian），Docker 使用 AUFS 来管理 Docker Image 的存储。虽然，在一些新的 Docker 版本中，已经使用了其他不同的方案来管理镜像，如 DeviceMapper，overlay2。但是 AUFS 是一个比较标准且简单的实现方式，通过 AUFS 来了解 Docker Image 的原理是一个不错的选择。
-什么是 AUFS？ AUFS 是 Union File System 众多实现方式的一种。Union File System 从字面意思上来理解就是「联合文件系统」。它将多个物理位置不同的文件目录「联合」起来，挂载到某一个目录下，形成一个抽象的文件系统。
-概念理解起来比较枯燥，最好是有一个真实的例子来帮助我们理解：
-首先，我们建立 company 和 home 两个目录，并且分别为他们创造两个文件
-root@rds-k8s-18-svr0:~/xuran/aufs# tree . .</description>
+      <guid>http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/</guid>
+      <description>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联</description>
     </item>
     
     <item>
       <title>Head First Linux Namespace</title>
-      <link>http://littledriver.net/posts/head-first-linux-namespace/</link>
+      <link>http://littledriver.net/post/2018/10/24/head-first-linux-namespace/</link>
       <pubDate>Wed, 24 Oct 2018 16:16:21 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-linux-namespace/</guid>
-      <description>什么是 Linux Namespace？它解决了什么问题？ 简单来说，Linux Namespace 是操作系统内核在不同进程间实现的一种「环境隔离机制」。
-举例来说：现在有两个进程A，B。他们处于两个不同的 PID Namespace 下：ns1, ns2。在ns1下，A 进程的 PID 可以被设置为1，在 ns2 下，B 进程的 PID 也可以设置为1。但是它们两个并不会冲突，因为 Linux PID Namespace 对 PID 这个资源在进程 A，B 之间做了隔离。A 进程在 ns1下是不知道 B 进程在 ns2 下面的 PID 的。
-这种环境隔离机制是实现容器技术的基础。因为在整个操作系统的视角下，一个容器表现出来的就是一个进程。
-Linux 一共构建了 6 种不同的 Namespace，用于不同场景下的隔离：
- Mount - isolate filesystem mount points UTS - isolate hostname and domainname IPC - isolate interprocess communication (IPC) resources PID - isolate the PID number space Network - isolate network interfaces User - isolate UID/GID number spaces  Docker 的网络隔离机制——Linux Network Namespace Docker 使用的网络模型是 CNM（Container Network Model），根据官方的设计文档，它的结构大致如下：</description>
+      <guid>http://littledriver.net/post/2018/10/24/head-first-linux-namespace/</guid>
+      <description>什么是 Linux Namespace？它解决了什么问题？ 简单来说，Linux Namespace 是操作系统内核在不同进程间实现的一种「环境隔离机制」。 举例来说：现在有两</description>
     </item>
     
     <item>
       <title>Deep into the process and thread 2</title>
-      <link>http://littledriver.net/posts/deep-into-process-and-thread-2/</link>
+      <link>http://littledriver.net/post/2018/10/21/deep-into-the-process-and-thread-2/</link>
       <pubDate>Sun, 21 Oct 2018 18:23:07 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/deep-into-process-and-thread-2/</guid>
-      <description>先来先服务 最短作业优先 &amp;amp;&amp;amp; 最短剩余时间优先 轮转调度 优先级调度 最短进程优先        Q： 为什么都说「进程切换」是个比较昂贵的操作，它昂贵在哪呢？
-A:
-首先，就是由用户态向内核态的切换。因为我们需要保存旧的进程的状态。其次，我们可能需要执行一个比较复杂的「调度算法」，挑选出一个合适的候选进程。除此之外，每一次进程的切换都会伴随着 CPU 高速缓存的失效。在新的进程被切换到 CPU 上开始运行之后，高速缓存需要从内存中动态装入一些和新的进程运行有关的信息。
-Q: 在什么情况下需要进行进程的调度（切换）？
-A:
-进程切换发生的时候是必然会进行进程调度的，因为此时 CPU 空闲，需要让新的进程在上面运行。那么，什么场景下会发生进程间的切换呢？
- CPU 时间片消耗完：这种场景是较为普通和正常的，操作系统为了让所有的进程都能够得到 CPU 的资源，只分配每个进程一定的 CPU 时间片，当时间片消耗完后，进程正常退出，就需要调度新的进程上来。 I/O 中断触发：当一个进程因触发 I / O 活动而阻塞之后，若相应的 I / O 设备完成了所需的任务，会向 CPU 发送 I / O 中断。此时，需要决定到底调度那类进程运行：阻塞之后满足条件的，随机的就绪进程，刚刚在运行的进程（被中断打断） 触发阻塞条件：一个进程可能会执行一些会阻塞自身的操作：如阻塞的系统调用，等待某一个资源的释放。此时，操作系统会将另外一个就绪的进程切换上来。  一般来说，一个进程的在运行期间过多的是在 CPU 上进行计算，那么它被认为「计算密集型」的。反之，如果大多数时间都消耗在了 I_O 等待上，那么它被认为是「I / O密集型」的。对于当前的 CPU 和 I_O 设备来说，我们可能需要的问题可能更多的和 I / O密集型的进程有关。因为 CPU 的发展速度是远大于 I / O 设备的。</description>
+      <guid>http://littledriver.net/post/2018/10/21/deep-into-the-process-and-thread-2/</guid>
+      <description>Q： 为什么都说「进程切换」是个比较昂贵的操作，它昂贵在哪呢？ A: 首先，就是由用户态向内核态的切换。因为我们需要保存旧的进程的状态。其次，我们可</description>
     </item>
     
     <item>
       <title>Deep into the process and thread</title>
-      <link>http://littledriver.net/posts/deep-into-process-and-thread/</link>
+      <link>http://littledriver.net/post/2018/10/19/deep-into-the-process-and-thread/</link>
       <pubDate>Fri, 19 Oct 2018 21:08:03 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/deep-into-process-and-thread/</guid>
-      <description>Q: 什么是进程？
-A:
-进程其实是一个比较抽象的概念，它是用来描述多道程序设计系统中的一个工作单元。单纯的给进程下一个定义是没有任何意义的。比如现在所谓的标准答案：进程是操作系统中运行的程序。对于进程，我们更多的要理解它是一个「复合体」，它是一系列活动的组合。它是一个逻辑上的概念，并不是一个现实世界中具体的事物。这一点和 k8s 中的 pod很像。所以，我更倾向于将进程理解为操作系统中的一个复杂且基本的工作单元。
-Q: 子进程被创建之后和父进程是如何隔离的？
-A:
-通常情况下，在 Linux 系统当中，一旦子进程被创建，那么子进程和父进程就会分别占有两块独立的地址空间。相互之间是隔离的，并且可以通过一些方式来进行通信或者共享某些资源。但是，在之后操作系统发展的过程当中，对于父子进程的创建过程可能会有一些优化，而不仅仅是粗暴的将父进程地址空间中所有的东西都 copy 一份给子进程。这里也是有一个比较重要的机制：COW（写时复制机制）。
-Q: Linux 中的进程和 Windows 中有哪些不同？
-A:
-Linux 系统中的进程是有严格的「父子关系」的，并且所有的进程会以树形的层次结构组织起来。其中祖先进程可认为是 Init，它是进程树中的根。而 Windows 中的进程，无论父子，都是靠一个叫做「句柄」的概念对一个进程进行标识的，并且这个句柄是可以传递的。所以在 Windows 中，进程间没有严格的父子关系。
-Q: 什么是线程？
-A:
-线程是轻量级的进程。进程由操作系统来管理而线程由进程来管理。不同进程之间的地址空间是隔离的，但是不同线程之间的地址空间是共享的。一般来说，一个进程通常会有一个主线程，进程负责向内核申请线程运行所需要的资源和环境，而线程才是真正执行程序的单位。
-Q: 有了进程为什么还需要线程？
-A:
-从程序性能的角度来说，很多程序在一个进程中都会做很多任务。这些任务可以大致的被划分为两类，一类是 I/O, 一类是计算。I/O 通常消耗的时间会比较长，对于只有主线程的进程来说，它会一直处于等待状态，内核分配给他的 CPU 时间片也会被白白的消耗。计算类的任务则会直接消耗 CPU 资源，最大限度的利用了已分配的时间片。所以，如果一个程序中同时包含这两类任务的话，计算类的任务很可能被 I/O 类的任务阻塞，最终导致整个程序的效率下降。因为线程是存在于进程的地址空间中的，如果可以在进程地址空间中创建多个线程，并且让这些线程重叠执行，分别去运行不同类型的任务，就可以在一定的 CPU 时间片内，将程序的效率尽可能的提高。通过上面的一些思考，我们甚至可以延伸出另外一个问题：多线程技术一定会对我们的程序产生积极的影响么？其实也不尽然。如果我们的程序中既包含大量的 I/O 操作，也包含大量的计算操作，那么多线程技术是可以提升我们程序的效率的。因为此时由于多个线程重叠的进行，最大限度的利用了 CPU 的时间片。如果我们的程序基本都是计算类的任务，很少有 I/O 操作，那么多线程的引入可能不会对提升程序的效率有太大的帮助。因为即使线程间的切换消耗再小，还是有 CPU 时间片上面的损耗的。同样，这个问题的思考方式还可以延伸到：多进程技术一定会对我们的程序有积极的影响么？
-从资源共享的角度来说，不同进程间的地址是不同的，所以它们在共享一些资源的时候就会比较麻烦，可能需要借助第三方的东西，比如文件。然而对于同一个进程中的不同的线程来说，这种内存上的隔离是不存在的，它们可以很方便的去共享一些资源。看到这里你可能会说，在地址空间不隔离的条件下，多个线程对同一个资源可能会出现竞争的想象。对于这个问题，我们要明确两点：首先，线程间共享资源的初衷是让多个线程合作，而不是让它们竞争。其次，如果不可避免的发生了竞争，也可以通过一些互斥的机制来解决。
-最后还要提及一点的就是，大多数操作系统对于多线程的实现都是在「用户态」下，且线程中维护的必要信息会较进程少很多。这就造成了线程是比进程更轻量级的。如果不可避免的发生频繁和切换操作，那么很明显线程在这种场景下会更具优势。
-Q: 进程和线程之间的关系是什么？
-A:
-进程更倾向于从操作系统申请资源，并对这些资源进行统一的管理，提供一个良好的运行环境。线程则更注重利用已经分配好的资源运行程序。也就是说，实际上在 CPU 上调度执行的并不是进程而是线程。
-Q: 如何实现线程？
-A:
-实现线程有两种思路：在用户态实现 or 在内核态实现。
-当我们想在用户态实现「线程」的时候，就意味着「线程」或者说是「多线程」对于内核来讲应该是透明的。内核与具有单个控制线程的主进程还是按照原来的模式运行（进程模型）。所以，我们很自然的就能够想到，在用户态下需要一系列「过程」的集合来实现和线程有关的操作以及「多线程」技术。这个「过程」的集合可以被称作为是一种 Runtime 系统。</description>
+      <guid>http://littledriver.net/post/2018/10/19/deep-into-the-process-and-thread/</guid>
+      <description>Q: 什么是进程？ A: 进程其实是一个比较抽象的概念，它是用来描述多道程序设计系统中的一个工作单元。单纯的给进程下一个定义是没有任何意义的。比如现在</description>
     </item>
     
     <item>
       <title>Head First SDS in Redis</title>
-      <link>http://littledriver.net/posts/head-first-sds-in-redis/</link>
+      <link>http://littledriver.net/post/2018/10/14/head-first-sds-in-redis/</link>
       <pubDate>Sun, 14 Oct 2018 18:37:32 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-sds-in-redis/</guid>
-      <description>Redis 设计与实现之动态字符串 Q: 什么是 SDS
-A:
-SDS 是 Redis 在实现过程中使用的一种「动态字符串」。由于 Redis 的代码基本都是通过 C 语言来实现的，所以 SDS 在最底层还是依赖于char buf[]来存储数据。SDS 对象的数据结构大致如下图所示
-可以看出，SDS 结构体成员中有三个属性：len，free，buf。其中 len 标识一个 SDS 对象管理的字符串有效字符是多少个，而 free 则代表这个 SDS 在不扩充空间的前提下还可以存储多少个有效字符，buf 则是一个char[]类型的指针，它指向一段连续的内存空间，这里才是真正存储字符串的地方（有效字符串是指除\0以外的字符串集合）。
-Q: 有了 C 字符串，为什么还需要 SDS？
-A:
-通过阅读相关数据以及对 Redis 文档的查阅，可以总结出以下几点使用 SDS 而不适用原生 C 字符串的好处
- * 更高效的获取一个 SDS 对象内保存的字符串的长度 * 杜绝缓冲区溢出 * 减少因字符串的修改导致的频繁分配和回收内存空间操作 * 二进制安全 * 和 C 语言有关字符串的库函数有一个更高的兼容性  其实看到这里，如果你之前使用其他语言中的「普通数组」实现过一个「动态数组」的话，那么除了「二进制安全」这一条好处可能不太理解之外，其余的应该都比较熟悉。下面我们就来分别说一下这几个好处。
-Q: 如何更高效的获取字符串的长度？
-A:
-这个问题在传统的 C 字符串中算是一个痛点。在一个线性的数据结构中，我们都只能通过遍历这个数据结构中所有的有效元素才能够获取它准确的长度，这个操作的时间复杂度是 O(N) 级别。但是当我们只是把 C 字符串作为 SDS 这个数据结构中的一个成员时，我们就可以通过增加另外一个成员len来实时的计算字符串的准确长度。计算的方式也很简单，就是在字符串做「新增元素」的操作时对len+1，做「减少元素」的操作时对len-1。这样一来，就可以通过访问len来获取 SDS 内存储的字符串的长度。类似于这样的实现：</description>
+      <guid>http://littledriver.net/post/2018/10/14/head-first-sds-in-redis/</guid>
+      <description>Redis 设计与实现之动态字符串 Q: 什么是 SDS A: SDS 是 Redis 在实现过程中使用的一种「动态字符串」。由于 Redis 的代码基本都是通过 C 语言来实现的，所以 SDS 在最底层还是依</description>
     </item>
     
     <item>
       <title>How to Deploy Jaeger Cluster</title>
-      <link>http://littledriver.net/posts/how-to-deploy-jaeger-cluster/</link>
+      <link>http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/</link>
       <pubDate>Wed, 26 Sep 2018 17:58:57 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/how-to-deploy-jaeger-cluster/</guid>
-      <description>Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件
- jaeger-agent jaeger-collector data-storage  Elasticsearch Cassandra   由于我们想将 jaeger 部署到 k8s 集群中，针对于这个特定的部署环境，我们可以对部署方案做如下的梳理：
- 部署方式： helm+jaeger 的 chart 包（参考：https://github.com/jaegertracing/jaeger-kubernetes, https://github.com/helm/charts/tree/master/incubator/jaeger） 存储中间件：helm + ElasticSearch 的 chart 包（参考：https://github.com/helm/charts/tree/master/incubator/elasticsearch） 底层存储方案：宿主机外挂500G 数据盘+ Ceph RBD 访问：ingress+nginx—ingress-controller+service  通过对GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes的了解，我们可以知道，其实 jaeger 本身的组件部署时比较简单的，直接 kubectl applpy 一个编排文件即可搞定。唯一比较麻烦的是对底层存储的配置。针对这样的情况，我们决定将 jaeger 部署的顺序做如下安排：
- 准备一个 k8s 集群（笔者有一个一主一从的 k8s 集群，基于虚拟机建立的），主从节点各挂在一块500G 的数据盘 Ceph RBD 集群和 k8s 混布（╮(╯▽╰)╭，没办法，穷啊），创建需要分配存储的测试 pod，查看 pvc 和 pv 的创建情况 部署 Elasticsearch 部署 Jaeger，测试集群内部是否能够成功访问 jaeger-query 部署 ingress+nginx-ingress-controller，测试集群外部访问情况   本文默认用户已经部署好了 k8s 集群并且挂载了数据盘，因为 k8s 的部署步骤也比较复杂，足以写另外一篇文章了。而且对于挂载磁盘的问题来说，用户所处平台的不同（云主机，物理机，本地的虚拟机）可能处理的方式也不太一样。这两部分在本文中就不做过多的描述了。</description>
+      <guid>http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/</guid>
+      <description>Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件 jaeger-agent jaeger-collector data-storage Elasticsearch Cassandra 由于我们想将 jaeger 部署到 k8s 集</description>
     </item>
     
     <item>
       <title>Head First of Tracing System</title>
-      <link>http://littledriver.net/posts/head-first-of-tracing-system/</link>
+      <link>http://littledriver.net/post/2018/09/26/head-first-of-tracing-system/</link>
       <pubDate>Wed, 26 Sep 2018 17:58:42 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-of-tracing-system/</guid>
-      <description>什么是 Link Tracing？ 为什么我们需要 Tracing？ Link Tracing 字面意思就是链路追踪，它是一个抽象的概念。针对于一个分布式的系统来说，「链路」主要是某个请求从进入到这个系统一直到被处理完成的整个路径。而「追踪」就更好理解了，它可以给我们提供一定的信息，方便我们了解在这个链路上都发生了什么。
-传统的「服务」像是一锅大杂烩，将所有的功能都集成到一个 binary 中，如监控，日志收集，UI，存储等等。多个模块硬耦合在一起，带来的后果就是整个系统变得臃肿和不可控，修改起来也相当的麻烦。更新频率较低的功能，往往会受到更新频率较高的功能的影响。由于种种原因，越来越多的开发团队企图将他们的「大杂烩」剥离成一个个相互合作的微服务。多个具有合作关系的微服务统称为一个「分布式系统」（笔者自己对分布式系统的简单理解）。
-分布式系统以及微服务给开发人员和运维人员带来好处的同时也引入了一些难题：
- 由于服务和服务之间依靠网络通信，请求链路变长使得延迟有一定的升高，所以我们可能需要做一些优化 现代服务多使用「并发」来实现一些 feature。并发逻辑若出现 bug，在一个分布式系统中就需要一个有效的措施去定位和解决  而「链路追踪」技术就旨在为分布式系统解决这些问题。它提供一些方便且有效的手段，使我们可以清晰的了解到整条请求链路中各个阶段的耗时。若在请求处理的过程中出错，尤其是在一些不是我们自己实现的组件中出错，「链路追踪」也可以准确的捕获这类信息。目前已经有了一些成熟的「分布式链路追踪」系统，如 Zipkin or Jaeger。
-TracingGraph 如果让我们通过一个图来描述一个请求的「链路」，基本上可以画成上面的样子，从1-8。这个「链路追踪」图示有优势也有劣势
- 优势：  可以看清楚各个组件之间的调用关系。从用户的角度出发观察整个请求的处理链路较为直观  劣势：  整个请求执行的过程中，无法区分哪些逻辑是串行的，哪些逻辑是并行的 无论是其中的一个小步骤还是整个请求，都无法观察到它们的运行时间   上面的「链路追踪」图，在保留了「可以看清调用关系」的基础上，针对我们之前谈到过的几个问题作出了改进。在整个的 tracing 过程中，每一个带有不同颜色的矩形区域都被称作是一个 Span，它代表了一个调用的过程（逻辑上的一个工作单元）。一个 Span 的长度结合 X 轴可以判断它的 processing duration。并且，在按照层级将调用分类之后，可以明显的区分出「串行」和「并发」的逻辑（如图中的container start-up 调用和 stoage allocation两者就是并发执行的，而 container start-up 和 start-up scripts 就是串行执行的）。
-Jaeger Jaeger 是一个由 Uber 公司开发的分布式的链路追踪系统。它遵循了 OpenTracing 提出的和「链路追踪」有关的一系列的数据模型和标准。jaeger 还实现了 OpenTracingAPI（golang），使得应用程序接入 jaeger 更加的方便。一个 jaeger 通常包含以下几个组件：
- jaeger-client：业务接入 jaeger 所需要的 SDK，由特定的语言实现 jaeger-agent：作为 daemon 进程部署在每一个 host/container 上，用以收集追踪数据发送至 collector jaeger-collector：收集从 jaeger-agent 上反馈而来的数据，以特定的存储组件进行持久化（es） jaeger-ui&amp;amp;jaeger-query：提供 UI 界面和查询追踪数据的服务，使得用户能够方面的查看每个请求的「链路追踪」信息  如果是部署在生产环境的 k8s 集群中，除了上述说到的几个组件之外，还需要一个持久化存储的中间件，为 jaeger 管理海量的「追踪数据」。对于 jaeger 来说，存储中间件有几个可以供选择：</description>
+      <guid>http://littledriver.net/post/2018/09/26/head-first-of-tracing-system/</guid>
+      <description>什么是 Link Tracing？ 为什么我们需要 Tracing？ Link Tracing 字面意思就是链路追踪，它是一个抽象的概念。针对于一个分布式的系统来说，「链路」主要</description>
     </item>
     
     <item>
       <title>The brief of PV and PVC</title>
-      <link>http://littledriver.net/posts/notion-of-pv-and-pvc/</link>
+      <link>http://littledriver.net/post/2018/09/26/the-brief-of-pv-and-pvc/</link>
       <pubDate>Wed, 26 Sep 2018 17:58:12 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/notion-of-pv-and-pvc/</guid>
-      <description>Overview 在 kubernetes 上部署服务，无论是「有状态」的，还是「无状态」的，可能大部分都有存储数据的需求。随之而来的就是对存储资源的需求。对于 k8s 来说，最底层的存储资源，我们可以直接利用 local storage，即机器的本地磁盘，也可以使用 ceph rbd 这种存储插件，单独的搭建一个存储的集群，使得运行在k8s 上的服务可以使用 network storage。
-但是，在搭建好了一个 ceph 存储的集群之后，我们要如何使用它呢？
-PV &amp;amp;&amp;amp; PVC 在 k8s 中，定义了两个资源来管理和使用集群中的存储资源：
- Persistent Volumes： 可以认为是 k8s 集群提供的存储资源的一种抽象，由 k8s 集群自动创建 PersistentVolumeClaim： 可以认为是 User(广义的 User，泛指一切想使用存储资源的事物) 对存储资源的一个请求声明  对于两者的「合作」模式，可以简单的做如下理解：
-用户申请一个定量的存储资源，创建一个 PVC，集群内部的某些组件在收到 PVC 的创建消息之后，根据要求创建一个相应的 PV，并且会为这个 PV 分配实际的存储空间（在本地磁盘，或者是在 ceph rbd 这种网络存储上）。但是，如果不能满足 PVC 所申请的 volume 资源，那么 PV 不会被创建，而这个 PVC 也会一直保留在那里，直到它所申请的 Volume 容量被满足。
-对于 PV 来说，集群对它的提供方式一般有两种：动态和静态。静态的 PV 一般都是由 k8s 集群内特定的组件预先分配好的，在用户需要使用的时候，可以直接将 PVC 和 PV 做一个「绑定」的操作即可。而动态的 PV 则需要一个叫做 StorageClass 的东西。</description>
+      <guid>http://littledriver.net/post/2018/09/26/the-brief-of-pv-and-pvc/</guid>
+      <description>Overview 在 kubernetes 上部署服务，无论是「有状态」的，还是「无状态」的，可能大部分都有存储数据的需求。随之而来的就是对存储资源的需求。对于 k8s 来说，最底层的存</description>
     </item>
     
     <item>
       <title>Contrain Pod Scheduling</title>
-      <link>http://littledriver.net/posts/contrain-pod-scheduling/</link>
+      <link>http://littledriver.net/post/2018/09/11/contrain-pod-scheduling/</link>
       <pubDate>Tue, 11 Sep 2018 16:52:58 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/contrain-pod-scheduling/</guid>
-      <description>Overview 当我们创建一个 Pod 之后，Kubernetes 自身的一些调度规则将会根据集群节点的各项指标，为这个 Pod 选出一个合适的 Node 且将其调度上去。我们姑且可以认为这个调度的过程对我们来说是「随机」的。因为在没有了解清楚 Kubernetes 的调度规则之前，我们也不知道创建的一个 Pod 将会被调度到哪台节点上。 但是在日常开发的过程中，尤其是基于 k8s 开发一些数据库相关应用的时候，我们通常对 Pod 被调度的节点是有要求的，比如：我们需要将主节点强制调度到某台机器上，或者我们需要主从节点所在的 Pod 不能调度到同一个 Node 上。
-这些要求在 kubernetes 上是可以实现的，它提供以下几种方式来方便使用者干预 Pod 的调度策略：
- NodeSelector Taints and Tolerations Anti-Affinity/Affinity  NodeSelector NodeSelector 是依靠 LabelSelector 实现的一种调度策略。若想使用 NodeSelector， 需要分为两部分来考虑
-Node 我们需要在集群中某一个我们想要调度到的 Node 上打上一个label，比如，A Node上的硬盘是 SSD，那我们就可以使用 kubectl 命令将 A Node 打上一个 disktype=ssd 的 Label。 kubectl label nodes &amp;lt;node-name&amp;gt; &amp;lt;label-key&amp;gt;=&amp;lt;label-value&amp;gt;
-Pod 对于 Pod 来说，我们需要在它的 spec 段内，加入 nodeSelector 段。并且在 nodeSelector 段中填入「目的 Node」 所携带的 Label。比如我们想将一个 Pod 强制调度到 Node A 上，那么在构造 Pod 的基本信息的时候，就要相应的做如下修改（以 yaml 文件为例）：</description>
+      <guid>http://littledriver.net/post/2018/09/11/contrain-pod-scheduling/</guid>
+      <description>Overview 当我们创建一个 Pod 之后，Kubernetes 自身的一些调度规则将会根据集群节点的各项指标，为这个 Pod 选出一个合适的 Node 且将其调度上去。我们姑且可</description>
     </item>
     
     <item>
       <title>Heade First Redis Sentinel</title>
-      <link>http://littledriver.net/posts/heade-first-of-redis-sentinel/</link>
+      <link>http://littledriver.net/post/2018/08/27/heade-first-redis-sentinel/</link>
       <pubDate>Mon, 27 Aug 2018 16:00:20 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/heade-first-of-redis-sentinel/</guid>
-      <description>WARNING: 本篇文章是在阅读了 Redis Sentinel 的设计文档之后产出的。但是由于该设计文档已经被官方标识为 draft 且时间也比较久远，笔者在阅读这份文档的时候还是发现了几处与当前新版本实现不同的地方，甚至是有一些错误的。所以本文的目的也就在于：先借助该设计文档对 Sentinel 这套高可用的方案有一个宏观上的了解，具体的实现细节，之后会另写几篇博文对 Sentinel 的源码进行分析。若是有能力直接阅读源码的读者可直接去阅读源码。如果你在阅读这篇文章的时候，发现了一些错误并且愿意帮忙改正的话，请私信联系我。
- 先说明几个这篇 blog 使用的名词
-- 「Redis Sentinel」指通过 Sentinel 实现的 Redis 高可用方案 - 「Sentinel 节点」指 Redis 集群中运行的某一个 Sentinel 节点（redis-server）  Q: 什么是「Redis Sentinel」?
-Redis Sentinel 是一套「方案」。它能够提升 Redis 集群的可用性，也就是我们常说的「高可用」
-Q: Sentinel 通过哪些功能可以实现 Redis 集群的「高可用」？
-Redis 集群的「高可用」，在我理解，可以分为「用户」和「服务」两个维度进行讨论
-- 用户维度 - Sentinel 通过某些命令可以让用户实时获取当前集群的 Master 节点的地址（Sentinel 会进行故障转移操作） - 预设了一些「通知」机制，可以在 Redis 集群内部发生异常的时候通知给集群的维护者或者使用者 - 服务维度 - 监控集群中主从节点以及 Sentinel 节点的健康状态 - 集群 Master 发生故障时可自动进行「故障转移」操作来恢复集群  总结下来，这套「高可用」方案既可以保证 Redis 集群自身的健康，同时也在发生故障的时候尽量降低对集群使用者的影响。Redis 的作者对这套高可用方案有着更加清晰的概括</description>
+      <guid>http://littledriver.net/post/2018/08/27/heade-first-redis-sentinel/</guid>
+      <description>WARNING: 本篇文章是在阅读了 Redis Sentinel 的设计文档之后产出的。但是由于该设计文档已经被官方标识为 draft 且时间也比较久远，笔者在阅读这份文档的时候还是发现了几处与</description>
     </item>
     
     <item>
       <title>Head First Scheduler of Golang</title>
-      <link>http://littledriver.net/posts/head-first-scheduler-of-golang/</link>
+      <link>http://littledriver.net/post/2018/08/14/head-first-scheduler-of-golang/</link>
       <pubDate>Tue, 14 Aug 2018 15:45:25 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-scheduler-of-golang/</guid>
-      <description>我们的程序是如何被运行的？ 学习过操作系统的人，应该对进程和线程的模型都是有所了解的。按照我的理解：「进程」是操作系统资源分配的基本单位，它给程序提供了一个良好的运行环境。「线程」则是一个轻量级的进程，一个「进程」中可以有很多线程，但是最终在一个 CPU 的核上只能有一个「进程」的其中一个「线程」被执行。所以，我们的一个程序的执行过程可以粗略的理解为：
- 程序的可执行文件被 Load 到内存中 创建进程&amp;amp;创建主线程 主线程被 OS 调度到合适的 CPU 执行  goroutine 是什么？ 看了很多文章对于 goroutine 的描述，其中出现最多的一句话就是「The goroutine is a lightweight thread.」。在结合了对操作系统的线程模型的理解之后，我觉得 goroutine 就是一个在用户空间（usernamespace）下实现的「线程」，它由 golang 的 runtime 进行管理。goroutine 和 go runtime 的关系可以直接的类比于线程和操作系统内核的关系。至于它是不是轻量级，这需要和操作系统的线程进行对比之后才能够知道。在此我们先避免「人云亦云」。
-goroutine 和 thread 有什么不同？ 目前看起来 goroutine 和 thread 在实现的思路上是比较相似的。但是为什么说 goroutine 比 thread 要轻量呢？从字面的意思上来理解，「轻量」肯定意味着消耗的系统资源变少了。
-内存消耗 OS 从 OS 的层面来说，内存大致可以分为三个部分：一部分为栈（Stack）另外一部分为堆（Heap），最后一部分为程序代码的存储空间（Programe Text）。既然在逻辑上 OS 已经对内存的布局做了划分，如果栈和堆之前如果没有遵守「分界线」而发生了 overwrite，那么结果将是灾难性的。为了防止发生这种情况，OS 在 Stack 和 Heap 之间设置了一段不可被 overwrite 的区域：Guard Page
-thread 通过对 OS 中线程模型的了解，我们可以知道：同一个进程的多个线程共享进程的地址空间。所以，每一个 thread 都会有自己的 Stack 空间以及一份 Guard Page用于线程间的隔离。在程序运行的过程中，线程越多，消耗的内存也就越多。当一个线程被创建的时候，通常会消耗大概1MB的空间（预分配的 Stack 空间+ Guard Page）。</description>
+      <guid>http://littledriver.net/post/2018/08/14/head-first-scheduler-of-golang/</guid>
+      <description>我们的程序是如何被运行的？ 学习过操作系统的人，应该对进程和线程的模型都是有所了解的。按照我的理解：「进程」是操作系统资源分配的基本单位，它给</description>
     </item>
     
     <item>
       <title>Redis 数据持久化机制</title>
-      <link>http://littledriver.net/posts/redis-persistence-1/</link>
+      <link>http://littledriver.net/post/2018/08/05/redis-%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/</link>
       <pubDate>Sun, 05 Aug 2018 20:11:46 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/redis-persistence-1/</guid>
-      <description>Redis 有两种持久化数据的机制  AOF： 将对数据库所有的「写操作」以追加的方式，写入一个文件当中。待 Redis 重启之后，可以通过这些指令恢复数据 RDB： 以生成数据集快照的方式，全量备份数据。生成一个 dump 文件，落盘保存  两种持久化机制可以同时启用，redis-server 默认在启动的时候，会使用它们持久化的数据对自身的数据集进行恢复。但是会优先使用 AOF，因为RDB 在备份的过程中，如果集群出现重启等极端现象，会丢失一部分数据。而 AOF 基本上是间隔一秒执行一次fsync，最大限度的确保不会丢失数据。
-RDB 持久化的大致过程  redis-server 每隔一段时间就执行一次 BGSAVE 命令 redis-server 的主进程会 Fork 一个子进程进行持久化操作 子进程将此时内存中的数据写入进一个临时文件中 写入成功之后，原子的将旧的 rdb 文件替换为新的并删除旧的备份文件  RDB持久化过程享受了 OS 中 COW （ Copy-on-write ） 机制的优势。早期 Linux 内核的 Fork 过程会无脑的直接将父进程的各种资源 Copy 一份给子进程。这种旧的机制在效率上有很大的问题。但是在有了 COW 机制之后，若父进程的内存段中的内容都没有修改，那么就只会分配给子进程很少的一部分资源，如进程描述符等等。实际上此时父子进程是共享内存地址空间的，达到了资源共享的效果。若父子进程共享的内存中的内容有修改，才会真正的去复制一份内存当中的内容给子进程.
-所以，你会发现，在你的redis-server 没有接受任何写操作的时候，你执行 bgsave 和 save 是非常快的。但是，若你一遍在疯狂的写入数据，一边在执行bgsave或者 save，他们的执行时间就会随着写入速度的增加而增加，且有可能发生 OOM 的现象。
-另外还有一个问题就是：Redis 在执行 bgsave 操作的时候，如果此时还有写操作在执行，那么最新的修改会被同步到新的 RDB 的文件中么？根据 COW 的机制思考一下就可以知道，当发生写入操作之后，父子进程的实际物理内存已经分开了两份，而最终本次 RDB 操作产生的备份文件也是根据子进程内存中的内容来的，所以，可以说 RDB 执行完成后文件中的内容，就是 fork 函数执行那一刻，内存中的内容（此时，父子进程共享内存）</description>
+      <guid>http://littledriver.net/post/2018/08/05/redis-%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/</guid>
+      <description>Redis 有两种持久化数据的机制 AOF： 将对数据库所有的「写操作」以追加的方式，写入一个文件当中。待 Redis 重启之后，可以通过这些指令恢复数据 RDB： 以生</description>
     </item>
     
     <item>
       <title>Golang Log Level Best Pratice-1</title>
-      <link>http://littledriver.net/posts/golang-log-level-best-pratice/</link>
+      <link>http://littledriver.net/post/2018/05/03/golang-log-level-best-pratice-1/</link>
       <pubDate>Thu, 03 May 2018 13:39:17 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/golang-log-level-best-pratice/</guid>
-      <description>写在前面 在使用 Golang 语言开发的过程中，被广大开发者广泛使用的 Debug 方式应该就是观测服务输出的关键性日志信息了。这也就是我们俗称的「日志 Debug」 方式。虽然 Golang 也可以通过一些断点调试的方法去 Debug，这种方式在 Demo 阶段或者仅仅做一个 Experiment 的时候可能是比较好的，但是在真正的生产环境中或者说高并发的场景下，断点调试就会显得力不从心了。所以，主流的方式可能仍然是「日志 Debug」。
-对于 Log 的使用，可能大多数人都倾向于使用一些第三方的日志工具。毕竟 Golang 官方的 Log 库提供的功能以及对 Log 输出的可定制性都是有限的。主流的日志工具库有以下两个：
- https://github.com/sirupsen/logrus https://github.com/golang/glog  这两个日志工具库都提供了丰富的功能，其中一个共性的功能就是「按照级别输出日志」。因为在输出日志的时候，可能会有以下输出级别给你选择，不同的级别可能代表着这条日志输出的优先级，重要性，作用都是不同的：
- Error Fatal Info Warn Debug  那么在接下来的两篇关于「Golang Log」的文章当中，将会根据笔者的实践经验，在日志级别的使用以及日志库工具的使用上给出一些我自己的「Best Practice」。
-Warn Warn 这种日志级别一直让我感觉比较困惑，按照单词的字面意思来理解，它是用来输出警告信息的。那警告这种级别到底是用于什么场景呢？如果是错误的话那应该直接用 Error，如果是简单的输出一些信息的话，那么用 Debug 和 Info 都是可以的。这样看来，Warn 这种级别就很尴尬，和其他的级别没有明显的区别，导致开发者在选择日志输出级别的时候就多了一种令人困惑的选择。如果你一直在使用 Warn 这种日志级别在输出「错误」信息的话，建议还是改成 Error 较好。最主要的原因就是，滥用 Warn 级别可能会给我们的日志造成很大的噪音，因为大家潜意识里就认为 Warn 不重要，Error 才是需要注意的。这样一来，把错误信息放在 Warn 里面输出就是非常不合适的，很有可能让我们忽略一些关键的信息。
-日志输出级别上的 Warn 和监控报警级别中的 Warn 显然不是一回事，前者是将输出的日志信息划分等级，以此来帮助我们追查问题和观察程序运行的情况。后者则是用来像我们报告服务的某些指标已经很接近 Error 报警的阈值，提醒我们要注意。并且监控报警中的 Warn 级别也是提倡要善用的，滥用同样会导致噪声。</description>
+      <guid>http://littledriver.net/post/2018/05/03/golang-log-level-best-pratice-1/</guid>
+      <description>写在前面 在使用 Golang 语言开发的过程中，被广大开发者广泛使用的 Debug 方式应该就是观测服务输出的关键性日志信息了。这也就是我们俗称的「日志 Debug」 方</description>
     </item>
     
     <item>
       <title>gRPC Deadline Explanation</title>
-      <link>http://littledriver.net/posts/grpc-deadline-explanation/</link>
+      <link>http://littledriver.net/post/2018/04/21/grpc-deadline-explanation/</link>
       <pubDate>Sat, 21 Apr 2018 21:23:55 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/grpc-deadline-explanation/</guid>
-      <description>什么是 gRPC Deadline gRPC 框架中的 Deadline 的概念主要是针对于客户端而言的。它表明了一个 RPC 请求在完成之前或者被错误终止之前，gRPC client 需要等待多长时间。如果我们在使用 gRPC 框架进行 RPC 请求的时候没有指定这个值，它的默认值是依赖于不同编程语言的实现的。理论上来说， 若不指定，应该是一个非常大的值。
-为什么要设置 Deadline 一个 RPC 请求的处理端大部分是我们所实现的一个服务，如果此时客户端请求不设置 Deadline，那么服务端的资源就会一直被占用（如内存，CPU，网络端口等），而且，任意一个客户端请求都可能会达到默认的 Deadline 最大值。
-什么是一个合适的 Deadline 值 对于 Deadline 值的设定，gRPC 官方的文档中并没有给出一个具体的最佳实践。仔细一想，这也是比较正确的。因为使用 gRPC 框架的服务性质各不相同，所以一个「最佳」的值，即使给出来也是没有多的意义的。所以，我们就得出了一个结论：「Deadline 的最佳值是和业务紧密相关的」。
-上面在提到「为什么要设置 Deadline 值」的时候，我们举了一个客户端和服务端的例子。但其实在真正的工业环境当中，gRPC 请求的通信双方基本上同时扮演着客户端和服务端的角色。在请求过程中角色的不同，就导致他们是相互独立的两个个体。对于一次请求来说，它是否成功可能在服务端和客户端上的认知上是有差异的。如，一个请求从 A 发送至 B，B 处理完成之后发送 Response。此时 B 会认为本次的 RPC 请求已经成功结束。但是，由于各种各样的问题，该 Response 可能没有按时到达 A 端。那么 A 在等待这个回应的时候很有可能过了它设置的 Deadline 值，或者是默认值。此时，A 会认为本次请求失败。在理解这里的时候，如果联想一些「TCP 三次握手」以及「全双工通信」的原理，迁移一下就会很容易明白了。对于这个问题，gRPC官方的文档中是建议我们能够在 Application Layer 去检查和解决他们。
- PS: 笔者在使用 gRPC 框架到公司的项目中时，也被这个问题搞得非常的头疼。一开始是觉得官方肯定会给出一个 Deadline 的最佳实践的，然而并没有。这种客户端和服务端对一次 RPC 请求成功与否的认知差别，会在服务刚刚设置这个 Deadline 的时候稳定性会受到一定的影响。由于是和网络请求相关联的值，那么它受到网络环境好坏的影响也是非常大的。所以，笔者觉得这个 Deadline 的值是要定期去审视和修改的。因为随着业务的变动，同一个请求所需要的时间会有所变化，而且这个时间的设置一定程度上还要对网络环境进行容错。目前觉得最好的时间就是对服务的 gRPC 请求增加可视化监控，监测 DEADLINE_EXCEEDED出现的比例。如果发生了陡增的现象，那么就提醒你可能要重新调整 Deadline 的阈值了。</description>
+      <guid>http://littledriver.net/post/2018/04/21/grpc-deadline-explanation/</guid>
+      <description>什么是 gRPC Deadline gRPC 框架中的 Deadline 的概念主要是针对于客户端而言的。它表明了一个 RPC 请求在完成之前或者被错误终止之前，gRPC client 需要等待多长时间。如果我们在</description>
     </item>
     
     <item>
       <title>记一次追查 gRPC Server 报错的过程</title>
-      <link>http://littledriver.net/posts/the-process-of-resolving-a-bug-for-grpc-server/</link>
+      <link>http://littledriver.net/post/2018/04/19/%E8%AE%B0%E4%B8%80%E6%AC%A1%E8%BF%BD%E6%9F%A5-grpc-server-%E6%8A%A5%E9%94%99%E7%9A%84%E8%BF%87%E7%A8%8B/</link>
       <pubDate>Thu, 19 Apr 2018 23:56:41 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/the-process-of-resolving-a-bug-for-grpc-server/</guid>
+      <guid>http://littledriver.net/post/2018/04/19/%E8%AE%B0%E4%B8%80%E6%AC%A1%E8%BF%BD%E6%9F%A5-grpc-server-%E6%8A%A5%E9%94%99%E7%9A%84%E8%BF%87%E7%A8%8B/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Kubernetes pod schedular strategy</title>
-      <link>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</link>
+      <link>http://littledriver.net/post/2018/04/17/kubernetes-pod-schedular-strategy/</link>
       <pubDate>Tue, 17 Apr 2018 14:34:48 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</guid>
-      <description>概述 在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需要将 Pod 调度到一些特定的 Node 上面，比如一些挂在了 SSD 硬盘的 Node。因为有这样的需求，k8s 可以让我们自己控制 Pod 调度至 Node 的策略。这些策略是通过 labelSelector 来实现的。
-NodeSelector NodeSelector 是PodSpec 中的一个 Field。它是一个 key-value 的 pair。key 对应了 Node 中的 label，value 对应了Node 中的 labelValue。当这个 Pod 被创建之后，k8s 会按照这个 nodeSelector 的规则在集群中进行匹配，找到合适的 Node 进行调度。否则，这个 Pod 将不会被成功调度并且会报错： No nodes are available that match all of the following predicates&amp;hellip;
-Affinity and anti-affinity Affinity（anti-affinity） 是对 NodeSelector 的一种功能上的扩展，NodeSelector 可以做到的东西，它一样可以做到。功能上的加强有以下几个方面：
- 不仅支持对单个的 key-value pair进行匹配，还支持逻辑运算的语义。如 AND 等 设置的调度策略将分为：强制和非强制两种类型。强制类型则和 NodeSelector 的功能一样，如果匹配失败，那么也就意味着调度失败。非强制类型则优先会匹配设置好的策略，如果没有匹配成功，k8s 会自动按照它的默认策略调度 Pod 至 Node 上。 调度策略可供设置的粒度更细，不但支持 NodeLabel 粒度的，还支持 PodLabel 粒度的。这也就是说，我们不但可以根据 Node 本身的 label 设置调度策略，还可以根据目标 Node 上所运行的 PodLabel 设置。如 RedisAPP 中，主从节点的 Pod 肯定是不能被调度到一个 Node 上的。这个功能的产生，主要是考虑到了同一个 Node 上面运行的 Pod 之间会有业务上的影响  Node affinity NodeAffinity 分为两种类型：</description>
+      <guid>http://littledriver.net/post/2018/04/17/kubernetes-pod-schedular-strategy/</guid>
+      <description>概述 在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需</description>
     </item>
     
     <item>
       <title>Redis Sentinel Explanation 1</title>
-      <link>http://littledriver.net/posts/redis-sentinel-explanation-1/</link>
+      <link>http://littledriver.net/post/2018/04/01/redis-sentinel-explanation-1/</link>
       <pubDate>Sun, 01 Apr 2018 19:49:35 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/redis-sentinel-explanation-1/</guid>
-      <description>什么是 Sentinel? Sentinel 这个词在 Redis 中有很多不同的含义，它可以代表 Redis 的一种高可用的方案，也可以代表一个以 Sentinel 模式启动的 Redis 实例，甚至是可以代表你的 Redis 集群中，多个以 Sentinel 模式启动的 Redis 实例集合。我们可以这样来理解和定义 Sentinel：
- Sentinel 是一套方案。它在集群模式下为我们的 Redis 集群提供了「高可用」的保证。 Sentinel 也是一个小型的分布式系统，在多个 Sentinel Process 的协同作战下，保证了 Redis 集群的「高可用」。减少故障误报率，在部分 Sentinel Process 异常的情况下，仍能够为集群提供可靠的服务。
- Sentinel 都有哪些功能？ 上面说到，Sentinel 为我们的 Redis 提供「高可用」的保证。那么，他提供了哪些措施去实现「高可用」呢？让我们首先来看一下，在没有 Sentinel 的时候，使用一主一从的模式部署我们的 Redis 集群，可能会在使用上遇到哪些问题：
- 健康检测（monitor）：我们需要一个可靠的检测机制去观察 Redis 实例的健康状态 通知（notification）：当 Redis 实例发生故障的时候，我们需要一个可靠的通知机制来告知集群的管理者 故障自动处理（failover）：一些简单的，处理方式可以被固化的故障能够自动被修复。一方面，能够最大限度的保证集群对用户的可用性，另外一方面，能够加快故障处理速度，减轻维护者的负担 负载均衡（LB）：当集群发生故障的时候，如果进行了主从切换，那么要把最新可用的 Master 节点地址通知给用户 服务发现（Service discovery）：自动的查找并监控集群内所有的实例，不需要人工去配置所有的监控关系  Sentinel 基本上是从以上五个维度对 Redis 做了「高可用」的保证。相对于 Mysql 来说，Redis 的「高可用」方案采取了和集群本身的实例分离的方式来做。也就是说，「高可用」的逻辑并没有和数据节点的逻辑混杂在一起。这一点在部署使用 Sentinel 方案的 Redis 集群就可以看出来：数据节点和 Sentinel 节点是需要分开部署的，使用的配置文件也是不一样的。</description>
+      <guid>http://littledriver.net/post/2018/04/01/redis-sentinel-explanation-1/</guid>
+      <description>什么是 Sentinel? Sentinel 这个词在 Redis 中有很多不同的含义，它可以代表 Redis 的一种高可用的方案，也可以代表一个以 Sentinel 模式启动的 Redis 实例，甚至是可以代表你的 Redis 集群中，多个</description>
     </item>
     
     <item>
       <title>k8s 之 StatefulSets</title>
-      <link>http://littledriver.net/posts/k8s-%E4%B9%8B-statefulset/</link>
+      <link>http://littledriver.net/post/2018/02/24/k8s-%E4%B9%8B-statefulsets/</link>
       <pubDate>Sat, 24 Feb 2018 17:13:44 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/k8s-%E4%B9%8B-statefulset/</guid>
-      <description>Q： 什么是 StatefulSets？
-A: StatefulSets 是一种 workload。k8s 中的一个 workload 通常由 CRD 和 controller 两部分构成，CRD 交由用户使用，创建资源实例，描述对资源期望的状态。而 controller 主要负责保证资源的状态与用户的期望是一致的。StatefulSets 和 deployment 有着相似的作用，提供了 pod 的部署操作和相应的扩缩容操作。但是与 deployment 不同的是：statefulsets可以保证 pod 的操作顺序，这些操作包括创建，终止，更新。在 StatefulSets 中每一个 Pod 都有一个唯一的标识符，即使内部的容器运行的 app 相同，两个 pod 也是不能够互换的。这也是 StatefulSets 可以保证 pod 启停顺序的一个原因。
-Q: StatefulSets有哪些特性？他们是通过什么来保证这些特性正常的？
-A:
- 网络方面：通过 headless service来提供 StatefulSets 中 pod 的访问
- 存储方面：通过 PersistentVolume Provisioner 来提供静态存储，最大限度保证 pod 数据的安全，即使 pod 或者 statefulsets 被删除或者更新，其中的数据也并不会丢失
- 业务方面：通过 Ordinal Index + Stable Network ID + Stable Storage 来唯一的标识一个 Pod。 标识一个 Pod 的组成元素，也侧面反映了 StatefulSets 的特性。</description>
+      <guid>http://littledriver.net/post/2018/02/24/k8s-%E4%B9%8B-statefulsets/</guid>
+      <description>Q： 什么是 StatefulSets？ A: StatefulSets 是一种 workload。k8s 中的一个 workload 通常由 CRD 和 controller 两部分构成，CRD 交由用户使用，创建资源实例，描</description>
     </item>
     
     <item>
       <title>Kubernetes 之 Operator(一)</title>
-      <link>http://littledriver.net/posts/kubernetes-%E4%B9%8B-operator-%E4%B8%80/</link>
+      <link>http://littledriver.net/post/2018/01/24/kubernetes-%E4%B9%8B-operator%E4%B8%80/</link>
       <pubDate>Wed, 24 Jan 2018 22:19:11 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/kubernetes-%E4%B9%8B-operator-%E4%B8%80/</guid>
-      <description>Q: 什么是 Operator? A: Operator 在 k8s 系统中可以认为他是一个集 resource 和 controller 的结合体。他是对 resource 和 controller 的一个高度的抽象。通过扩展 Kubernetes API来达到这一效果。
-Q: Operator 是如何工作的？ A: 在 k8s 组件的架构中，可以将 Operator 理解为用户和 resource 之间的一个桥梁。而用户想对 resource 做什么操作的话，需要先通过调用 API Server，将请求转发到 Operator 的身上（这里可能说的不准确， operator 是通过监听 API Server 上对于其创建的资源所做的操作来进行响应的）。通过这样的理解，我们就可以看出，operator 一方面需要管理部署在集群 node 中的应用，另外一方面需要与 API Server 进行交互，以便响应用户的需求。在 CoreOS 的官网上，同样给出了这样一个文档，里面以 etcd 这个 operator为例，描述了 operator 具体的工作模式。 Kubernetes Operators，总结下来无非就是三个步骤：
- 观察资源目前的状态 对比资源期望的状态 将资源目前的状态 Fix 到期望的状态  Q: Operator 存在的意义是什么？ A: 笔者认为，从 Operator 的使用角度来讲，它最大的意义就是代替操作手册，代替人工去维护部署在集群上面的多个应用。应用的个数越多，运维这些应用的成本越高(如特定的领域知识)，越能够体现出一个 Operator 的价值。Operator 是基于 controller 的，也就是说，Operator 提供的功能会比 controller 本身更加强大，甚至是融合了一些特定业务场景的知识。</description>
+      <guid>http://littledriver.net/post/2018/01/24/kubernetes-%E4%B9%8B-operator%E4%B8%80/</guid>
+      <description>Q: 什么是 Operator? A: Operator 在 k8s 系统中可以认为他是一个集 resource 和 controller 的结合体。他是对 resource 和 controller 的一个高度的抽象。通过扩展 Kubernetes API来达到这一效果。 Q: Operator 是如何工作的？ A:</description>
     </item>
     
     <item>
       <title>TCP/IP 协议--UDP用户数据报协议</title>
-      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80-udp-%E5%8D%8F%E8%AE%AE/</link>
+      <link>http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/</link>
       <pubDate>Mon, 27 Nov 2017 08:41:36 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80-udp-%E5%8D%8F%E8%AE%AE/</guid>
-      <description>什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一个进程的输出，都会对应一个 UDP 或者 TCP 的数据报。
-UDP 数据报的组成 UDP 数据报一共可分为5个部分
- 目的端口号 源端口号 UDP 数据报长度(首部+数据部分，最低为8B) 校验和 数据部分  目的端口号和源端口号都可以视作为对应了发送端和接收端的两个进程。UDP 数据报的长度包含了首部和数据部分，并且最小不能低于8，因为前4部分构成了 UDP 数据报的首部。这四个字段的字节数是8B。换句话说，网络中是可以传输数据部分为0字节的 UDP 数据报的。
-关于校验和字段，UDP 和 TCP 数据报都会有。唯一的区别是，UDP 是可选的，TCP 是必须的。UDP 计算校验和的方式和 IP 数据报计算的校验方式一样。除此之外，为了计算校验和，UDP 或者 TCP 数据报还会包含一个伪首部部分。它包含 IP 数据报的某些内容，通过源 IP 和目的 IP，我们可以知道是否这个数据报不应该由我们这台主机来处理，协议字段可以让我们了解到，这个数据报是应该交由 UDP 端口的进程来处理还是 TCP 端口的进程。
-IP 分片 当 IP 数据报的长度，也就是总长度减去首部长度超过了 MTU 大小的时候，可能就会涉及到分片的操作。分片的标准应该是按照发送端所在网络的 MTU 进行的，但是当数据报流动到了其他的网络，并且两个网络之间的 MTU 是不一样的，很可能再次发生分片操作。因为网络层的 IP 协议并不是可靠的，面向连接的。那么，当接收端的网络层接收到一堆一些被分片了但是又属于同一个数据报的报文的时候，就需要按照一定的规则将他们组装起来，提供给传输层。
- 标识字段： 在 IP 数据报的首部，通常有一个16bit 的标识字段。它是内存当中维持的一个计数器。每当网络层发送一个 IP 数据报，那么这个标识字段就会被加1。一个比较大的 IP 数据报在分片的时候，原始数据报中的标识字段会被复制到各个分片的数据报中。 标志字段：在标识字段的后面紧接着3bit 的位置，有一个标志字段。当 IP 数据报发生分片的时候，除了最后一份分片的数据报之外，其余的每一片数据报都需要将某一位置为1，标识还有“更多”的分片数据报，相当于告诉接收端的网络层，这不是最后一份分片数据报。 片偏移字段：此字段是紧接着标志字段的，一共有13bit 左右。它标识了分片数据报的起始字节距离原始数据报开始处的位置是多少 总长度值：数据报被分片之后，相应分片的数据报总长度不再为原始数据报的长度，应为该分片数据报的实际长度  IP 数据报因大小问题可能会导致分片，并且在分片之后，对于接收端来说也是可以通过 IP 首部字段将这些分片的数据组装在一起的。但是这里有一个非常严重的问题，IP 分片一旦发生，甚至分片的次数越多，数据报在网络传输的过程中丢失的概率也就越大。由于 IP 协议并不为数据传输提供可靠性，当某一分片的数据报丢失，传输层的 TCP 协议很可能会重传整个数据报。如果这种出错的概率较高但是出错的分片数站总分片数的比例比较低，就会对网络造成很大的负担。并且，很多时候，如果是在通信过程中的某个路由发生分片，我们的发送端甚至都是不知情的，因为它没有任何的超时重传和确认的机制。</description>
+      <guid>http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/</guid>
+      <description>什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一</description>
     </item>
     
     <item>
       <title>TCP/IP 协议动态选路</title>
-      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</link>
+      <link>http://littledriver.net/post/2017/11/18/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</link>
       <pubDate>Sat, 18 Nov 2017 21:13:49 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</guid>
-      <description>What is dynamic routing? 在之前的文章中，我们已经讲过静态选路的概念以及相应的行为。简单来说，静态选路，主要是路由表内容生成的方式是静态的，也就是选路策略，因为之前我们提到过，选路分为选路机制和选路策略。比如，通过 route 命令添加，通过配置文件添加，抑或是通过 ICMP 重定向报文来学习。这种静态选路适用于不同的网络之间只有单点链接并且网络本身很小的情况。
-当网络的规模变大，不同的网络之间通过多个路由互联，且通信的路径也不唯一的时候，我们很自然的就需要网络之间的路由器也能够进行通信。让我们来看一张网络层的工作示意图。
-这个图中很多的通信路径以及节点，相信我们都比较熟悉了。现在我们要注意图中左上角的的一个节点：routing daemon。它代表了路由的守护进程。什么是守护进程，可以戳这里了解一下守护进程-维基百科，这里面有一个比较有意思的概念叫「脱壳」。无论是具有路由功能的主机，还是路由器，在他们内部都有一个这样的 routing daemon 程序，来通过 RIP（路由信息协议）来进行通信，RIP 是内部网关协议的一种。通过告知对方路由器或者具有路由器功能的主机，自己所连接的网络情况，从而可以让接收此信息的路由器或者主机更新路由表。既然是通过别人告知信息的方式来更新路由表，那么路由表中的信息就可能会发生变动。这样一来，我们其实也就可以理解，动态选路中的「动态」也是和选路策略相关的。
-RIP 选路信息协议 对于 RIP 信息协议，我们首先要了解的是，RIP 数据报的内容是包含在 UDP 数据报中的。它和 ICMP 差错报文被包含在 IP 数据报中是相似的形式。只不过 ICMP差错报文中的 UDP 首部是属于 ICMP 数据报的一部分，但是 RIP 报文显然是 UDP 数据报的一部分。 通过 RIP 的报文格式我们可以看出，首部大概有4个字节，其中command 字段是比较有用的，表明了该报文是一个请求报文还是一个应答报文。比较重要的就是图中所标识的20个字节的位置，它代表了要插入到路由表中的某一条记录的目的地址。至于一个 RIP 数据报最多可以携带多少个路由信息，其实TCP/IP 协议这本书上说的25个已经有点过时了。它采用20*25+4=504B 的计算方式，并且假定一个UDP 数据报的大小应该是512B。其实我们在今天我们携带的路由信息条数可以远不止25，但是，由于网络中的环境比较复杂，之所以规定一个标准的 UDP 数据报是512B，还是有道理的：
- 以太网(Ethernet)数据帧的长度必须在46-1500字节之间,这是由以太网的物理特性决定的.这个1500字节被称为链路层的MTU(最大传输单元).但这并不是指链路层的长度被限制在1500字节,其实这个MTU指的是链路层的数据区.并不包括链路层的首部和尾部的18个字节.所以,事实上,这个1500字节就是网络层IP数据报的长度限制.因为IP数据报的首部为20字节,所以IP数据报的数据区长度最大为1480字节.而这个1480字节就是用来放TCP传来的TCP报文段或UDP传来的UDP数据报的.又因为UDP数据报的首部8字节,所以UDP数据报的数据区最大长度为1472字节.这个1472字节就是我们可以使用的字节数。:) 当我们发送的UDP数据大于1472的时候会怎样呢？这也就是说IP数据报大于1500字节,大于 MTU.这个时候发送方IP层就需要分片(fragmentation).把数据报分成若干片,使每一片都小于MTU.而接收方IP层则需要进行数据报的重组.这样就会多做许多事情,而更严重的是,由于UDP的特性,当某一片数据传送中丢失时,接收方便无法重组数据报.将导致丢弃整个UDP数据报。 因此,在普通的局域网环境下，我建议将UDP的数据控制在1472字节以下为好. 进行Internet编程时则不同,因为Internet上的路由器可能会将MTU设为不同的值.如果我们假定MTU为1500来发送数据的,而途经的某个网络的MTU值小于1500字节,那么系统将会使用一系列的机制来调整MTU值,使数据报能够顺利到达目的地,这样就会做许多不必要的操作.鉴于 Internet上的标准MTU值为576字节,所以我建议在进行Internet的UDP编程时.最好将UDP的数据长度控件在548字节 (576-8-20)以内.
- 上面的这段对于数据报大小的解释，相信大家可以领会到一点就是，首先，在当今的网络环境下，我们完全可以传输数据大于等于1472B，但是这样首先会造成在网络层进行分片，其次就是即使发送的源主机所在的链路质量较高没有分片，但是通信过程中质量较低的线路往往会遇到这样的瓶颈。并且，还有一点非常重要，就是 UDP 数据报的通信是不可靠的，因为不是面向连接的，只要其中的某一个分片丢失了，那么整个 UDP 数据报都会被接收方丢弃，消耗的网络资源相当于浪费了，如果发送端应用层也会做重试处理，对网络造成的负担应该可想而知。
-另外一个不可忽略的因素就是，RIP 协议在提出来的时候，时间还比较早，使用的网络也都是以低速链路为主，MTU 可能只有500B-600B，所以，去掉各种协议的头部之外，规定一个默认的 RIP 数据报大小，也是合情理的。
-RIP 协议的工作方式 路由器之间使用 RIP 协议在交换路由表信息的时候，通常分为主动和被动两种形式。 其中，主动是指我们向其他路由器发送 RIP 请求报文，其他路由器同样使用 RIP 协议发送给我们一个应答报文。被动则是指，我们在没有发送请求的情况下，接收到的其他在同一网络上的路由器发来的 RIP 报文。RIP 报文内部包含的每一条路由记录信息中，都有一个叫做度量的字段，这个字段表明发送该 RIP 报文的路由器距离这个路由地址有多远，它和 TTL 一样，采用「跳数」来计数。RIP 协议中规定，度量最大为15，也就是说，如果发现RIP 协议的应答报文中有度量超过15的路由记录，则可视为这条路由是无效的。这也是 RIP 的一个重大的缺陷。由于有多个相邻路由发来其路由表的信息，所以在 RIP 响应报文到达的时候，可以根同一目的地址但是度量值小的为优先条件，从而筛选出最优的选路信息。</description>
+      <guid>http://littledriver.net/post/2017/11/18/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</guid>
+      <description>What is dynamic routing? 在之前的文章中，我们已经讲过静态选路的概念以及相应的行为。简单来说，静态选路，主要是路由表内容生成的方式是静态的，也就是选路策略，因</description>
     </item>
     
     <item>
       <title>TCP/IP 协议 IP 选路</title>
-      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F-2/</link>
+      <link>http://littledriver.net/post/2017/11/09/tcp-ip-%E5%8D%8F%E8%AE%AE-ip-%E9%80%89%E8%B7%AF/</link>
       <pubDate>Thu, 09 Nov 2017 22:41:48 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F-2/</guid>
-      <description>IP 选路通常包含两个部分：选路策略和选路机制。我们平时常说的 IP 选路，大都都指的是一个 IP 数据报如何从路由表中找到一个合适的下一跳机器的 Ip 地址，这属于选路机制的内容，即决定一个 IP 数据报向哪个接口来发送分组。另外一部分是选路策略，策略么，顾名思义就是一些规则，这些规则也就是指的路由表中的条目，即把哪些映射条目放入路由表中。
-在 IP 选路的过程当中，肯定少不了要搜索路由表，它按照以下顺序进行搜索：
- 搜索主机地址严格匹配的路由记录 搜索网络地址匹配的路由记录（网络号和子网号） 搜索路由表中的默认路由记录  从一个简单的路由表说起 通过 netstat -r 我们可以查看本机的路由表
-路由表的第一列表明目的地址，乍一看目的地址为47.94.38.154/32的这一条可能觉得比较困惑，这是因为我们的路由表中采取 CIDR 的形式来表示 IP 地址。47.94.38.154/32 斜线的前半部分表明一个 IP 地址，后面的32表明了这个地址的前缀长度，它的前缀和它的 IP 地址长度是相同的，主机号和网络号之前的间距为0。也就是说，这一个目的地址记录的是一个主机地址。第二列表明数据报下一跳的地址。
-Flags 这一列的值，大致有以下几种（仅列出与 UNIX 系统重合的部分）：
- U: 表示可用的路由 G：表示gateway 的路由是一个网关，如果不标识 G，那么说明这个路由是和本机相连在一个网络中的 H：标识该路由是一个主机 S: 表明这条路由记录是通过 route 命令加到路由表中的  在上面的4个标志中，G 是最重要的，它区分了直接路由和间接路由。当 G 出现的时候，说明发送数据报的主机并没有和目的主机直接相连，gateway 列对应的值表明其是一个间接路由。否则，认为发送数据报的主机是和目的主机直接相连的，gateway 列对应的值表明这是一个直接路由。 那么对于目的地址为47.94.38.154/32这条记录来说，它的下一跳地址是一个可用的间接s路由，并且这条路由记录是通过 route 命令条件进来的。所以在向目的主机发送数据报的时候，IP 数据报目的地址为47.94.38.154/32, 而以太网帧中的物理目的地址为192.168.2.1这个路由器的硬件地址。
-通常情况下 H 标志如果被设置，那么对应记录中的目的地址是一个完整的主机地址。否则目的地址是一个网络地址，主机号部分应该为为0. 但是我们可以看到，目的地址为47.94.38.154/32这条记录，其 Flags 列中并没有 H标志，所以在 IP 选路进行路由表匹配的时候，就会匹配网络号和子网号，如果带有 H 标志，那么肯定会优先匹配完整的主机地址。值得注意的是，这条记录的即使是通过匹配网络号和子网号，事实上也会对整个目的地址进行匹配，因为目的地址 CIDR 表示形式的前缀为32，就说明目的地址所对应的子网掩码是255.</description>
+      <guid>http://littledriver.net/post/2017/11/09/tcp-ip-%E5%8D%8F%E8%AE%AE-ip-%E9%80%89%E8%B7%AF/</guid>
+      <description>IP 选路通常包含两个部分：选路策略和选路机制。我们平时常说的 IP 选路，大都都指的是一个 IP 数据报如何从路由表中找到一个合适的下一跳机器的 Ip 地址，这</description>
     </item>
     
     <item>
       <title>TCP/IP 协议 traceroute 程序(1)</title>
-      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F-1/</link>
+      <link>http://littledriver.net/post/2017/11/07/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F1/</link>
       <pubDate>Tue, 07 Nov 2017 23:04:36 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F-1/</guid>
-      <description>什么是 traceroute 程序 traceroute从字面意思上来看，他是一个有着追踪功能，并且可以查看具体追踪路径的这么一个程序。实际上它的功能的确也很类似，它为我们提供了一个仔细观察 IP 数据报从一台主机到达另外一台主机所经过的所有路由。对于网络层而言，这就是一次通信的整体的路径。
-其实早在了解 IP 协议的时候，IP 数据报首部字段中，有一个选项字段，这个选项字段大概有40个字节长（IP 固定首部长度为20个字节，最大60个字节），选项字段里面其实是是可以存储 IP 数据报所经过的路由信息的。比如使用ping -r 1.1.1.1 就可以开启这个功能。但是由于 IP 数据报首部选项字段长度有限，因此如果一个 IP 数据报经过的路径太长，是没办法全部存储起来的。并且，RR 选项是单向的一个功能，发送端至接收端通信路径上面的路由信息，最后都需要接收端发给发送端一个数据报携带上这些信息。这样一来一回，IP 首部的选项字段所能够存储的有效路由信息就更少了。
-traceroute 程序核心武器 traceroute 程序功能的实现依赖于以下几个元素： 1. ICMP 超时报文 2. ICMP端口不可达差错报文 3. IP 数据报首部的 TTL 字段
-traceroute 工作原理 当 traceroute 为了探测其运行的主机与目的主机之间的路由情况时，通常会发送一个数据报，初始的情况下，这个数据报在网络层被包装之后 TTL 值是被设为1的，那此时当到达第一个路由的时候（如果源主机没有和目的主机在同一个以太网内），TTL 值变为0，该数据报被丢弃，路由器会发送给源主机一份 ICMP 超时报文，报文中 IP 首部字段里源主机的 IP 地址就是该路由的地址。因此，traceroute 也就知道了通往目的主机路径上面的第一个路由的信息。
-以此类推，IP 数据报首部的 TTL 时间逐渐增大，当到达目的主机的时候，并不会再向源主机发送 ICMP 超时报文，而是发送一个 ICMP 端口不可达报文来通知源主机，现在已经到达目的主机了。
-看完 traceroute 程序大致的工作原理，相信大家是有一些疑惑的，比如：
- traceroute 在发送数据报的时候，为什么使用了 UDP 协议而不是 TCP 协议 端口不可达的 ICMP 报文究竟是怎么产生的  首先我们来说第一个, 其实在使用 traceroute 程序的时候，我们是可以指定传输层的协议的，通过-P的参数就可以指定 TCP 协议，traceroute 默认使用 UDP 协议。使用 TCP 协议通常主要想去诊断，源主机和目的主机上的某一个具体的服务连接是否有问题。因为如果你指定了—P 参数去运行 traceroute 的时候，还是会通过 TCP 三次握手建立连接的。Tranceroute 程序最主要的作用是观察源主机与目的主机之间的路由路径，应该尽可能的把数据发送出去，因为数据报本身也是探测性质的，TCP 的性能也相对来说比较差，如果没有特殊的需求，UDP 确实是一个比较好的选择</description>
+      <guid>http://littledriver.net/post/2017/11/07/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F1/</guid>
+      <description>什么是 traceroute 程序 traceroute从字面意思上来看，他是一个有着追踪功能，并且可以查看具体追踪路径的这么一个程序。实际上它的功能的确也很类似，</description>
     </item>
     
     <item>
       <title>TCP/IP 协议卷一之 IP 网际协议初探</title>
-      <link>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</link>
+      <link>http://littledriver.net/post/2017/10/30/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</link>
       <pubDate>Mon, 30 Oct 2017 22:09:54 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</guid>
-      <description> IP 数据报字段  IP 数据报长度（首部长度+数据长度)用一个16位的字段进行标识，最大数据报长度为65535，但是链路层都会对数据报进行分片处理。数据报总长度字段是需要的，链路层会读取这个字段的值，来判断是否数据报的长度达到了链路层封装数据包的最小长度，如果没有达到的话，还需要填充一些字节来保证链路层的传输效 TTL 值标识了数据报可以经过的最大路由个数，也就是这个数据报的生存时间。当 TTL 到达0的时候，该数据报被丢弃，并且向源主机发送 ICMP 报文。 IP 数据报内的首部校验和字段是对首部字段进行计算得到的一个数值。发送方对首部字段每16位进行计算，反码求和，存在校验和字段中。接收方以同样的形式进行计算，最终应该得到的值为1。如果最后值不唯1，那么由上层进行重新发送，不会使用 ICMP 报文进行报错处理。  IP 路由选择 IP 层在内存当中有一个路由表，路由表项基本上是源 IP 到下一跳 IP 映射的一条记录。一台pc 可以作为主机来使用，也可以作为路由器来使用。路由器和主机在功能上最大的区别就是，主机在收到一个 ip 数据报的时候，如果发现目的 ip 不是自己或者广播地址，那么就会直接丢弃。但是路由器会对这个数据报继续进行转发操作。所以说，一般路由器的网络模型都是只有网络层和链路层。
-进行路由选择的时候，大致会遵循以下的顺序 1. 路由表中是否有与目的主机 IP 严格匹配的表项，如果有，直接使用其表项中的目的 IP 进行继续转发 2. 路由表中是否有与目的主机网络号相匹配的表项。这一般出现在有局域的时候，某一个局域网内的所有主机都可以使用某一个网络号来进行标识。这一类特性也极大的缩减了路由表的规模。 3. 路由表中是否有默认跳转的 IP 地址
-IP 数据报在传输的时候，如果接收数据报的机器不是目的主机，那么数据报就不会再向上层传输，也就是说不会经过传输层。并且还有一个需要特别注意的是，在转发的过程中，链路层的硬件地址是一直在变的，唯独IP 数据报内的目的 IP 地址不会变。这一个特性其实也可以反证我们刚说的，在 IP 数据报进行路由的时候，是不会经过上层的。
-带有子网划分的路由选择过程 为了减少内存当中路由表的规模，我们一般都会通过划分子网的方式来解决这个问题。当我们拿到本机(所经过路由) IP，目的主机 IP，以及我们所处的子网掩码的时候，我们的比较过程会按照如下的大致顺序。
- 目的主机的网络号是否与本机的网络号相同（知道 IP 地址就知道了哪一类的 IP，从而也就知道了网络号的位数） 网络号相同则根据子网掩码分别对本机 IP 和目的 IP 进行与运算，得出的子网号看是否相同，如果相同，那么就证明目的主机就处在本机所在的子网 如果子网号不相同，说明还需要在继续查找路由表 上述过程发生在 IP 路由选择的第二步，也就说在没有找到与目的 IP 严格符合的路由表项的时候。  </description>
+      <guid>http://littledriver.net/post/2017/10/30/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</guid>
+      <description>IP 数据报字段 IP 数据报长度（首部长度+数据长度)用一个16位的字段进行标识，最大数据报长度为65535，但是链路层都会对数据报进行分片处理。数</description>
     </item>
     
     <item>
       <title>Python 的函数与作用域</title>
-      <link>http://littledriver.net/posts/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/</link>
+      <link>http://littledriver.net/post/2017/10/08/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/</link>
       <pubDate>Sun, 08 Oct 2017 22:24:17 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/</guid>
-      <description>def 是什么 python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数签名。学习Python 的一个很大的误区，就是我们认为 def 也是Python 中定义函数的一个关键字。在Python 中，def 不是一个关键字，而是一个可执行的语句。如果不考虑类，一般来说，函数都实现在某一个模块中，那么当这个模块被导入的时候，def 语句就会自动执行，创建一个函数对象，并且把这个对象赋值给对应的函数名。也就是说，函数的定义和普通变量的定义是没有区别的，函数名仅仅是 def 语句创建出来的函数对象的一个引用而已。
-python 中使用 def 语句创建的函数对象，并不要求每一个都要有返回值或者显式的 return 调用。仅当你需要这个函数的返回值的时候，才使用 return 进行返回，否则，函数默认返回一个 None 对象。既然Python 是一个动态类型的语言且没有所谓的「编译」，「链接」阶段，那么也就是说在一个模块被执行之前，某一个函数变量名具体引用了哪一个函数对象我们是不清楚的，这个关系是在模块运行的时候才能够确定的。并且，如果函数内部有一些明显的运行时的 Bug，在 def 语句执行的时候也不会去检测，只有在调用者调用这个函数发生错误的时候才能够清楚。 å 所以，在Python 中，函数变量和其他任何变量没有区别。def 是一个可执行语句，并不是一个关键字。
-函数中的多态思想 如果是有编程基础的人，对多态这个词应该不难理解。我是这样理解的
- 多态，就是某一个操作的意义取决于被操作的对象类型
- 一个最直接的例子就是，C++中，子类和父类有一个函数签名相同的方法。定义一个父类类型的指针，当这个指针指向父类对象或者子类对象的时候，执行的同名方法是两个不同类中所分别定义的；或者在 Java 中，「+」这个操作既可以用于字符串的链接，也可以用于数字的四则运算。python 则比 java 还要方便，因为它是一种动态类型的语言，python 的世界中只有对象和引用的区别，没有数据类型之分，一切事物都是对象，被某个变量引用。所以在编写Python 的函数中，尽量不要去用类似「type」等方法检测参数的类型，这其实就是一种典型的用静态语言的思维在使用动态语言。仔细想想Python 的一个便捷之处就是在编程的时候不需要考虑数据类型，一旦某个函数内的某个操作是传递进来的参数所不具有的，让其抛出一个异常也是正确的选择。
-所以，只要是在函数内部对参数做的操作，被传递进来的对象都支持，这个函数就能够正常工作，这和参数的数据类型是没关系的。
-作用域 作用域这个词，从字面意思上来理解，就是某个事物起作用的区域。在编程语言中，通常指某个变量的生存周期。某个变量的作用域和它第一次被赋值的位置是相关的。
- 非嵌套函数内部：本地作用域 嵌套函数内部：非本地作用域 模块内部（文件内部，函数外部，包括Python 内置模块）：全局作用域  本地作用域与全局作用域 python 中的全局作用域都是要和模块一起提出才是有意义的，这里的「全局」是指模块内全局，模块和模块之间，也就是文件和文件之间是完全隔离开的。一个我们在开发过程中所常见的现象就是某个模块的全局变量对外是作为这个模块的某个属性被使用的。本地作用域一般指调用函数所构造的一个作用域，本地作用域一般和函数调用相关。从操作系统的层面上来讲，每一个函数的调用都会开辟一块栈的空间用来存放函数调用的上下文或者一些本地变量，再结合我们一般说作用域都是和变量的生命周期联系在一起，就不难发现，每一次对函数调用，都会创建一个新的本地作用域。
-各个作用域之前可能会存在一个作用域屏蔽的问题，比如在某一个函数内定义的某一个变量和函数外部的某一个变量同名，那么在函数内部对这个变量的更改将不会影响到函数外部的变量。这个现象看起来很像是一个「屏蔽」的效果，函数内的变量屏蔽的外部的。但其实这和解析变量的规则是有关的，后面的段落将会介绍相关的细节。
-另外，要谨记的一点就是，只有在发生变量赋值的时候，才会涉及到作用域变化的问题。原地对一个对象的修改是不涉及到任何作用域变更的问题的。原因有以下几点：
-1.Python 中，变量和对象是不同的两个概念。变量通常指的是引用变量，指向内存中实际存在的一个对象 2. 作用域这一概念是针对变量的，而不是针对对象的</description>
+      <guid>http://littledriver.net/post/2017/10/08/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/</guid>
+      <description>def 是什么 python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数</description>
     </item>
     
     <item>
       <title>Data Structure Review - Circular Queue</title>
-      <link>http://littledriver.net/posts/data-structure-review-circular-queue/</link>
+      <link>http://littledriver.net/post/2017/09/28/data-structure-review-circular-queue/</link>
       <pubDate>Thu, 28 Sep 2017 16:39:57 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/data-structure-review-circular-queue/</guid>
-      <description>0x01 为什么需要循环队列 普通的队列结构无论在逻辑上还是在物理存储上，都是一个连续的线性结构。队列的插入和弹出操作符合「FIFO」原则。我们一般在操作队列的时候，都会有两个指针，一个指向队列头部，另外一个指向队列尾部。当我们想弹出一个元素的时候，可以清空队列头部指针所指向的元素，然后将指针向队列尾部移动一个元素的长度。当我们想插入一个元素的时候，可以在队尾指针所指向的位置放入我们想要插入的元素，然后队尾指针向后移动一个元素的长度。
-一个队列初始的时候，队头和队尾指针都是指向同一个位置的，一般来说就是底层线性结构的第一个元素的位置(如数组)。如果现在只有十个元素的空间可以用于实现队列，但是我们却要求插入20个元素，中间会不定的弹出元素，这样是否可以实现呢？
-乍一看10个位置想要插入20个元素是不现实的，不过中间会不定的弹出一些元素，只要是在插入一个元素之前，有一个或一个以上的元素被弹出了，就是有可能实现的。那么问题来了，插入元素的位置和弹出元素的位置是由两个不同的指针来控制的，队尾指针如果移动到了底层线性结构的边界应该怎么办？队头指针同样也会遇到这个问题。答案是要使用循环队列。
-0x02 循环队列长什么样 循环队列是一个在逻辑上成环，但是物理上还是线性的一种数据结构。底层存储队列元素的结构没有变，只不过在使用这些空间上面使用了一些小的技巧。
- Circular Queue is a linear data structure in which the operations are performed based on FIFO (First In First Out) principle and the last position is connected back to the first position to make a circle.
- 0x03 循环队列的实现 0x031 enqueue In [10]: def enqueue(item): ...: # queue 为空/一直插入元素到没有可用空间/循环插入后没有可用空间 ...: if queue and ((rear == len(queue) - 1 and front == 0) or (rear + 1 == front)): .</description>
+      <guid>http://littledriver.net/post/2017/09/28/data-structure-review-circular-queue/</guid>
+      <description>0x01 为什么需要循环队列 普通的队列结构无论在逻辑上还是在物理存储上，都是一个连续的线性结构。队列的插入和弹出操作符合「FIFO」原则。我们一般在</description>
     </item>
     
     <item>
       <title>Python中的引用与拷贝</title>
-      <link>http://littledriver.net/posts/python%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E4%B8%8E%E6%8B%B7%E8%B4%9D/</link>
+      <link>http://littledriver.net/post/2017/08/20/python%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E4%B8%8E%E6%8B%B7%E8%B4%9D/</link>
       <pubDate>Sun, 20 Aug 2017 16:48:31 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/python%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E4%B8%8E%E6%8B%B7%E8%B4%9D/</guid>
-      <description>从赋值说起 之前在 python 变量相关的文章中，提到过赋值行为在 python 中和其他语言有何异同。说白了，其实就是默认传递引用，而不会拷贝整个对象。这种做法一个比较好的地方就是避免的在使用大型对象的时候，由于一些使用上的不规范而造成巨大的开销。但是凡事都有两面性，方便的同时，带来的坏处就是，同一个对象的引用可以有多个，那么只要这个对象的数据发生了变化，受影响的将是指向他的所有的引用。这种行为通常是我们不想看到的。
-其实，这种行为，和 c++中的浅拷贝的行为是一直的。c++中也有引用的概念。浅拷贝通常也只是拷贝引用or 指针，而不会真正的拷贝整个对象。依稀记得，如果要在 C++中的自定义类型实现深拷贝，还需要自己实现拷贝构造函数。在 python 中，对于 list，dict 等数据结构，有一些现成的方法可以调用：
-a = [1, 2, 3] b = a //shallow copy c = a[:] //deep copy, get a new object g = list(a) //deep copy. cool! d = {1: 2, 3: 4} e = d //shallow copy f = d.copy()  需要注意的是：列表和字典上面所提到的深拷贝方法，都无法拷贝嵌套结构：
-In [12]: a Out[12]: [1, [2, 3, 4], 5] In [13]: b Out[13]: [1, [2, 3, 4], 5] In [14]: a[1][0] = 10000000 In [15]: a Out[15]: [1, [10000000, 3, 4], 5] In [16]: b Out[16]: [1, [10000000, 3, 4], 5]  其中， a 中的列表，及时通过[:]形式进行拷贝，仍然无法对其中嵌套的列表进行深拷贝操作。这个时候，可以使用 copy 标准库内的 deepcopy 方法，来达到嵌套深拷贝的目的：</description>
+      <guid>http://littledriver.net/post/2017/08/20/python%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E4%B8%8E%E6%8B%B7%E8%B4%9D/</guid>
+      <description>从赋值说起 之前在 python 变量相关的文章中，提到过赋值行为在 python 中和其他语言有何异同。说白了，其实就是默认传递引用，而不会拷贝整个对象。这种做法一个比</description>
     </item>
     
     <item>
       <title>Python迭代器与解析（1）</title>
-      <link>http://littledriver.net/posts/python%E8%BF%AD%E4%BB%A3%E5%99%A8%E4%B8%8E%E8%A7%A3%E6%9E%901/</link>
+      <link>http://littledriver.net/post/2017/07/30/python%E8%BF%AD%E4%BB%A3%E5%99%A8%E4%B8%8E%E8%A7%A3%E6%9E%901/</link>
       <pubDate>Sun, 30 Jul 2017 15:33:45 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/python%E8%BF%AD%E4%BB%A3%E5%99%A8%E4%B8%8E%E8%A7%A3%E6%9E%901/</guid>
-      <description>迭代 迭代这个概念，在很多编程语言当中都是存在的。说白了，就是对一个『可迭代对象』进行遍历的过程。如 for 循环，while 循环等等，都是对一个对象进行迭代操作。那么这个『可迭代对象』到底是什么呢？
-可迭代对象 简单来说，可迭代对象就是一个具有 __next__方法的对象。当这个对象被用在 for 循环等一系列迭代的场景的时候，这个方法就会起到相应的作用。如，python 当中的文件对象想按照逐行的顺序来进行迭代的话，有以下几种方式：
-# 1 for line in open(&#39;test.py&#39;): print(line.upper(), end=&#39;&#39;) # 2 for line in open(&#39;test.py&#39;).readlines(): print(line.upper(), end=&#39;&#39;) # 3 while True: line = file.readLine() if not line: beak; print(line.upper(), end=&#39;&#39;)  首先第一种方式，应该是迭代一个文件对象的最优选择：
- 该对象在循环中自动调用__next__方法，逐行读取文件，不会浪费内存 调用迭代器，在 python 中几乎是以 C 语言的速度在执行的  第二种方式，一个明显的缺点，就是 readlines 方法将文件中所有的内存一次性都加载到了内存中，形成了一个以每一行内容为一个元素的字符串列表。如果文本内容过大超过了机身内存的大小，很可能会出现意想不到的问题。
-第三种，虽然没有内存方面的问题，但是比起在 for 循环使用迭代器进行处理，while 循环是在python 虚拟机当中运行 python 的字节码，所以在速度上，相较第一种中方式，还是差了一些。
-迭代器 关于迭代的第三个概念，我们之前说过，迭代是一种行为，可迭代对象是可以在其上进行迭代行为的一个对象，也就是一个具有__next__方法的对象。之所以对于可迭代对象有这样的一个定义，是因为之前讨论的文件对象比较特殊，文件对象本身是自己的一个迭代器。也就是说，真正具有__next__方法的对象应该是迭代器，而不是我们之前所谓的可迭代对象。可迭代对象的范围应该比迭代器更大，以列表举例，它本身是没有迭代器的，但是列表依然是 python 当中可迭代的对象之一，那么列表这个对象的__next__方法从何而来呢？是通过一个叫做 iter 的方法得到的，该方法接受一个对象，返回一个具有next方法的迭代器，next方法在内部会调用迭代器的__next__方法。
-所以，for 循环在处理列表这类可以迭代但是本身不是迭代器的对象时，都会将列表这个对象传递给内置函数 iter，得到一个具有 next 方法的迭代器，然后每次循环调用next方法来迭代对象。</description>
+      <guid>http://littledriver.net/post/2017/07/30/python%E8%BF%AD%E4%BB%A3%E5%99%A8%E4%B8%8E%E8%A7%A3%E6%9E%901/</guid>
+      <description>迭代 迭代这个概念，在很多编程语言当中都是存在的。说白了，就是对一个『可迭代对象』进行遍历的过程。如 for 循环，while 循环等等，都是对一个对象</description>
     </item>
     
     <item>
       <title>Python 中的变量、对象、引用</title>
-      <link>http://littledriver.net/posts/python-%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8/</link>
+      <link>http://littledriver.net/post/2017/07/30/python-%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8/</link>
       <pubDate>Sun, 30 Jul 2017 15:31:38 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/python-%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8/</guid>
-      <description>&lt;p&gt;很多编程语言都有所谓的引用，对象，变量等概念。这些概念在强类型的语言中貌似并不是那么的重要，但是在动态类型的语言中，还是值得去仔细思考一下的&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/07/30/python-%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8/</guid>
+      <description>&lt;p&gt;很多编程语言都有所谓的引用，对象，变量等概念。这些概念在强类型的语言中貌似并不是那么的重要，但是在动态类型的语言中，还是值得去仔细思考一下的&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>Learning for APUE(4)</title>
-      <link>http://littledriver.net/posts/learning-for-apue-4/</link>
+      <link>http://littledriver.net/post/2017/06/27/learning-for-apue4/</link>
       <pubDate>Tue, 27 Jun 2017 11:05:53 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-for-apue-4/</guid>
-      <description>刷新缓存 操作系统内核在写入和读取数据的时候，从cpu到硬盘，还有很长的一段路。这段路上，为了减少数据传输的延迟，操作系统采取的很多的措施。如：就近原则的读取，内存，寄存器的使用，甚至是高速缓存，多级cache。这些办法都能够有效的提高数据传输的速率。当内核想向一个文件写入数据的时候，它并不会直接将数据写入文件所在的硬盘块，而是先将数据写入高速缓存当中，当高速缓存满了，或者说需要重用高速缓存的时候，就将高速缓存的数据写入到磁盘中。但是这个动作也不是立即发生的，写入磁盘的任务会进入一个队列中进行排队，等待处理。
-为了保持高速缓存和硬盘上面的数据的一致性，就需要提供一定的接口，使得用户可以主动的发起写入数据到磁盘的这种行为。为此，linux上面提供了三个api可以实现这种效果：
- sync fsync fdatasync  三个系统调用均可以实现上面所说的功能，但是fsync是对特定的文件起作用，而fdatasync只会将文件的“数据”部分写入至磁盘，文件类型等信息是不会写入的。相反，其他两个方法是会把文件所有的信息以及数据都会写入。
-操纵文件描述符&amp;ndash;fcntl fcntl这个函数的作用，就是通过参数中传递进来的文件描述符来修改文件相关的描述符标志和状态标志信息。不过一般修改标志位的方式，都是先获取目前的标志位，然后根据位或运算增加新的标志位。
-首先是对于文件描述符标志位的设定，其中有一个标志位在介绍dup函数的时候也出现过，就是FD_CLOSEXEC。这个标志位设定的效果在于，此文件描述符所在进程，如果通过execl函数执行了另外一个子进程的话，那么在execl执行的这个进程中，此文件描述符即使被传递过去也无法使用了，但是如果是使用fork的话，那么在子进程中还是可以使用的。相关的一个例子，可以看看这篇文章http://blog.csdn.net/ustc_dylan/article/details/6930189。
-按照之前说明的设置文件描述符标志位的规则，首先可以调用fcntl函数，使用F_GETFD命令来获取相应的标志位，使用位或运算计算之后，再使用F_SETFD命令来设置新的标志位即可。
-文件描述符的信息应该是属于某一个进程的，所以它应该存在于进程表项中。除了文件描述符之外，还和进程打开文件相关的一个指标就是文件的状态标志。内核为操作系统中打开的文件维护了一张表，这张表内就存储着被打开文件的状态标志信息。之前在讨论文件共享的时候就说过，文件状态标志信息应该是和文件描述符绑定的。也就是说，进程，文件描述符，文件状态标识三者是1对多，1对1的关系。一个进程可以同时打开很多文件，所以是一对多。但是每打开一个文件，获得一个文件描述符，都和唯一的一个文件状态标识所绑定，所以是1对1的关系。
-文件状态标志之前在open函数中有过说明，其中一个很重要的标志就是访问方式标志。如只读，只写，读写等等。访问方式标志的取值为0-5，每一个值代表了一种访问方式。但是他们并不是按位来排列的。所以在确定一个文件描述符对应的文件状态标识中到底是使用了何种访问标志，需要使用一个屏蔽字通过按位与的方式来取出访问标志的值到底是多少。
-除了文件访问标志之外，另外一个重要且常见的标志就是O_SYNC，同步标志。这个标志可以在调用open函数的时候对文件进行设置，也可以通过fcntl函数来进行设置。但是后者在某些操作系统上面设置之后也并不会生效，所以一般都是在open函数的时候就设置好。该标志被设置之后，在想文件写入数据的时候，就不会采用系统原有的，先写入缓存，然后进队列，适当的时候再写入磁盘这套机制。而是直接采用同步I/O的形式，直到写入的数据已经落在磁盘上了，那么这次写入的操作才会返回。</description>
+      <guid>http://littledriver.net/post/2017/06/27/learning-for-apue4/</guid>
+      <description>刷新缓存 操作系统内核在写入和读取数据的时候，从cpu到硬盘，还有很长的一段路。这段路上，为了减少数据传输的延迟，操作系统采取的很多的措施。如</description>
     </item>
     
     <item>
       <title>Thinking in Java-1</title>
-      <link>http://littledriver.net/posts/thinking-in-java-1/</link>
+      <link>http://littledriver.net/post/2017/06/25/thinking-in-java-1/</link>
       <pubDate>Sun, 25 Jun 2017 17:13:19 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/thinking-in-java-1/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/06/25/thinking-in-java-1/</guid>
+      <description>一切皆是对象 Java编程中，最重要的不是语法，感觉是一种oop的思想。最近刚刚开始学java，但是还是感觉java这门语言在被设计的时候，还</description>
     </item>
     
     <item>
       <title>Learning-Process-In-Modern-Operating-System(4)</title>
-      <link>http://littledriver.net/posts/learning-process-in-modern-operating-system-4/</link>
+      <link>http://littledriver.net/post/2017/05/30/learning-process-in-modern-operating-system4/</link>
       <pubDate>Tue, 30 May 2017 11:10:32 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-process-in-modern-operating-system-4/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/05/30/learning-process-in-modern-operating-system4/</guid>
+      <description>进程间通信(IPC) 竞争条件 在多个进程同时运行的情况下，如果他们都需要使用某一块共享内存中的数据，那么最后的结果取决于这些进程精确的执行顺序</description>
     </item>
     
     <item>
       <title>Learning-Process-In-Modern-Operating-System(3)</title>
-      <link>http://littledriver.net/posts/learning-process-in-modern-operating-system-3/</link>
+      <link>http://littledriver.net/post/2017/05/30/learning-process-in-modern-operating-system3/</link>
       <pubDate>Tue, 30 May 2017 09:08:08 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-process-in-modern-operating-system-3/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/05/30/learning-process-in-modern-operating-system3/</guid>
+      <description>经典线程模型 对于进程来讲，它将进程本身运行所需要的众多资源都包含在了进程的地址空间中，对他们加以管理，来保证进程的正常运行。而在进程中，真正</description>
     </item>
     
     <item>
       <title>nginx Learning notes(2)</title>
-      <link>http://littledriver.net/posts/nginx-learning-notes-2/</link>
+      <link>http://littledriver.net/post/2017/05/03/nginx-learning-notes2/</link>
       <pubDate>Wed, 03 May 2017 17:50:55 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/nginx-learning-notes-2/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/05/03/nginx-learning-notes2/</guid>
+      <description>本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址</description>
     </item>
     
     <item>
       <title>Learning-Process-In-Modern-Operating-System(2)</title>
-      <link>http://littledriver.net/posts/learning-process-in-modern-operating-system-2/</link>
+      <link>http://littledriver.net/post/2017/04/27/learning-process-in-modern-operating-system2/</link>
       <pubDate>Thu, 27 Apr 2017 22:49:25 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-process-in-modern-operating-system-2/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/04/27/learning-process-in-modern-operating-system2/</guid>
+      <description>有了进程为啥还要线程 上一篇和进程相关的文章讲过为啥操作系统需要进程这个概念，其实说白了，就是操作系统要干太多的事了，一个人搞不定，得让多个人</description>
     </item>
     
     <item>
       <title>Lua Learning notes(1)</title>
-      <link>http://littledriver.net/posts/lua-learning-notes-1/</link>
+      <link>http://littledriver.net/post/2017/04/24/lua-learning-notes1/</link>
       <pubDate>Mon, 24 Apr 2017 18:30:28 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/lua-learning-notes-1/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/04/24/lua-learning-notes1/</guid>
+      <description>Chunks 在Lua中，chunk是lua一系列语句的集合。Lua的语句结尾加分号分割，虽然语言上没有强制要求，但是每一个语句后面都加上分号会让程序的</description>
     </item>
     
     <item>
       <title>nginx Learning notes(1)</title>
-      <link>http://littledriver.net/posts/nginx-learning-notes-1/</link>
+      <link>http://littledriver.net/post/2017/04/24/nginx-learning-notes1/</link>
       <pubDate>Mon, 24 Apr 2017 18:30:13 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/nginx-learning-notes-1/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/04/24/nginx-learning-notes1/</guid>
+      <description>本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址</description>
     </item>
     
     <item>
       <title>golang-net-http-package源码分析-4</title>
-      <link>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</link>
+      <link>http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</link>
       <pubDate>Mon, 24 Apr 2017 10:34:39 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</guid>
+      <description>Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，</description>
     </item>
     
     <item>
       <title>golang-net-http-package源码分析(3)</title>
-      <link>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-3/</link>
+      <link>http://littledriver.net/post/2017/04/06/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%903/</link>
       <pubDate>Thu, 06 Apr 2017 23:36:39 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-3/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/04/06/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%903/</guid>
+      <description>MaxBytesReader // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally or maliciously // sending a large request and wasting server resources.</description>
     </item>
     
     <item>
       <title>golang-net/http-package源码分析(2)</title>
-      <link>http://littledriver.net/posts/golang-net-http%E5%8C%85%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-2/</link>
+      <link>http://littledriver.net/post/2017/04/05/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%902/</link>
       <pubDate>Wed, 05 Apr 2017 19:58:31 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/golang-net-http%E5%8C%85%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-2/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/04/05/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%902/</guid>
+      <description>Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-T</description>
     </item>
     
     <item>
       <title>Learning for APUE(3)--从操作系统的角度来看文件共享</title>
-      <link>http://littledriver.net/posts/learning-for-apue-3/</link>
+      <link>http://littledriver.net/post/2017/04/04/learning-for-apue3-%E4%BB%8E%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%A7%92%E5%BA%A6%E6%9D%A5%E7%9C%8B%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB/</link>
       <pubDate>Tue, 04 Apr 2017 22:01:51 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-for-apue-3/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/04/04/learning-for-apue3-%E4%BB%8E%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%A7%92%E5%BA%A6%E6%9D%A5%E7%9C%8B%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB/</guid>
+      <description>先谈文件I/O效率 在unix系统中读写文件会涉及到i/o操作，大家也都清楚i/o操作是非常消耗系统资源的。对于简单的读写文件来说，其i/o效</description>
     </item>
     
     <item>
       <title>Learning Process In Modern Operating System (1)</title>
-      <link>http://littledriver.net/posts/learning-process-in-modern-operating-system/</link>
+      <link>http://littledriver.net/post/2017/03/29/learning-process-in-modern-operating-system-1/</link>
       <pubDate>Wed, 29 Mar 2017 22:59:50 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-process-in-modern-operating-system/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/29/learning-process-in-modern-operating-system-1/</guid>
+      <description>为什么会有进程这个概念 进程的模型 创建进程 终止进程 进程的层次结构 进程的三种状态 为什么三种状态之间只有四种转换 我学习操作系统，向来不喜欢死记硬背</description>
     </item>
     
     <item>
       <title>Learning for APUE(2)--文件 I/O</title>
-      <link>http://littledriver.net/posts/learning-for-apue-2/</link>
+      <link>http://littledriver.net/post/2017/03/19/learning-for-apue2-%E6%96%87%E4%BB%B6-i-o/</link>
       <pubDate>Sun, 19 Mar 2017 17:01:23 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-for-apue-2/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/19/learning-for-apue2-%E6%96%87%E4%BB%B6-i-o/</guid>
+      <description>文件描述符 对于内核而言，任何对文件的操作都需要文件描述符，因为这个文件描述符唯一标识了这个文件。文件描述符的有效性是针对某一个进程的，内核对</description>
     </item>
     
     <item>
       <title>Learning for APUE(1)</title>
-      <link>http://littledriver.net/posts/learning-for-apue-1/</link>
+      <link>http://littledriver.net/post/2017/03/19/learning-for-apue1/</link>
       <pubDate>Sun, 19 Mar 2017 12:11:38 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-for-apue-1/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/19/learning-for-apue1/</guid>
+      <description>说来惭愧，像apue这种书籍被我买了一直放在书架里，仔细想想大学四年做的唯一一件错事就是没用大量的空闲时间去多读书。从集训队出来之后，一直被</description>
     </item>
     
     <item>
       <title>Reflection in golang (4)</title>
-      <link>http://littledriver.net/posts/reflection-in-golang-4/</link>
+      <link>http://littledriver.net/post/2017/03/12/reflection-in-golang-4/</link>
       <pubDate>Sun, 12 Mar 2017 13:00:47 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/reflection-in-golang-4/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/12/reflection-in-golang-4/</guid>
+      <description>Reflection in Struct tag golang中的struct类型，在使用的时候为了编码方便我们经常会给其内部的field指定一些特定的tag。这些tag不仅仅可以用</description>
     </item>
     
     <item>
       <title>Reflection in golang (3)</title>
-      <link>http://littledriver.net/posts/reflection-in-golang-3/</link>
+      <link>http://littledriver.net/post/2017/03/11/reflection-in-golang-3/</link>
       <pubDate>Sat, 11 Mar 2017 15:53:31 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/reflection-in-golang-3/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/11/reflection-in-golang-3/</guid>
+      <description>前景提要 上一篇文章当中，主要以实现了一个display函数为主要内容，阐述了如何通过golang的reflect包将一个自定义类型的数据格式</description>
     </item>
     
     <item>
       <title>Reflection in golang (2)</title>
-      <link>http://littledriver.net/posts/reflection-in-golang-2/</link>
+      <link>http://littledriver.net/post/2017/03/09/reflection-in-golang-2/</link>
       <pubDate>Thu, 09 Mar 2017 19:41:34 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/reflection-in-golang-2/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/09/reflection-in-golang-2/</guid>
+      <description>前景提要 在上一篇Reflection in golang的文章中，主要介绍了reflect.Type, reflect.Value, reflect.ValueOf, reflect.Type等数据结构以及接</description>
     </item>
     
     <item>
       <title>Reflection in golang (1)</title>
-      <link>http://littledriver.net/posts/reflection-in-golang/</link>
+      <link>http://littledriver.net/post/2017/03/05/reflection-in-golang-1/</link>
       <pubDate>Sun, 05 Mar 2017 19:40:29 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/reflection-in-golang/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/05/reflection-in-golang-1/</guid>
+      <description>工作当中需要用到go的反射相关功能，实话说，这还是第一次接触我所学语言当中的反射机制。我觉得这对我来说是一个好的现象，一个是证明了自己之前做</description>
     </item>
     
     <item>
       <title>工作中踩过的的坑之golang的临时变量</title>
-      <link>http://littledriver.net/posts/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</link>
+      <link>http://littledriver.net/post/2017/03/05/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</link>
       <pubDate>Sun, 05 Mar 2017 11:26:36 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/05/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</guid>
+      <description>在使用golang的时候，经常在一些比较小的地方被绊倒，这些“坑”并不是什么难以理解和运用的技术，而是一些语言的细节我们没有了解清楚。这类的</description>
     </item>
     
     <item>
       <title>golang net/http package源码分析(1)</title>
-      <link>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
+      <link>http://littledriver.net/post/2017/02/17/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%901/</link>
       <pubDate>Fri, 17 Feb 2017 15:11:16 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/02/17/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%901/</guid>
+      <description>平时在工作的过程当中对net包里面的各种库有非常多的使用，本文将先对golang标准库中net/http包进行剖析，文末会向大家展示使用go</description>
     </item>
     
     <item>
       <title>Https通信机制</title>
-      <link>http://littledriver.net/posts/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</link>
+      <link>http://littledriver.net/post/2017/02/16/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</link>
       <pubDate>Thu, 16 Feb 2017 19:45:51 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/02/16/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</guid>
+      <description>为何要使用加密通信 这个标题看起来似乎是一句废话，谁不想自己将要在互联网传递的信息是加密的呢？但是事实并不是这样。互联网中传递的信息类型有很多</description>
     </item>
     
     <item>
       <title>RabbitMq的数据持久化</title>
-      <link>http://littledriver.net/posts/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</link>
+      <link>http://littledriver.net/post/2017/01/03/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</link>
       <pubDate>Tue, 03 Jan 2017 10:10:25 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/01/03/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</guid>
+      <description>我们一般在异步系统的实现中，选择使用消息队列.其中一个比较重要的原因就是担心数据储存在内存中会因为物理上的影响而丢失。消息队列中都有使消息持</description>
     </item>
     
     <item>
       <title>初识RabbitMq</title>
-      <link>http://littledriver.net/posts/rabbitmq-learning-nodes-1/</link>
+      <link>http://littledriver.net/post/2016/12/17/%E5%88%9D%E8%AF%86rabbitmq/</link>
       <pubDate>Sat, 17 Dec 2016 15:11:59 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/rabbitmq-learning-nodes-1/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2016/12/17/%E5%88%9D%E8%AF%86rabbitmq/</guid>
+      <description>RabbitMq &amp;amp; AMQP rabbitmq是一个实现了AMQP(高级消息队列协议)的消息队列系统。消息队列使用消息将通信双方链接起来，使得消息通过像rabbit</description>
     </item>
     
     <item>
       <title>乐观锁和悲观锁</title>
-      <link>http://littledriver.net/posts/pessimistic-and-optimistic-locker/</link>
+      <link>http://littledriver.net/post/2016/11/27/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/</link>
       <pubDate>Sun, 27 Nov 2016 20:59:27 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/pessimistic-and-optimistic-locker/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2016/11/27/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/</guid>
+      <description>本科的时候学习过数据库，但是只限于书面上的东西，并没有过多的实践。而且我依稀记得，当时教学的重点是在关系代数和数据库三大范式这两方面。 学完之</description>
     </item>
     
     <item>
       <title>三种基本排序算法</title>
-      <link>http://littledriver.net/posts/three-basic-sort-algorithms/</link>
+      <link>http://littledriver.net/post/2016/11/09/%E4%B8%89%E7%A7%8D%E5%9F%BA%E6%9C%AC%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</link>
       <pubDate>Wed, 09 Nov 2016 19:36:42 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/three-basic-sort-algorithms/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2016/11/09/%E4%B8%89%E7%A7%8D%E5%9F%BA%E6%9C%AC%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</guid>
+      <description>学习三种最基本的排序算法思想，文中代码已经经过大量测试。如发现有误，欢迎指正。 选择排序算法 核心思想 如果以一个不含有重复元素并且元素个数为N的</description>
     </item>
     
   </channel>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>nginx Learning notes(2) - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2017/05/03/nginx-learning-notes2/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="nginx Learning notes(2)" />
+<meta property="og:description" content="本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2017/05/03/nginx-learning-notes2/" /><meta property="article:published_time" content="2017-05-03T17:50:55&#43;00:00"/>
+<meta property="article:modified_time" content="2017-05-03T17:50:55&#43;00:00"/>
+
+<meta itemprop="name" content="nginx Learning notes(2)">
+<meta itemprop="description" content="本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址">
+
+
+<meta itemprop="datePublished" content="2017-05-03T17:50:55&#43;00:00" />
+<meta itemprop="dateModified" content="2017-05-03T17:50:55&#43;00:00" />
+<meta itemprop="wordCount" content="2779">
+
+
+
+<meta itemprop="keywords" content="Nginx," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="nginx Learning notes(2)"/>
+<meta name="twitter:description" content="本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">nginx Learning notes(2)</h1>
+      
+      <div class="post-meta">
+        <time datetime="2017-05-03" class="post-time">
+          2017-05-03
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+
+    
+    <div class="post-content">
+      <blockquote>
+<p>本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址 <a href="https://openresty.org/cn/ebooks.html">https://openresty.org/cn/ebooks.html</a></p>
+</blockquote>
+
+<h1 id="nginx请求过程">Nginx请求过程</h1>
+
+<p>rewrite，access, content应该是nginx中对一个请求处理的最核心的三个阶段。但是，当我们想对一个请求做更多的控制的时候，nginx也为我们提供了更多的阶段。</p>
+
+<h2 id="post-read">post_read</h2>
+
+<p>post_read是nginx处理用户请求进行的第一个阶段，这个阶段的指令在nginx解析完请求的头部之后就立即开始运行了。其中ngx_realip模块就是这个阶段中比较常用的，它的作用是可以通过特定的指令修改请求头的来源地址。如下面的例子：</p>
+
+<pre><code>server{
+	set_real_ip_from 127.0.0.1
+	real_ip_header X-LOCAL-IP
+}
+</code></pre>
+
+<p>这两条来自ngx_realip模块的指令，在处理请求的时候，会把来自本地的请求中的来源地址设置成X-LOCAL-IP这个头部字段所制定的ip。如果该字段的值是空或者不是一个合法的ip格式，那么是不会更改的。nginx中对于请求来源地址有一个相关的内建变量可以直接访问：$remote_addr。如果nginx配置文件中配置了上面在post_read阶段执行的指令并且在rewrite阶段中我们要使用remote_addr这个变量，此时它就是被上面的指令改过的版本。</p>
+
+<p>之所以需要改动请求来源地址，是因为，如果在nginx前面还有一层代理的话，那么按照原始的方式获取来源ip地址肯定是不准确的，代理服务器一般会在代理的过程中将用户请求的来源地址写入到一个特定的http头部字段中，这样nginx在收到这个请求的时候，就可以做一个翻译，以便后续的阶段使用。post_read阶段是在nginx读取到请求的头部就开始运行的，改写请求来源地址的这类事情还是越早做越好。</p>
+
+<h2 id="server-rewrite和rewrite">server-rewrite和rewrite</h2>
+
+<p>以我目前所学的Nginx的知识来讲，rewrite阶段一般分为两类，一类是server之内，一类是location之内。location虽说是被包含在server内的，但是location外server内还是可以算作一种特殊的rewrite阶段&mdash;-server-rewrite阶段。server-write阶段的执行顺序仅次于post-read，在rewrite之前运行。</p>
+
+<h2 id="find-config">find_config</h2>
+
+<p>find_config阶段内，不支持其他nginx模块注册处理程序，这阶段内主要的作用就是将请求和location进行配对。配对成功之后，就会进入和请求对应的location配置块中，location中第一个经历的阶段就是rewrite阶段。</p>
+
+<h2 id="post-rewrite">post_rewrite</h2>
+
+<p>post_rewrite阶段和find_config阶段一样，不支持nginx模块在此阶段注册处理程序。这一阶段的主要工作是根据rewrite阶段的指令看是否要执行内部跳转操作。上一篇文章中说过rewrite指令是可以实现内部跳转的。rewrite实现内部跳转的原理实际上就是通过改写请求的url，然后使请求的处理阶段倒回find_config阶段。重新将请求的url和location块进行匹配。这个&rdquo;回退&rdquo;的操作之所以没有在rewrite阶段中完成的原因是，rewrite阶段可以执行多个rewrite指令，但是后面的rewrite指令的结果是会覆盖前面的。对于内部跳转这个动作来讲，rewrite阶段的rewrite指令相当于做了一次记录，记录了内部跳转的目的地，最后真正实施内部跳转操作的，实际上是在post_rewrite阶段。</p>
+
+<p>之前说过，rewrite指令不仅仅可以用来Location内部，还可以用在server内Location外。这个时候进行的请求重写并没有发生在post_rewrite阶段，而是发生在server_rewrite阶段，这个阶段还没有执行find_config阶段内的配对操作，所以不能算是内部跳转，可以算作是内部重定向把，毕竟真正第一次配对的find_config阶段还没有执行。</p>
+
+<h2 id="preaccess">preaccess</h2>
+
+<p>通过这个阶段的名字我们就可以看出来，此阶段是在access阶段前运行的。ngx_req_limit和ngx_req_zone两个模块分别控制请求的频度和并发度，他们都是运行在preaccess这个阶段中的。前面提到的可以修改请求源地址的ngx_realip模块也在这个阶段注册了处理程序，按道理来说，ngx_realip在post-read阶段来做是最合适的，post-read阶段和任何的location块都是无关的。但是如果我们想在post-head以后的处理阶段中进行需改请求源地址操作的话，就要依赖于ngx_realip在preaccess阶段注册的处理程序。修改请求源站地址的指令可以写在location中，这样在preaccess阶段中就可以执行相关的指令了。</p>
+
+<h2 id="access">access</h2>
+
+<p>这个阶段在上一篇文章中已经有所提及，是负责对请求做一些访问性的控制操作。除了ngx_access标准模块，ngx_lua中的access_by_lua指令也运行在这个阶段。</p>
+
+<h2 id="post-access">post_access</h2>
+
+<p>post_access和post_rewrite一样，后者是运行在rewrite之后，前者则是运行在access阶段之后。post_rewrite会将rewrite阶段中的内部跳转指令综合起来，最终在该阶段只跳转一次。post_access会将access阶段中注册的多种访问控制相关处理程序综合起来，根据satisfy指令给出一个逻辑或关系的表达式，任意一个请求在access阶段有satisfy指令的情况下，最终都会根据post_access阶段给出的逻辑表达式来计算其是否能够继续被处理。虽然post_access阶段是在access阶段之后被处理，但是实际上这两个阶段是相互配合的，rewrite和post_rewrite是一样的。</p>
+
+<h2 id="try-files">try_files</h2>
+
+<p>try_files阶段不支持其他nginx模块注册处理程序。try_files指令接受N个参数，在try_files阶段，该指令会依次检查前N-1个参数对应的文件系统的位置是否存在一个明确的文件对象。如果存在，那么就改写请求uri的值为对应的参数值，否则直接执行一个内部跳转，跳转到第N个参数所制定的url中。</p>
+
+<p>try_files指令在从左向右匹配的时候，只要是有一个参数被验证在文件系统中有明确的文件对象，那么他就不继续向下匹配了，改写完请求uri之后，就直接进行后面的请求处理阶段。这么说来，在try_files匹配的过程中，对于前N-1个参数来讲都是一个或的关系。</p>
+
+<p>并且，在第N个参数上，也就是前n-1个参数都没匹配到，无条件内部跳转过去的位置，除了可以指定一个uri来跳转到具体的一个location块，还可以用等号加状态码的形式(=404)，让内部跳转到这个位置的时候，直接根据状态码返回一个响应。</p>
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/nginx/">Nginx</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/2017/05/30/learning-process-in-modern-operating-system3/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">Learning-Process-In-Modern-Operating-System(3)</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/2017/04/27/learning-process-in-modern-operating-system2/">
+            <span class="next-text nav-default">Learning-Process-In-Modern-Operating-System(2)</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2017/05/03/nginx-learning-notes2/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>

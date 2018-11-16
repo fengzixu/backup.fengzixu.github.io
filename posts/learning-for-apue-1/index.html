@@ -1,93 +1,51 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LittleDriver  | Learning for APUE(1)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Learning for APUE(1) | LittleDriver</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
-    <header>
 
-  
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="http://littledriver.net/">/home/littledriver</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/">~/home</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/categories/">~/categories</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/blog.css" />
+</head>
+<body>
 
-      
-      
-      <li class="pull-right">
-        <a href="/index.xml">~/subscribe</a>
-      </li>
-      
+    
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="http://littledriver.net/">Home</a>
+        </div>
+    </nav>
+    
 
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">Learning for APUE(1)</span></h1>
-
-<h2 class="date">2017/03/19</h2>
-<p class="terms">
-  
-  
-  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
-  
-  
-  
-  Tags: <a href="/tags/linux">Linux</a> <a href="/tags/apue">APUE</a> 
-  
-  
-</p>
-</div>
+    
+    <section class="hero is-info is-medium">
+        <div class="hero-body" style="background-image: url(http://littledriver.net/img/bg-blog.jpg);">
+            <div class="container has-text-centered">
+                <br>
+                <h1 class="title is-size-1">
+                    
+                        Learning for APUE(1)
+                    
+                </h1>
+                
+            </div>
+        </div>
+    </section>
 
 
-<nav id="TableOfContents">
-<ul>
-<li><a href="#文件和目录">文件和目录</a></li>
-<li><a href="#输入和输出">输入和输出</a></li>
-<li><a href="#程序和进程">程序和进程</a></li>
-<li><a href="#出错处理">出错处理</a></li>
-<li><a href="#信号">信号</a></li>
-<li><a href="#时间">时间</a></li>
-<li><a href="#系统调用和库函数的区别">系统调用和库函数的区别</a></li>
-</ul>
-</nav>
+<div class="container">
+    <div class="section">
+    
 
-
-<main>
-<p></p>
-
-<blockquote>
+<div class="columns">
+    <div class="column is-9">
+        <div class="tile is-child box">
+            <div class="content">
+                <blockquote>
 <p>说来惭愧，像apue这种书籍被我买了一直放在书架里，仔细想想大学四年做的唯一一件错事就是没用大量的空闲时间去多读书。从集训队出来之后，一直被找工作困扰，失去了自己学习的节奏，现在看来是非常得不偿失的。俗话说，出来混总是要还的。在你想做一些技术含量更好的工作的时候，而不是仅仅的谢谢if-else，像apue书中所讲的一些基础知识是怎么也绕不开的。</p>
 </blockquote>
 
@@ -146,40 +104,105 @@
 <p>虽然在使用的角度上，我们可以将系统调用看做为c的库函数。但是在实现的角度上，他们是有所不同的。比如malloc库函数，它用于分配内存，但是实际上真正提供分配内存功能的是系统调用sbrk函数。这个时候，如果我们对库函数不满意，完全可以用sbrk来实现一个自己的malloc函数。总的来说也就是，库函数可以替代，但是系统调用不可以。</p>
 
 <p>系统调用函数提供给我们的往往是原始的功能，如sbrk就是分配一块内存空间，那么具体按什么方式分配甚至是如何管理这段内存空间，都是在库函数中处理的。类似一些返回系统时间的库函数也是一样，系统调用可能只返回一个从1970年1月1日到现在的秒数，至于如何解析这些秒数是库函数来决定的。所以从这两个例子可以看出，系统调用一般提供一个核心的功能，吐给库函数基本的数据，至于这些数据以何种方式使用则由库函数决定。</p>
-</main>
-
-    <footer>
-      
-<script>
-(function() {
-  function center_el(tagName) {
-    var tags = document.getElementsByTagName(tagName), i, tag;
-    for (i = 0; i < tags.length; i++) {
-      tag = tags[i];
-      var parent = tag.parentElement;
-      
-      if (parent.childNodes.length === 1) {
+            </div>
+        </div>
+    </div>
+    <div class="column is-3">
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Tags</h1>
+        <div class="tags">
         
-        if (parent.nodeName === 'A') {
-          parent = parent.parentElement;
-          if (parent.childNodes.length != 1) continue;
-        }
-        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
-      }
-    }
-  }
-  var tagNames = ['img', 'embed', 'object'];
-  for (var i = 0; i < tagNames.length; i++) {
-    center_el(tagNames[i]);
-  }
-})();
-</script>
+            <span class="tag"><a href="http://littledriver.net/tags/apue">APUE</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/algorithm">Algorithm</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/bestpractice">BestPractice</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/datastructure">DataStructure</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/docker">Docker</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/golang">Golang</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/java">Java</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/kubernetes">Kubernetes</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/linux">Linux</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/lua">Lua</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/mq">MQ</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">NetWork</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">Network</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/nginx">Nginx</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/operatingsystem">OperatingSystem</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/python">Python</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/rds">RDS</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/redis">Redis</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/servicemesh">ServiceMesh</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/sourcecodeanalyse">SourceCodeAnalyse</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workexperience">WorkExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workingexperience">WorkingExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/grpc">gRPC</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/%E9%9A%8F%E7%AC%94">随笔</a></span>
+        
+        </div>          
+    </div>
+</div><br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Recent posts</h1>
+        
+            <h1><a href="http://littledriver.net/post/2018/11/16/my-first-post/">My First Post</a></h1>
+            <time class="has-text-grey-light is-size-7">16 November 2018</time>
+        
+    </div>
+</div>
+    <br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Archives</h1>
+        
+            <a href="http://littledriver.net/archives/2018">2018</a> (1)<br>
+        
+    </div>
+</div>
 
-      
-      <hr/>
-      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
-      
-    </footer>
-  </body>
+    </div>
+</div>
+
+
+    </div>
+</div>
+
+<footer class="footer has-background-grey-darker has-text-white">
+    <div class="content has-text-centered">
+        <p>
+            <span class="icon is-large"><a href="https://twitter.com/" class="mysocial"><i class="fab fa-twitter fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://www.youtube.com/" class="mysocial"><i class="fab fa-youtube fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://github.com/" class="mysocial"><i class="fab fa-github fa-3x"></i></a></span>&nbsp;&nbsp;
+            <br><br>
+            Copyright &copy; LittleDriver 2018 - Theme by <a href="https://jeffprod.com" class="mysocial">JeffProd.com</a>
+            - <a class="mysocial" href="http://littledriver.net/about">About</a>
+        </p>
+    </div>
+</footer>
+
+<script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+</body>
 </html>
-

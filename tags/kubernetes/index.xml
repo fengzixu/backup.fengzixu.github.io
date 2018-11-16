@@ -6,102 +6,81 @@
     <description>Recent content in Kubernetes on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 26 Sep 2018 17:58:57 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 15 Nov 2018 22:40:55 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>K8s GC Design Principle</title>
+      <link>http://littledriver.net/post/2018/11/15/k8s-gc-design-principle/</link>
+      <pubDate>Thu, 15 Nov 2018 22:40:55 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/15/k8s-gc-design-principle/</guid>
+      <description>Ref: https://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/garbage-collection.md#orphaning-the-descendants-with-orphan-finalizer Warning：设计文档的对应的 k8s 版本为1.7 Q: What is GC of Kuernetes ? A: GC 是 Garbage Collector 的简称。从功能层面上来说，它和编程语言当中的「GC」 基本上是一样的</description>
+    </item>
+    
+    <item>
       <title>How to Deploy Jaeger Cluster</title>
-      <link>http://littledriver.net/posts/how-to-deploy-jaeger-cluster/</link>
+      <link>http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/</link>
       <pubDate>Wed, 26 Sep 2018 17:58:57 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/how-to-deploy-jaeger-cluster/</guid>
-      <description>Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件
- jaeger-agent jaeger-collector data-storage  Elasticsearch Cassandra   由于我们想将 jaeger 部署到 k8s 集群中，针对于这个特定的部署环境，我们可以对部署方案做如下的梳理：
- 部署方式： helm+jaeger 的 chart 包（参考：https://github.com/jaegertracing/jaeger-kubernetes, https://github.com/helm/charts/tree/master/incubator/jaeger） 存储中间件：helm + ElasticSearch 的 chart 包（参考：https://github.com/helm/charts/tree/master/incubator/elasticsearch） 底层存储方案：宿主机外挂500G 数据盘+ Ceph RBD 访问：ingress+nginx—ingress-controller+service  通过对GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes的了解，我们可以知道，其实 jaeger 本身的组件部署时比较简单的，直接 kubectl applpy 一个编排文件即可搞定。唯一比较麻烦的是对底层存储的配置。针对这样的情况，我们决定将 jaeger 部署的顺序做如下安排：
- 准备一个 k8s 集群（笔者有一个一主一从的 k8s 集群，基于虚拟机建立的），主从节点各挂在一块500G 的数据盘 Ceph RBD 集群和 k8s 混布（╮(╯▽╰)╭，没办法，穷啊），创建需要分配存储的测试 pod，查看 pvc 和 pv 的创建情况 部署 Elasticsearch 部署 Jaeger，测试集群内部是否能够成功访问 jaeger-query 部署 ingress+nginx-ingress-controller，测试集群外部访问情况   本文默认用户已经部署好了 k8s 集群并且挂载了数据盘，因为 k8s 的部署步骤也比较复杂，足以写另外一篇文章了。而且对于挂载磁盘的问题来说，用户所处平台的不同（云主机，物理机，本地的虚拟机）可能处理的方式也不太一样。这两部分在本文中就不做过多的描述了。</description>
+      <guid>http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/</guid>
+      <description>Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件 jaeger-agent jaeger-collector data-storage Elasticsearch Cassandra 由于我们想将 jaeger 部署到 k8s 集</description>
     </item>
     
     <item>
       <title>Head First of Tracing System</title>
-      <link>http://littledriver.net/posts/head-first-of-tracing-system/</link>
+      <link>http://littledriver.net/post/2018/09/26/head-first-of-tracing-system/</link>
       <pubDate>Wed, 26 Sep 2018 17:58:42 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-of-tracing-system/</guid>
-      <description>什么是 Link Tracing？ 为什么我们需要 Tracing？ Link Tracing 字面意思就是链路追踪，它是一个抽象的概念。针对于一个分布式的系统来说，「链路」主要是某个请求从进入到这个系统一直到被处理完成的整个路径。而「追踪」就更好理解了，它可以给我们提供一定的信息，方便我们了解在这个链路上都发生了什么。
-传统的「服务」像是一锅大杂烩，将所有的功能都集成到一个 binary 中，如监控，日志收集，UI，存储等等。多个模块硬耦合在一起，带来的后果就是整个系统变得臃肿和不可控，修改起来也相当的麻烦。更新频率较低的功能，往往会受到更新频率较高的功能的影响。由于种种原因，越来越多的开发团队企图将他们的「大杂烩」剥离成一个个相互合作的微服务。多个具有合作关系的微服务统称为一个「分布式系统」（笔者自己对分布式系统的简单理解）。
-分布式系统以及微服务给开发人员和运维人员带来好处的同时也引入了一些难题：
- 由于服务和服务之间依靠网络通信，请求链路变长使得延迟有一定的升高，所以我们可能需要做一些优化 现代服务多使用「并发」来实现一些 feature。并发逻辑若出现 bug，在一个分布式系统中就需要一个有效的措施去定位和解决  而「链路追踪」技术就旨在为分布式系统解决这些问题。它提供一些方便且有效的手段，使我们可以清晰的了解到整条请求链路中各个阶段的耗时。若在请求处理的过程中出错，尤其是在一些不是我们自己实现的组件中出错，「链路追踪」也可以准确的捕获这类信息。目前已经有了一些成熟的「分布式链路追踪」系统，如 Zipkin or Jaeger。
-TracingGraph 如果让我们通过一个图来描述一个请求的「链路」，基本上可以画成上面的样子，从1-8。这个「链路追踪」图示有优势也有劣势
- 优势：  可以看清楚各个组件之间的调用关系。从用户的角度出发观察整个请求的处理链路较为直观  劣势：  整个请求执行的过程中，无法区分哪些逻辑是串行的，哪些逻辑是并行的 无论是其中的一个小步骤还是整个请求，都无法观察到它们的运行时间   上面的「链路追踪」图，在保留了「可以看清调用关系」的基础上，针对我们之前谈到过的几个问题作出了改进。在整个的 tracing 过程中，每一个带有不同颜色的矩形区域都被称作是一个 Span，它代表了一个调用的过程（逻辑上的一个工作单元）。一个 Span 的长度结合 X 轴可以判断它的 processing duration。并且，在按照层级将调用分类之后，可以明显的区分出「串行」和「并发」的逻辑（如图中的container start-up 调用和 stoage allocation两者就是并发执行的，而 container start-up 和 start-up scripts 就是串行执行的）。
-Jaeger Jaeger 是一个由 Uber 公司开发的分布式的链路追踪系统。它遵循了 OpenTracing 提出的和「链路追踪」有关的一系列的数据模型和标准。jaeger 还实现了 OpenTracingAPI（golang），使得应用程序接入 jaeger 更加的方便。一个 jaeger 通常包含以下几个组件：
- jaeger-client：业务接入 jaeger 所需要的 SDK，由特定的语言实现 jaeger-agent：作为 daemon 进程部署在每一个 host/container 上，用以收集追踪数据发送至 collector jaeger-collector：收集从 jaeger-agent 上反馈而来的数据，以特定的存储组件进行持久化（es） jaeger-ui&amp;amp;jaeger-query：提供 UI 界面和查询追踪数据的服务，使得用户能够方面的查看每个请求的「链路追踪」信息  如果是部署在生产环境的 k8s 集群中，除了上述说到的几个组件之外，还需要一个持久化存储的中间件，为 jaeger 管理海量的「追踪数据」。对于 jaeger 来说，存储中间件有几个可以供选择：</description>
+      <guid>http://littledriver.net/post/2018/09/26/head-first-of-tracing-system/</guid>
+      <description>什么是 Link Tracing？ 为什么我们需要 Tracing？ Link Tracing 字面意思就是链路追踪，它是一个抽象的概念。针对于一个分布式的系统来说，「链路」主要</description>
     </item>
     
     <item>
       <title>The brief of PV and PVC</title>
-      <link>http://littledriver.net/posts/notion-of-pv-and-pvc/</link>
+      <link>http://littledriver.net/post/2018/09/26/the-brief-of-pv-and-pvc/</link>
       <pubDate>Wed, 26 Sep 2018 17:58:12 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/notion-of-pv-and-pvc/</guid>
-      <description>Overview 在 kubernetes 上部署服务，无论是「有状态」的，还是「无状态」的，可能大部分都有存储数据的需求。随之而来的就是对存储资源的需求。对于 k8s 来说，最底层的存储资源，我们可以直接利用 local storage，即机器的本地磁盘，也可以使用 ceph rbd 这种存储插件，单独的搭建一个存储的集群，使得运行在k8s 上的服务可以使用 network storage。
-但是，在搭建好了一个 ceph 存储的集群之后，我们要如何使用它呢？
-PV &amp;amp;&amp;amp; PVC 在 k8s 中，定义了两个资源来管理和使用集群中的存储资源：
- Persistent Volumes： 可以认为是 k8s 集群提供的存储资源的一种抽象，由 k8s 集群自动创建 PersistentVolumeClaim： 可以认为是 User(广义的 User，泛指一切想使用存储资源的事物) 对存储资源的一个请求声明  对于两者的「合作」模式，可以简单的做如下理解：
-用户申请一个定量的存储资源，创建一个 PVC，集群内部的某些组件在收到 PVC 的创建消息之后，根据要求创建一个相应的 PV，并且会为这个 PV 分配实际的存储空间（在本地磁盘，或者是在 ceph rbd 这种网络存储上）。但是，如果不能满足 PVC 所申请的 volume 资源，那么 PV 不会被创建，而这个 PVC 也会一直保留在那里，直到它所申请的 Volume 容量被满足。
-对于 PV 来说，集群对它的提供方式一般有两种：动态和静态。静态的 PV 一般都是由 k8s 集群内特定的组件预先分配好的，在用户需要使用的时候，可以直接将 PVC 和 PV 做一个「绑定」的操作即可。而动态的 PV 则需要一个叫做 StorageClass 的东西。</description>
+      <guid>http://littledriver.net/post/2018/09/26/the-brief-of-pv-and-pvc/</guid>
+      <description>Overview 在 kubernetes 上部署服务，无论是「有状态」的，还是「无状态」的，可能大部分都有存储数据的需求。随之而来的就是对存储资源的需求。对于 k8s 来说，最底层的存</description>
     </item>
     
     <item>
       <title>Contrain Pod Scheduling</title>
-      <link>http://littledriver.net/posts/contrain-pod-scheduling/</link>
+      <link>http://littledriver.net/post/2018/09/11/contrain-pod-scheduling/</link>
       <pubDate>Tue, 11 Sep 2018 16:52:58 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/contrain-pod-scheduling/</guid>
-      <description>Overview 当我们创建一个 Pod 之后，Kubernetes 自身的一些调度规则将会根据集群节点的各项指标，为这个 Pod 选出一个合适的 Node 且将其调度上去。我们姑且可以认为这个调度的过程对我们来说是「随机」的。因为在没有了解清楚 Kubernetes 的调度规则之前，我们也不知道创建的一个 Pod 将会被调度到哪台节点上。 但是在日常开发的过程中，尤其是基于 k8s 开发一些数据库相关应用的时候，我们通常对 Pod 被调度的节点是有要求的，比如：我们需要将主节点强制调度到某台机器上，或者我们需要主从节点所在的 Pod 不能调度到同一个 Node 上。
-这些要求在 kubernetes 上是可以实现的，它提供以下几种方式来方便使用者干预 Pod 的调度策略：
- NodeSelector Taints and Tolerations Anti-Affinity/Affinity  NodeSelector NodeSelector 是依靠 LabelSelector 实现的一种调度策略。若想使用 NodeSelector， 需要分为两部分来考虑
-Node 我们需要在集群中某一个我们想要调度到的 Node 上打上一个label，比如，A Node上的硬盘是 SSD，那我们就可以使用 kubectl 命令将 A Node 打上一个 disktype=ssd 的 Label。 kubectl label nodes &amp;lt;node-name&amp;gt; &amp;lt;label-key&amp;gt;=&amp;lt;label-value&amp;gt;
-Pod 对于 Pod 来说，我们需要在它的 spec 段内，加入 nodeSelector 段。并且在 nodeSelector 段中填入「目的 Node」 所携带的 Label。比如我们想将一个 Pod 强制调度到 Node A 上，那么在构造 Pod 的基本信息的时候，就要相应的做如下修改（以 yaml 文件为例）：</description>
+      <guid>http://littledriver.net/post/2018/09/11/contrain-pod-scheduling/</guid>
+      <description>Overview 当我们创建一个 Pod 之后，Kubernetes 自身的一些调度规则将会根据集群节点的各项指标，为这个 Pod 选出一个合适的 Node 且将其调度上去。我们姑且可</description>
     </item>
     
     <item>
       <title>Kubernetes pod schedular strategy</title>
-      <link>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</link>
+      <link>http://littledriver.net/post/2018/04/17/kubernetes-pod-schedular-strategy/</link>
       <pubDate>Tue, 17 Apr 2018 14:34:48 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/kubernetes-pod-schedular-strategy/</guid>
-      <description>概述 在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需要将 Pod 调度到一些特定的 Node 上面，比如一些挂在了 SSD 硬盘的 Node。因为有这样的需求，k8s 可以让我们自己控制 Pod 调度至 Node 的策略。这些策略是通过 labelSelector 来实现的。
-NodeSelector NodeSelector 是PodSpec 中的一个 Field。它是一个 key-value 的 pair。key 对应了 Node 中的 label，value 对应了Node 中的 labelValue。当这个 Pod 被创建之后，k8s 会按照这个 nodeSelector 的规则在集群中进行匹配，找到合适的 Node 进行调度。否则，这个 Pod 将不会被成功调度并且会报错： No nodes are available that match all of the following predicates&amp;hellip;
-Affinity and anti-affinity Affinity（anti-affinity） 是对 NodeSelector 的一种功能上的扩展，NodeSelector 可以做到的东西，它一样可以做到。功能上的加强有以下几个方面：
- 不仅支持对单个的 key-value pair进行匹配，还支持逻辑运算的语义。如 AND 等 设置的调度策略将分为：强制和非强制两种类型。强制类型则和 NodeSelector 的功能一样，如果匹配失败，那么也就意味着调度失败。非强制类型则优先会匹配设置好的策略，如果没有匹配成功，k8s 会自动按照它的默认策略调度 Pod 至 Node 上。 调度策略可供设置的粒度更细，不但支持 NodeLabel 粒度的，还支持 PodLabel 粒度的。这也就是说，我们不但可以根据 Node 本身的 label 设置调度策略，还可以根据目标 Node 上所运行的 PodLabel 设置。如 RedisAPP 中，主从节点的 Pod 肯定是不能被调度到一个 Node 上的。这个功能的产生，主要是考虑到了同一个 Node 上面运行的 Pod 之间会有业务上的影响  Node affinity NodeAffinity 分为两种类型：</description>
+      <guid>http://littledriver.net/post/2018/04/17/kubernetes-pod-schedular-strategy/</guid>
+      <description>概述 在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需</description>
     </item>
     
     <item>
       <title>k8s 之 StatefulSets</title>
-      <link>http://littledriver.net/posts/k8s-%E4%B9%8B-statefulset/</link>
+      <link>http://littledriver.net/post/2018/02/24/k8s-%E4%B9%8B-statefulsets/</link>
       <pubDate>Sat, 24 Feb 2018 17:13:44 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/k8s-%E4%B9%8B-statefulset/</guid>
-      <description>Q： 什么是 StatefulSets？
-A: StatefulSets 是一种 workload。k8s 中的一个 workload 通常由 CRD 和 controller 两部分构成，CRD 交由用户使用，创建资源实例，描述对资源期望的状态。而 controller 主要负责保证资源的状态与用户的期望是一致的。StatefulSets 和 deployment 有着相似的作用，提供了 pod 的部署操作和相应的扩缩容操作。但是与 deployment 不同的是：statefulsets可以保证 pod 的操作顺序，这些操作包括创建，终止，更新。在 StatefulSets 中每一个 Pod 都有一个唯一的标识符，即使内部的容器运行的 app 相同，两个 pod 也是不能够互换的。这也是 StatefulSets 可以保证 pod 启停顺序的一个原因。
-Q: StatefulSets有哪些特性？他们是通过什么来保证这些特性正常的？
-A:
- 网络方面：通过 headless service来提供 StatefulSets 中 pod 的访问
- 存储方面：通过 PersistentVolume Provisioner 来提供静态存储，最大限度保证 pod 数据的安全，即使 pod 或者 statefulsets 被删除或者更新，其中的数据也并不会丢失
- 业务方面：通过 Ordinal Index + Stable Network ID + Stable Storage 来唯一的标识一个 Pod。 标识一个 Pod 的组成元素，也侧面反映了 StatefulSets 的特性。</description>
+      <guid>http://littledriver.net/post/2018/02/24/k8s-%E4%B9%8B-statefulsets/</guid>
+      <description>Q： 什么是 StatefulSets？ A: StatefulSets 是一种 workload。k8s 中的一个 workload 通常由 CRD 和 controller 两部分构成，CRD 交由用户使用，创建资源实例，描</description>
     </item>
     
     <item>
       <title>Kubernetes 之 Operator(一)</title>
-      <link>http://littledriver.net/posts/kubernetes-%E4%B9%8B-operator-%E4%B8%80/</link>
+      <link>http://littledriver.net/post/2018/01/24/kubernetes-%E4%B9%8B-operator%E4%B8%80/</link>
       <pubDate>Wed, 24 Jan 2018 22:19:11 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/kubernetes-%E4%B9%8B-operator-%E4%B8%80/</guid>
-      <description>Q: 什么是 Operator? A: Operator 在 k8s 系统中可以认为他是一个集 resource 和 controller 的结合体。他是对 resource 和 controller 的一个高度的抽象。通过扩展 Kubernetes API来达到这一效果。
-Q: Operator 是如何工作的？ A: 在 k8s 组件的架构中，可以将 Operator 理解为用户和 resource 之间的一个桥梁。而用户想对 resource 做什么操作的话，需要先通过调用 API Server，将请求转发到 Operator 的身上（这里可能说的不准确， operator 是通过监听 API Server 上对于其创建的资源所做的操作来进行响应的）。通过这样的理解，我们就可以看出，operator 一方面需要管理部署在集群 node 中的应用，另外一方面需要与 API Server 进行交互，以便响应用户的需求。在 CoreOS 的官网上，同样给出了这样一个文档，里面以 etcd 这个 operator为例，描述了 operator 具体的工作模式。 Kubernetes Operators，总结下来无非就是三个步骤：
- 观察资源目前的状态 对比资源期望的状态 将资源目前的状态 Fix 到期望的状态  Q: Operator 存在的意义是什么？ A: 笔者认为，从 Operator 的使用角度来讲，它最大的意义就是代替操作手册，代替人工去维护部署在集群上面的多个应用。应用的个数越多，运维这些应用的成本越高(如特定的领域知识)，越能够体现出一个 Operator 的价值。Operator 是基于 controller 的，也就是说，Operator 提供的功能会比 controller 本身更加强大，甚至是融合了一些特定业务场景的知识。</description>
+      <guid>http://littledriver.net/post/2018/01/24/kubernetes-%E4%B9%8B-operator%E4%B8%80/</guid>
+      <description>Q: 什么是 Operator? A: Operator 在 k8s 系统中可以认为他是一个集 resource 和 controller 的结合体。他是对 resource 和 controller 的一个高度的抽象。通过扩展 Kubernetes API来达到这一效果。 Q: Operator 是如何工作的？ A:</description>
     </item>
     
   </channel>

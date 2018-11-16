@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LittleDriver  | K8s GC Design Principle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/blog.css" />
+</head>
+<body>
+
+    
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="http://littledriver.net/">Home</a>
+        </div>
+    </nav>
+    
+
+    
+    <section class="hero is-info is-medium">
+        <div class="hero-body" style="background-image: url(http://littledriver.net/img/bg-blog.jpg);">
+            <div class="container has-text-centered">
+                <br>
+                <h1 class="title is-size-1">
+                    
+                        K8s GC Design Principle
+                    
+                </h1>
+                
+            </div>
+        </div>
+    </section>
+
+
+<div class="container">
+    <div class="section">
+    
+
+<div class="columns">
+    <div class="column is-9">
+        <div class="tile is-child box">
+            <div class="content">
+                
+
+<blockquote>
+<p>Ref: <a href="https://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/garbage-collection.md#orphaning-the-descendants-with-orphan-finalizer">https://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/garbage-collection.md#orphaning-the-descendants-with-orphan-finalizer</a>
+Warning：设计文档的对应的 k8s 版本为1.7</p>
+</blockquote>
+
+<p><em>Q: What is GC of Kuernetes ?</em></p>
+
+<p><em>A:</em></p>
+
+<p>GC 是 Garbage Collector 的简称。从功能层面上来说，它和编程语言当中的「GC」 基本上是一样的。它清理 Kubernetes 中「符合特定条件」的 Resource Object。（在 k8s 中，你可以认为万物皆资源，很多逻辑的操作对象都是 Resource Object。）</p>
+
+<p><em>Q: What are dependent mechanisms to clear needless resource objects?</em></p>
+
+<p><em>A:</em></p>
+
+<p>Kubernetes 在不同的 Resource Objects 中维护一定的「从属关系」。内置的 Resource Objects 一般会默认在一个 Resource Object 和它的创建者之间建立一个「从属关系」。当然，你也可以利用<code>ObjectMeta.OwnerReferences</code>自由的去给两个 Resource Object 建立关系，前提是被建立关系的两个对象必须在一个 Namespace 下。</p>
+
+<pre><code>// OwnerReference contains enough information to let you identify an owning
+// object. Currently, an owning object must be in the same namespace, so there
+// is no namespace field.
+type OwnerReference struct {
+	// API version of the referent.
+	APIVersion string `json:&quot;apiVersion&quot; protobuf:&quot;bytes,5,opt,name=apiVersion&quot;`
+	// Kind of the referent.
+	// More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds
+	Kind string `json:&quot;kind&quot; protobuf:&quot;bytes,1,opt,name=kind&quot;`
+	// Name of the referent.
+	// More info: http://kubernetes.io/docs/user-guide/identifiers#names
+	Name string `json:&quot;name&quot; protobuf:&quot;bytes,3,opt,name=name&quot;`
+	// UID of the referent.
+	// More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+	UID types.UID `json:&quot;uid&quot; protobuf:&quot;bytes,4,opt,name=uid,casttype=k8s.io/apimachinery/pkg/types.UID&quot;`
+	// If true, this reference points to the managing controller.
+	// +optional
+	Controller *bool `json:&quot;controller,omitempty&quot; protobuf:&quot;varint,6,opt,name=controller&quot;`
+	// If true, AND if the owner has the &quot;foregroundDeletion&quot; finalizer, then
+	// the owner cannot be deleted from the key-value store until this
+	// reference is removed.
+	// Defaults to false.
+	// To set this field, a user needs &quot;delete&quot; permission of the owner,
+	// otherwise 422 (Unprocessable Entity) will be returned.
+	// +optional
+	BlockOwnerDeletion *bool `json:&quot;blockOwnerDeletion,omitempty&quot; protobuf:&quot;varint,7,opt,name=blockOwnerDeletion&quot;`
+}
+</code></pre>
+
+<p><code>OwnerReference</code>一般存在于某一个 Resource Object  信息中的 metadata 部分。<code>OwnerReference</code>中的字段可以唯一的确定 k8s 中的一个 Resource Object。两个 Object 可以通过这种方式建立一个 <code>owner-dependent</code>的关系。</p>
+
+<p>K8s 实现了一种「Cascading deletion」（级联删除）的机制，它利用已经建立的「从属关系」进行资源对象的清理工作。例如，当一个 dependent 资源的 owner 已经被删除或者不存在的时候，从某种角度就可以判定，这个 dependent 的对象已经是异常（无人管辖）的了，需要进行清理。而 「cascading deletion」则是被 k8s 中的一个 controller 组件实现的：<code>Garbage Collector</code></p>
+
+<p>所以，k8s 是通过 <code>Garbage Collector</code> 和 <code>ownerReference</code> 一起配合实现了「垃圾回收」的功能。</p>
+
+<p><strong>Q: What is the relationship like ?(owner-dependent)</strong></p>
+
+<p><strong>A:</strong></p>
+
+<p>我们可以通过一个实际的例子来了解这个「从属关系」：</p>
+
+<pre><code>apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  annotations:
+    deployment.kubernetes.io/desired-replicas: &quot;2&quot;
+    deployment.kubernetes.io/max-replicas: &quot;3&quot;
+    deployment.kubernetes.io/revision: &quot;1&quot;
+  creationTimestamp: 2018-09-07T07:11:52Z
+  generation: 1
+  labels:
+    app: coffee
+    pod-template-hash: &quot;3866135192&quot;
+  name: coffee-7dbb5795f6
+  namespace: default
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Deployment
+    name: coffee
+    uid: 4b807ee6-b26d-11e8-b891-fa163eebca40
+  resourceVersion: &quot;476159&quot;
+  selfLink: /apis/extensions/v1beta1/namespaces/default/replicasets/coffee-7dbb5795f6
+  uid: 4b81e76c-b26d-11e8-b891-fa163eebca40
+spec:
+  replicas: 2
+....
+</code></pre>
+
+<p>上面截取了一个 ReplicaSet Object 中的 metadata 的部分信息。我们可以注意到，它的 <code>ownerReferences</code>字段标识了一个 Deployment Object。我们都清楚的是，ReplicaSet 会创建一系列的 Pod。通过<code>spec.replicas:2</code>可以知道，他会创建两个pod。</p>
+
+<pre><code>root@xr-service-mesh-lab:~/istio-1.0.2# kubectl get pods  | grep coffee
+coffee-7dbb5795f6-6crxz          1/1       Running   0          9d
+coffee-7dbb5795f6-hv7tr          1/1       Running   0          5d
+root@xr-service-mesh-lab:~/istio-1.0.2#
+</code></pre>
+
+<p>让我们来观察其中一个 Pod：</p>
+
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/podIP: 192.168.0.14/32
+  creationTimestamp: 2018-09-07T07:11:52Z
+  generateName: coffee-7dbb5795f6-
+  labels:
+    app: coffee
+    pod-template-hash: &quot;3866135192&quot;
+  name: coffee-7dbb5795f6-6crxz
+  namespace: default
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: coffee-7dbb5795f6
+    uid: 4b81e76c-b26d-11e8-b891-fa163eebca40
+  resourceVersion: &quot;76727&quot;
+  selfLink: /api/v1/namespaces/default/pods/coffee-7dbb5795f6-6crxz
+  uid: 4b863e4d-b26d-11e8-b891-fa163eebca40
+</code></pre>
+
+<p>我们可以看出，pod 中的<code>ownerReferences</code>所标识的 Object 正式我们上面看到过的 ReplicaSet。最后让我们来检查一下 ReplicaSet 所对应的 Deployment 的情况：</p>
+
+<pre><code>apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: &quot;1&quot;
+  creationTimestamp: 2018-09-07T07:11:52Z
+  generation: 1
+  labels:
+    app: coffee
+  name: coffee
+  namespace: default
+  resourceVersion: &quot;476161&quot;
+  selfLink: /apis/extensions/v1beta1/namespaces/default/deployments/coffee
+  uid: 4b807ee6-b26d-11e8-b891-fa163eebca40
+</code></pre>
+
+<p>对比一下 ReplicaSet Object 中 ownerReference 标识的 Object 可知，这个 Deployment 是 ReplicaSet 的 owner。至此，我们通过观察三个 Object 中的 ownerReference 的信息，可以建立起如下的「从属关系」：</p>
+
+<ul>
+<li>Deployment（owner）—&gt; ReplicaSet (dependent)</li>
+<li>ReplicaSet (owner) —&gt; Pod (dependent)</li>
+</ul>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/relationship" alt="" /></p>
+
+<p><em>Q: What is the working mechanism of Garbage Collector?</em></p>
+
+<p><em>A:</em></p>
+
+<p>一个 Garbage Collector 通常由三部分实现：</p>
+
+<ul>
+<li>Scanner： 它负责收集目前系统中已存在的 Resource，并且周期性的将这些资源对象放入一个队列中，等待处理（检测是否要对某一个Resource Object 进行 GC 操作）</li>
+<li>Garbage Processor: Garbage Processor 由两部分组成
+
+<ul>
+<li>Dirty Queue： Scanner 会将周期性扫描到的 Resource Object 放入这个队列中等待处理</li>
+<li>Worker：worker 负责从这个队列中取出元素进行处理
+
+<ul>
+<li>检查 Object 的 metaData 部分，查看<code>ownerReference</code>字段是否为空
+
+<ul>
+<li>如果为空，则本次处理结束</li>
+<li>如果不为空，检测<code>ownerReference</code>字段内标识的 Owner Resource Object是否存在
+
+<ul>
+<li>存在：则本次处理结束</li>
+<li>不存在：删除这个 Object</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p>其实，在有了 Scanner 和 Garbage Processor 之后，Garbage Collector 就已经能够实现「垃圾回收」的功能了。但是有一个明显的问题：Scanner 的扫描频率设置多少好呢？太长了，k8s 内部就会积累过多的「废弃资源」；太短了，尤其是在集群内部资源对象较多的时候，频繁的拉取信息对 API-Server 也是一个不小的压力。</p>
+
+<p>k8s 作为一个分布式的服务编排系统，其内部执行任何一项逻辑或者行为，都依赖一种机制：「事件驱动」。说的简单点，k8s 中一些看起来「自动」的行为，其实都是由一些神秘的「力量」在驱动着。而这个「力量」就是我们所说的「Event」。任意一个 Resource Object 发生变动的时候（新建，更新，删除），都会触发一个 k8s 的事件（Event），这个事件在 k8s 的内部是公开的，也就是说，我们可以在任意一个地方监听这些事件。</p>
+
+<p>总的来说，无论是「事件的监听机制」还是「周期性访问 API-Server 批量获取 Resource Object 信息」，其目的都是为了能够掌握 Resource Object 的最新信息。两者是各有优势的：</p>
+
+<ol>
+<li>批量拉取：一次性拉取所有的 Resource Object，全面</li>
+<li>监听 Resource 的 Event：实时性强， 且对 API—SERVER 不会造成太大的压力</li>
+</ol>
+
+<p>综上所述，在实现 Garbage Collector 的过程中，k8s 向其添加了一个「增强型」的组件：Propagator</p>
+
+<ul>
+<li>Propagator： Propagator 由三个部分构成
+
+<ul>
+<li>EventQueue：负责存储 k8s 中资源对象的事件（Eg：ADD，UPDATE，DELETE）</li>
+<li>DAG(有向无环图)：负责存储 k8s 中所有资源对象的「owner-dependent」 关系</li>
+<li>Worker：从 EventQueue 中，取出资源对象的事件，根据事件的类型会采取以下两种操作
+
+<ul>
+<li>ADD/UPDATE: 将该事件对应的资源对象加入 DAG，且如果该对象有 owner 且 owner 不在 DAG 中，将它同时加入 Garbage Processor 的 Dirty Queue 中</li>
+<li>DELETE：将该事件对应的资源对象从 DAG 中删除，并且将其「管辖」的对象（只向下寻找一级，如删除 Deployment，那么只操作 ReplicaSet ）加入 Garbage Processor 的 Dirty Queue 中</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p>在有了 Propagator 的加入之后，我们完全可以仅在 GC 开始运行的时候，让 Scanner 扫描一下系统中所有的 Object，然后将这些信息传递给 Propagator 和 Dirty Queue。只要 DAG 一建立起来之后，那么 Scanner 其实就没有再工作的必要了。「事件驱动」的机制提供了一种增量的方式让 GC 来监控 k8s 集群内部的资源对象变化情况。</p>
+
+<p><em>Q: How can I delete the owner and reserve dependents ?</em></p>
+
+<p><em>A:</em></p>
+
+<blockquote>
+<p>╮(╯▽╰)╭没错，需求就是这么奇怪，k8s 还兼容一种情况：删除 owner，留下 dependents。剩余的 dependents 被称为是「orphan」</p>
+</blockquote>
+
+<h4 id="你想怎么实现">你想怎么实现?</h4>
+
+<p>如果暂时先不看设计文档中关于这部分的内容，根据之前对 k8s GC 的了解，让你来实现这个功能，你会怎么做呢？这里给出一下笔者的想法：</p>
+
+<p>首先，我们先来根据上面对于 GC 的了解，给出一幅大致架构图：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/444" alt="" /></p>
+
+<p>在上图中，我用三种颜色分别标记了三条较为重要的处理过程：</p>
+
+<ul>
+<li>红色：worker 从 dirtyQueue 中取出资源对象，检查其是否带有 owner ，如果没带，则不处理。否则检测其 owner是否存在，存在，则处理下一个资源对象，不存在，删除这个 object。</li>
+<li>绿色： scanner 从 api-server 中扫描存在于 k8s 集群中的资源对象并加入至 dirtyQueue</li>
+<li>粉色：propagator.worker 从 eventQueue 中取出相应的事件并且获得对应的资源对象，根据事件的类型以及相应资源对象所属 owner 对象的情况来进行判定，是否要进行两个操作：
+
+<ul>
+<li>从 DAG 中删除相应节点（多为响应 DELETE 事件的逻辑）</li>
+<li>将有级联关系但是 owner 不存在的对象送入 diryQueue 中</li>
+</ul></li>
+</ul>
+
+<p>其中红色是「数据处理」过程，而绿色和粉色是「数据收集」的过程。在「数据处理」的过程中（即我们上面分析过的 GC 的 Worker 的工作过程），worker 做的较为重要的工作有两步：</p>
+
+<ul>
+<li>检查资源对象信息的「ownerReference」字段，判断其是否处在一个级联关系中</li>
+<li>若资源对象有所属 owner 且不存在，则删除这个对象</li>
+</ul>
+
+<p>此时，回头看下我们的需求:「owner 删除，dependents 留下」。如果想在「数据处理」这条链路上做些修改达到我们目的的话，唯一可行的办法就是：在删除了 dependents 对应的 owner 对象之后，同时删除 dependents 信息中 「ownerReference」字段和对应的值。这样一来，在检测资源对象是否应该被删除的过程就会因为其没有「ownerReference」字段而放过它，最终实现了 dependents 对象的“孤立”。</p>
+
+<h4 id="k8s-是怎么实现的">k8s 是怎么实现的?</h4>
+
+<blockquote>
+<p>如果你了解 gRPC-intercepter 的工作机制，那么会加快你理解下面的内容</p>
+</blockquote>
+
+<p>k8s 在系统内部实现了一种类似「删除拦截器链」的机制：即在删除某个资源对象的「删除链路」上，执行一个或多个「拦截逻辑」。并且这种「拦截逻辑」可以自主实现，然后像插件一样注入到这个删除链路上。这种机制在 k8s 当中统称为： <code>Finalizers</code>。<code>Finalizers</code>的声明非常简单，就是一个<code>[]string</code>。这个 Slice 的内部填充的是要执行拦截器的名称。它存在于任何一个资源对象的 Meta 信息中: <a href="https://github.com/kubernetes/apimachinery/blob/master/pkg/apis/meta/v1/types.go#L246">apimachinery/types.go at master · kubernetes/apimachinery · GitHub</a>。<code>Finalizers</code>中的拦截器在其宿主资源对象触发删除操作之后顺序执行（资源对象的deletionTimestamp不为 nil），每执行完一个，就会从<code>Finalizers</code>中移除一个，直到<code>Finalizers</code>为空的 Slice，其宿主资源对象才可以被真正的删除。</p>
+
+<p>对于「删除 owner 但是不删除 dependents」 的需求，k8s 则是实现了一个：orphan finalizer。一般情况下，正常利用 GC 级连删除一个资源对象是不会涉及到 orphan finalizer 的。它执行的是我们之前提到的 GC 的工作逻辑。如果你想启用这个特性，就需要在删除资源对象的时候，根据 K8s 版本的不同，将名为<code>DeleteOption.OrphanDependents</code>的参数赋值为 True（1.7版本以前）, 或者将<code>DeleteOption.PropagationPolicy</code>参数赋值为 <code>metav1.DeletePropagationOrphan</code>：<a href="https://github.com/kubernetes/apimachinery/blob/9dc1de72c0f3996657ffc88895f89f3844d8cf01/pkg/apis/meta/v1/types.go#L457">apimachinery/types.go at 9dc1de72c0f3996657ffc88895f89f3844d8cf01 · kubernetes/apimachinery · GitHub</a>。通过这个参数的注释也可以看出：如果设置好之后，将会在它的 Finalizers 中加入 orphan finalizer。而加入 orphan finalizer 这部分的逻辑是在 api-server 的 package 中：<a href="https://github.com/kubernetes/apiserver/blob/master/pkg/registry/generic/registry/store.go#L719">apiserver/store.go at master · kubernetes/apiserver · GitHub</a></p>
+
+<p>加入了 orphan finalizer 之后，在 GC 的 worker 从 dirtyQueue 中取出 owner 资源对象进行处理的时候，就会执行它的逻辑：删除 dependents 的 OwnerReference 部分： <a href="https://github.com/kubernetes/kubernetes/blob/0972ce1accf859b73abb5a68c0adf4174245d4bf/pkg/controller/garbagecollector/garbagecollector.go#L543">kubernetes/garbagecollector.go at 0972ce1accf859b73abb5a68c0adf4174245d4bf · kubernetes/kubernetes · GitHub</a>。最终，在「保留 dependents」 的逻辑完成之后，orphan finalizer 也会从相应资源对象的<code>Finalizers</code>中删除。</p>
+
+<h4 id="一个隐含的-race-问题">一个隐含的 Race 问题</h4>
+
+<p>对于 Controller 来说，它会周期性的通过 Selector 来寻找它所创建的资源。如果在筛选到了符合自己 label 的 资源，但是发现它的 Meta.OwnerReference 字段中没有自己相关的信息的时候，就会执行一个 <code>Adoption</code>的操作，也就是将和自己有关的 OwnerReference 信息注入到这个 Pod 的 Meta 部分。这种逻辑虽然看起来是比较「保险」，但是实际上它和 orphan finalizer 的逻辑是有冲突的。前者是对 dependents 增加 OwnerReference 信息， 后者则是删除它。两个逻辑在执行的时候，如果不保证「互斥」的话，很可能就会出现一个很严重的竞争问题：指定了 orphan finalizer 的 对象，其 dependents 最终也会被删除。</p>
+
+<p>借鉴操作系统对于「竞争」问题的处理方式，对 OwnerReference操作的的逻辑（即临界区），应该被「互斥」机制保护起来。而在 k8s 中，实现这种互斥保护机制的方式也很简单：Controller 在想执行 Adoption 操作之前，会检查一下当前资源对象的meta.DeletionTimestamp。如果这个字段的值为非 nil，那么就证明这个资源对象已经在被删除中了。所以就不会再继续执行 Adoption 操作。</p>
+
+<p>但是仔细想一下，这种「互斥」保护机制的实现方式，看起来是借助了一个「锁变量」(meta.DeletionTimestamp)的帮助。不过，我们并不需要担心这个字段的「竞争」问题，因为能修改它的操作，只有「删除」操作，而删除操作是肯定会发生在 orphan finalizer 执行之前的。也就是说，当 orphan finalizer 执行的时候，这个值早就被设置进去了。 <a href="https://github.com/kubernetes/kubernetes/blob/7f23a743e8c23ac6489340bbb34fa6f1d392db9d/pkg/controller/replicaset/replica_set.go#L644">kubernetes/replica_set.go at 7f23a743e8c23ac6489340bbb34fa6f1d392db9d · kubernetes/kubernetes · GitHub</a></p>
+
+<p><em>Q: How Kubernetes defines delete operation of resource object?</em></p>
+
+<p><em>A:</em></p>
+
+<p>K8s 在对资源对象「删除」操作的定义上，思考了一个较为重要的问题：「删除」操作真正完成的标志是什么？（达到什么样的条件才可以通知用户「删除」操作成功）。这个问题出现的源头是在用户侧，当用户在使用 k8s 提供的资源对象的「删除」操作时，有个问题会影响到他们：</p>
+
+<ol>
+<li>「删除」操作成功多久后才可以在同一个 ns 下创建同名资源对象？</li>
+</ol>
+
+<p>如果你了解过构建一个 k8s 集群所需要的服务组件，就可以很清楚的知道：k8s 中的资源对象的信息都是存于一个key-value 的数据库当中的（etcd），且是以名字来做索引的。通过命令行<code>kubectl get xxx</code>查询的资源对象的信息都来自于那。而且，当<code>kubelet</code>组件删除掉其所在节点上的一些资源的时候，会调用 API-Server 提供的接口删除掉key-value 数据库中相应的记录。所以，在 k8s 中，给「删除」操作下了这样一个定义：</p>
+
+<blockquote>
+<p>在没有 orphanFinalizer 参与的前提下，直到被删除对象及其「管辖」对象的信息在 key-value 数据库中都被清除，才认为该对象真正的被 GC 回收。即达到了返回给用户「删除成功」的标准。</p>
+</blockquote>
+
+<p>本质上来说，上述所表示的删除操作是「同步」的。因为有「级联关系」（owner-dependent） 关系的存在，删除一个资源对象往往影响的不是他自己，还有他的 dependents。只有将因它出现的所有资源都删除，才可以认为这个对象被删除了。</p>
+
+<p>若想指定这种同步的删除模式，需要在两个不同的位置设置两个参数：</p>
+
+<ol>
+<li>dependents 对象 meta 信息中 OwnerReference.BlockOwnerDeletion</li>
+<li>在发送删除对象请求时，设置 DeleteOptions.PropagationPolicy</li>
+</ol>
+
+<p><code>OwnerReference.BlockOwnerDeletion</code>参数大多数情况下在相应的 dependents 对象创建的时候就设置进去了。如果想在 dependents 对象创建之后更新这个参数的值，可能需要使用<code>admission controller</code> (1.7及以上版本)提供的一些权限相关的功能。</p>
+
+<p><code>DeleteOptions.PropagationPolicy</code>一共有3个候选值：</p>
+
+<pre><code>// DeletionPropagation decides if a deletion will propagate to the dependents of
+// the object, and how the garbage collector will handle the propagation.
+type DeletionPropagation string
+
+const (
+	// Orphans the dependents.
+	DeletePropagationOrphan DeletionPropagation = &quot;Orphan&quot;
+	// Deletes the object from the key-value store, the garbage collector will
+	// delete the dependents in the background.
+	DeletePropagationBackground DeletionPropagation = &quot;Background&quot;
+	// The object exists in the key-value store until the garbage collector
+	// deletes all the dependents whose ownerReference.blockOwnerDeletion=true
+	// from the key-value store.  API sever will put the &quot;foregroundDeletion&quot;
+	// finalizer on the object, and sets its deletionTimestamp.  This policy is
+	// cascading, i.e., the dependents will be deleted with Foreground.
+	DeletePropagationForeground DeletionPropagation = &quot;Foreground&quot;
+)
+</code></pre>
+
+<p>再结合<code>OwnerReference.BlockOwnerDeletion</code> 参数的注释</p>
+
+<pre><code>	// If true, AND if the owner has the &quot;foregroundDeletion&quot; finalizer, then
+	// the owner cannot be deleted from the key-value store until this
+	// reference is removed.
+	// Defaults to false.
+	// To set this field, a user needs &quot;delete&quot; permission of the owner,
+	// otherwise 422 (Unprocessable Entity) will be returned.
+	// +optional
+	BlockOwnerDeletion *bool `json:&quot;blockOwnerDeletion,omitempty&quot; protobuf:&quot;varint,7,opt,name=blockOwnerDeletion&quot;`
+</code></pre>
+
+<p>我们可以了解到。同步删除的开启方式如下：</p>
+
+<ol>
+<li>DeleteOptions.PropagationPolicy  =  DeletePropagationForeground</li>
+<li>OwnerReference. BlockOwnerDeletion = True</li>
+</ol>
+
+<p>开启之后，在删除身份为 owner 的资源对象的时候，就会先将 denpendents 对象中 <code>OwnerReference.BlockOwnerDeletion</code>为 true 的资源对象先删除，然后再删除 owner 身份的对象。这里的「删除」就指的是我们前面说过的「真正的删除」：从 k8s 存储资源对象信息的 key-value 数据库中删除所有与其相关的信息。需要注意的是，<code>OwnerReference.BlockOwnerDeletion</code>为 false 的dependent 对象不会阻碍 owner 对象的删除操作。</p>
+
+<p>Foreground 是 k8s 提供的两种级联删除方式其中之一，另外一种为 Background。通过上面相关的注释可以看到 Foreground 级联删除也是通过 Finalizer 来实现的，查看 Finalizer 相关的定义可知，标准的 Finalizer，一个是 orphan 的，另一个就是Foreground的：</p>
+
+<pre><code>// These are internal finalizer values for Kubernetes-like APIs, must be qualified name unless defined here
+const (
+	FinalizerOrphanDependents string = &quot;orphan&quot;
+	FinalizerDeleteDependents string = &quot;foregroundDeletion&quot;
+)
+</code></pre>
+
+<p>API-Server 的<code>Delete</code>函数，在接受到删除请求的时候，会检查 <code>DeleteOptions.PropagationPolicy</code>参数，若其值为<code>DeletePropagationForeground</code>, API-Server 随即会对该资源对象进行 Update 操作：</p>
+
+<ol>
+<li>插入<code>FinalizerDeleteDependents</code> Finalizer</li>
+<li>设置<code>ObjectMeta.DeletionTimestamp</code>为当前值</li>
+</ol>
+
+<p>然后，在 GC 处理 owner 对象的 Update 事件的逻辑中，还会给 owner 对象打上一个「正在删除 dependents」 对象的标签。之后，我们会将 owner 对象管辖的 dependent 对象和他自己都加入到 dirtyQueue。dirtyQueue 的 worker 在处理 owner 对象的时候，会检查 owner 对象 「正在删除 dependents」的标签是否存在，如果仍有 dependent 对象没有被删掉，owner 会被轮询处理。而 dependent 对象将会被正常删除。当 dependent 对象相应的删除事件被 Propagator 感知到后，会将其从 DAG 和其 owner 的 dependents 信息中删除。几个循环之后，dependents 机会被删光，而 owner 对象中的 finalizer 和自身也会随之被删掉。</p>
+
+<p>Background 模式的级联删除不会因 dependent 对象而影响 owner 对象的删除操作。当我们发送给 API-Server 删除一个 owner 身份的对象的请求之后，这个资源对象会立即被删除。它「管辖」的 dependent 对象会以「静默」的方式删除。</p>
+
+<p><em>Q: What problems GC handles in k8s?</em></p>
+
+<p><em>A:</em></p>
+
+<p>通过对 k8s GC 设计文档的阅读，可以大致的概括一下：GC 主要是按照用户的需求来清理系统中「异常」的资源，用户可以自定义「清理方式」和「清理策略」。不难发现，在 GC 中，到底是保留一个资源还是删除一个资源都参照了资源之间的「从属关系」。资源的「从属关系」可以大致分为几个形态：</p>
+
+<ol>
+<li>无从属关系：这部分资源基本不会被 GC 做处理</li>
+<li>有从属关系
+
+<ol>
+<li>不符合用户预期：删除异常资源</li>
+<li>符合用户预期：解绑异常资源之间的级联关系</li>
+</ol></li>
+</ol>
+
+<p>在有从属关系的资源之间，即使被探测到关系异常，也并不代表一定要将他们都清除。如果有 Orphan Finalizer 的存在，可能某种「异常」正是用户想要的。所以，这就回到了我们一开始所说到的「清理策略」问题。GC 有一定的默认的清理策略，但是用户可以通过加入 Finalizer 的形式来修改「清理策略」，从而保持一个「符合用户期望」的资源之间的从属关系。</p>
+
+<p>同时，用户可以还可以通过参数来制定特定的「清理方式」，如 Foreground 或者 Background。总体上来说，GC 的行为会受到如下几个因素的影响：</p>
+
+<ul>
+<li>默认：
+
+<ul>
+<li>依据：资源之间默认的从属关系</li>
+<li>行为：删除级联关系异常的资源</li>
+<li>方式：Foreground 或者 Background</li>
+</ul></li>
+<li>可定制
+
+<ul>
+<li>依据：用户定义的从属关系（通过 Finalizer）</li>
+<li>行为：删除级联关系异常的资源</li>
+<li>方式：Foreground 或者 Background</li>
+</ul></li>
+</ul>
+
+<p>目前看来，GC 主要是解决了「资源清理」 的问题。那么再抽象一点来看的话，GC 解决的是「资源管理」这个大问题中的一个关于「清理」的小问题。既然说到「资源管理」，那么肯定就不止「清理」一个问题需要处理：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/34" alt="" /></p>
+
+<p>其中，对于资源的创建部分，除了正常的新建操作之外，controller 还有定期执行一个「Adoption」 的操作，用来维护其创建的资源之间那些「本应该建立但是却断开的从属关系」。而对于更新操作来说，controller_manager 需要处理用户对于资源的扩缩容请求，如将 deployment.replicaset.replicacount 减少或者增大，相应资源对应的 controller 需要对可见资源的数量进行调整。至于「资源超卖」的问题，一定会涉及到 scheduler。因为物理资源是固定的，「超卖」本质上来说就是按照实时的需求，动态的调整服务所在的 Node，以便恰好满足服务对于资源的需求。</p>
+
+<p>如果不把资源管理问题讨论的范围局限在 k8s 中的话，那么「审计」和「复用」同样也是「资源管理」问题中不得不考虑的两个点。前者可以增加整个系统资源的「可控性」，后者则可以最大限度的提升资源的利用率，从而降低成本。其实「复用」和「超卖」的目的是一样的，都是想最大限度的利用物理资源。不过这两个功能笔者暂时还没有去查看它们是否在 k8s 已经实现。</p>
+
+<h3 id="总结">总结</h3>
+
+<p>之所以去了解 k8s 的 GC，是因为在将 k8s 集群从1.7版本升级至1.9版本的过程中，因为我错误的设置了资源之间的从属关系，导致该资源被 GC 给回收掉了。问题在1.7版本没有出现的原因是那时 k8s 还没有支持对自定义资源（CRD）的级联删除。通过对 GC 设计理念的了解，我们可以初步的感受到 k8s 对于「资源管理」这个问题域中「资源清理」这个小问题的解决思路。以此为起点，我们可以顺藤摸瓜，去观察 k8s 对于「资源管理」问题域中的其他难题是如何处理的。后续，我也将会根据设计文档中的思路，在代码级别上去了解 GC 的实现细节，从而贡献出更加详细的 blog。</p>
+
+            </div>
+        </div>
+    </div>
+    <div class="column is-3">
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Tags</h1>
+        <div class="tags">
+        
+            <span class="tag"><a href="http://littledriver.net/tags/apue">APUE</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/algorithm">Algorithm</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/bestpractice">BestPractice</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/datastructure">DataStructure</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/docker">Docker</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/golang">Golang</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/java">Java</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/kubernetes">Kubernetes</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/linux">Linux</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/lua">Lua</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/mq">MQ</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">NetWork</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">Network</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/nginx">Nginx</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/operatingsystem">OperatingSystem</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/python">Python</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/rds">RDS</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/redis">Redis</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/servicemesh">ServiceMesh</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/sourcecodeanalyse">SourceCodeAnalyse</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workexperience">WorkExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workingexperience">WorkingExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/grpc">gRPC</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/%E9%9A%8F%E7%AC%94">随笔</a></span>
+        
+        </div>          
+    </div>
+</div><br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Recent posts</h1>
+        
+            <h1><a href="http://littledriver.net/post/2018/11/16/my-first-post/">My First Post</a></h1>
+            <time class="has-text-grey-light is-size-7">16 November 2018</time>
+        
+    </div>
+</div>
+    <br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Archives</h1>
+        
+            <a href="http://littledriver.net/archives/2018">2018</a> (1)<br>
+        
+    </div>
+</div>
+
+    </div>
+</div>
+
+
+    </div>
+</div>
+
+<footer class="footer has-background-grey-darker has-text-white">
+    <div class="content has-text-centered">
+        <p>
+            <span class="icon is-large"><a href="https://twitter.com/" class="mysocial"><i class="fab fa-twitter fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://www.youtube.com/" class="mysocial"><i class="fab fa-youtube fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://github.com/" class="mysocial"><i class="fab fa-github fa-3x"></i></a></span>&nbsp;&nbsp;
+            <br><br>
+            Copyright &copy; LittleDriver 2018 - Theme by <a href="https://jeffprod.com" class="mysocial">JeffProd.com</a>
+            - <a class="mysocial" href="http://littledriver.net/about">About</a>
+        </p>
+    </div>
+</footer>
+
+<script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+</body>
+</html>

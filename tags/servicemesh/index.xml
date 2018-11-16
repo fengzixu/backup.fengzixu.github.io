@@ -13,30 +13,20 @@
     
     <item>
       <title>How to Deploy Jaeger Cluster</title>
-      <link>http://littledriver.net/posts/how-to-deploy-jaeger-cluster/</link>
+      <link>http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/</link>
       <pubDate>Wed, 26 Sep 2018 17:58:57 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/how-to-deploy-jaeger-cluster/</guid>
-      <description>Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件
- jaeger-agent jaeger-collector data-storage  Elasticsearch Cassandra   由于我们想将 jaeger 部署到 k8s 集群中，针对于这个特定的部署环境，我们可以对部署方案做如下的梳理：
- 部署方式： helm+jaeger 的 chart 包（参考：https://github.com/jaegertracing/jaeger-kubernetes, https://github.com/helm/charts/tree/master/incubator/jaeger） 存储中间件：helm + ElasticSearch 的 chart 包（参考：https://github.com/helm/charts/tree/master/incubator/elasticsearch） 底层存储方案：宿主机外挂500G 数据盘+ Ceph RBD 访问：ingress+nginx—ingress-controller+service  通过对GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes的了解，我们可以知道，其实 jaeger 本身的组件部署时比较简单的，直接 kubectl applpy 一个编排文件即可搞定。唯一比较麻烦的是对底层存储的配置。针对这样的情况，我们决定将 jaeger 部署的顺序做如下安排：
- 准备一个 k8s 集群（笔者有一个一主一从的 k8s 集群，基于虚拟机建立的），主从节点各挂在一块500G 的数据盘 Ceph RBD 集群和 k8s 混布（╮(╯▽╰)╭，没办法，穷啊），创建需要分配存储的测试 pod，查看 pvc 和 pv 的创建情况 部署 Elasticsearch 部署 Jaeger，测试集群内部是否能够成功访问 jaeger-query 部署 ingress+nginx-ingress-controller，测试集群外部访问情况   本文默认用户已经部署好了 k8s 集群并且挂载了数据盘，因为 k8s 的部署步骤也比较复杂，足以写另外一篇文章了。而且对于挂载磁盘的问题来说，用户所处平台的不同（云主机，物理机，本地的虚拟机）可能处理的方式也不太一样。这两部分在本文中就不做过多的描述了。</description>
+      <guid>http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/</guid>
+      <description>Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件 jaeger-agent jaeger-collector data-storage Elasticsearch Cassandra 由于我们想将 jaeger 部署到 k8s 集</description>
     </item>
     
     <item>
       <title>Head First of Tracing System</title>
-      <link>http://littledriver.net/posts/head-first-of-tracing-system/</link>
+      <link>http://littledriver.net/post/2018/09/26/head-first-of-tracing-system/</link>
       <pubDate>Wed, 26 Sep 2018 17:58:42 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-of-tracing-system/</guid>
-      <description>什么是 Link Tracing？ 为什么我们需要 Tracing？ Link Tracing 字面意思就是链路追踪，它是一个抽象的概念。针对于一个分布式的系统来说，「链路」主要是某个请求从进入到这个系统一直到被处理完成的整个路径。而「追踪」就更好理解了，它可以给我们提供一定的信息，方便我们了解在这个链路上都发生了什么。
-传统的「服务」像是一锅大杂烩，将所有的功能都集成到一个 binary 中，如监控，日志收集，UI，存储等等。多个模块硬耦合在一起，带来的后果就是整个系统变得臃肿和不可控，修改起来也相当的麻烦。更新频率较低的功能，往往会受到更新频率较高的功能的影响。由于种种原因，越来越多的开发团队企图将他们的「大杂烩」剥离成一个个相互合作的微服务。多个具有合作关系的微服务统称为一个「分布式系统」（笔者自己对分布式系统的简单理解）。
-分布式系统以及微服务给开发人员和运维人员带来好处的同时也引入了一些难题：
- 由于服务和服务之间依靠网络通信，请求链路变长使得延迟有一定的升高，所以我们可能需要做一些优化 现代服务多使用「并发」来实现一些 feature。并发逻辑若出现 bug，在一个分布式系统中就需要一个有效的措施去定位和解决  而「链路追踪」技术就旨在为分布式系统解决这些问题。它提供一些方便且有效的手段，使我们可以清晰的了解到整条请求链路中各个阶段的耗时。若在请求处理的过程中出错，尤其是在一些不是我们自己实现的组件中出错，「链路追踪」也可以准确的捕获这类信息。目前已经有了一些成熟的「分布式链路追踪」系统，如 Zipkin or Jaeger。
-TracingGraph 如果让我们通过一个图来描述一个请求的「链路」，基本上可以画成上面的样子，从1-8。这个「链路追踪」图示有优势也有劣势
- 优势：  可以看清楚各个组件之间的调用关系。从用户的角度出发观察整个请求的处理链路较为直观  劣势：  整个请求执行的过程中，无法区分哪些逻辑是串行的，哪些逻辑是并行的 无论是其中的一个小步骤还是整个请求，都无法观察到它们的运行时间   上面的「链路追踪」图，在保留了「可以看清调用关系」的基础上，针对我们之前谈到过的几个问题作出了改进。在整个的 tracing 过程中，每一个带有不同颜色的矩形区域都被称作是一个 Span，它代表了一个调用的过程（逻辑上的一个工作单元）。一个 Span 的长度结合 X 轴可以判断它的 processing duration。并且，在按照层级将调用分类之后，可以明显的区分出「串行」和「并发」的逻辑（如图中的container start-up 调用和 stoage allocation两者就是并发执行的，而 container start-up 和 start-up scripts 就是串行执行的）。
-Jaeger Jaeger 是一个由 Uber 公司开发的分布式的链路追踪系统。它遵循了 OpenTracing 提出的和「链路追踪」有关的一系列的数据模型和标准。jaeger 还实现了 OpenTracingAPI（golang），使得应用程序接入 jaeger 更加的方便。一个 jaeger 通常包含以下几个组件：
- jaeger-client：业务接入 jaeger 所需要的 SDK，由特定的语言实现 jaeger-agent：作为 daemon 进程部署在每一个 host/container 上，用以收集追踪数据发送至 collector jaeger-collector：收集从 jaeger-agent 上反馈而来的数据，以特定的存储组件进行持久化（es） jaeger-ui&amp;amp;jaeger-query：提供 UI 界面和查询追踪数据的服务，使得用户能够方面的查看每个请求的「链路追踪」信息  如果是部署在生产环境的 k8s 集群中，除了上述说到的几个组件之外，还需要一个持久化存储的中间件，为 jaeger 管理海量的「追踪数据」。对于 jaeger 来说，存储中间件有几个可以供选择：</description>
+      <guid>http://littledriver.net/post/2018/09/26/head-first-of-tracing-system/</guid>
+      <description>什么是 Link Tracing？ 为什么我们需要 Tracing？ Link Tracing 字面意思就是链路追踪，它是一个抽象的概念。针对于一个分布式的系统来说，「链路」主要</description>
     </item>
     
   </channel>

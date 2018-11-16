@@ -13,11 +13,11 @@
     
     <item>
       <title>三种基本排序算法</title>
-      <link>http://littledriver.net/posts/three-basic-sort-algorithms/</link>
+      <link>http://littledriver.net/post/2016/11/09/%E4%B8%89%E7%A7%8D%E5%9F%BA%E6%9C%AC%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</link>
       <pubDate>Wed, 09 Nov 2016 19:36:42 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/three-basic-sort-algorithms/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2016/11/09/%E4%B8%89%E7%A7%8D%E5%9F%BA%E6%9C%AC%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</guid>
+      <description>学习三种最基本的排序算法思想，文中代码已经经过大量测试。如发现有误，欢迎指正。 选择排序算法 核心思想 如果以一个不含有重复元素并且元素个数为N的</description>
     </item>
     
   </channel>

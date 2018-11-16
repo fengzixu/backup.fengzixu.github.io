@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Head First AUFS and Docker Image - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="Head First AUFS and Docker Image" />
+<meta property="og:description" content="WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/" /><meta property="article:published_time" content="2018-10-26T10:13:21&#43;08:00"/>
+<meta property="article:modified_time" content="2018-10-26T10:13:21&#43;08:00"/>
+
+<meta itemprop="name" content="Head First AUFS and Docker Image">
+<meta itemprop="description" content="WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联">
+
+
+<meta itemprop="datePublished" content="2018-10-26T10:13:21&#43;08:00" />
+<meta itemprop="dateModified" content="2018-10-26T10:13:21&#43;08:00" />
+<meta itemprop="wordCount" content="3668">
+
+
+
+<meta itemprop="keywords" content="Docker,Linux," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Head First AUFS and Docker Image"/>
+<meta name="twitter:description" content="WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Head First AUFS and Docker Image</h1>
+      
+      <div class="post-meta">
+        <time datetime="2018-10-26" class="post-time">
+          2018-10-26
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 <a href="https://coolshell.cn/articles/17061.html">https://coolshell.cn/articles/17061.html</a> 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联系我删除。</p>
+</blockquote>
+
+<h2 id="docker-image-和-aufs-是什么关系">Docker Image 和 AUFS 是什么关系？</h2>
+
+<p>Image 是 Docker 部署的基本单位，一个 Image 运行在一个 Docker Container 上面。这个 Image 包含了我们的程序文件，以及这个程序依赖的资源的环境。Docker Image 对外是以一个文件的形式展示的（更准确的说是一个 mount 点）。既然说到文件，那么它肯定是受到文件系统来管理的。</p>
+
+<p>在 Linux 内核 4.0以及之前的版本上（主要是 Ubuntu 和 Debian），Docker 使用 AUFS 来管理 Docker Image 的存储。虽然，在一些新的 Docker 版本中，已经使用了其他不同的方案来管理镜像，如 DeviceMapper，overlay2。但是 AUFS 是一个比较标准且简单的实现方式，通过 AUFS 来了解 Docker Image 的原理是一个不错的选择。</p>
+
+<h2 id="什么是-aufs">什么是 AUFS？</h2>
+
+<p>AUFS 是 Union File System 众多实现方式的一种。Union File System 从字面意思上来理解就是「联合文件系统」。它将多个物理位置不同的文件目录「联合」起来，挂载到某一个目录下，形成一个抽象的文件系统。</p>
+
+<p>概念理解起来比较枯燥，最好是有一个真实的例子来帮助我们理解：</p>
+
+<p>首先，我们建立 company 和 home 两个目录，并且分别为他们创造两个文件</p>
+
+<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/aufs# tree .
+.
+|-- company
+|   |-- code
+|   `-- meeting
+`-- home
+    |-- eat
+    `-- sleep
+</code></pre>
+
+<p>然后我们将通过 mount 命令把 company 和 home 两个目录「联合」起来，建立一个 AUFS 的文件系统，并挂载到当前目录下的 mnt 目录下：</p>
+
+<pre><code class="language-c">oot@rds-k8s-18-svr0:~/xuran/aufs# mkdir mnt
+root@rds-k8s-18-svr0:~/xuran/aufs# ll
+total 20
+drwxr-xr-x 5 root root 4096 Oct 25 16:10 ./
+drwxr-xr-x 5 root root 4096 Oct 25 16:06 ../
+drwxr-xr-x 4 root root 4096 Oct 25 16:06 company/
+drwxr-xr-x 4 root root 4096 Oct 25 16:05 home/
+drwxr-xr-x 2 root root 4096 Oct 25 16:10 mnt/
+root@rds-k8s-18-svr0:~/xuran/aufs# mount -t aufs -o dirs=./home:./company none ./mnt
+root@rds-k8s-18-svr0:~/xuran/aufs# ll
+total 20
+drwxr-xr-x 5 root root 4096 Oct 25 16:10 ./
+drwxr-xr-x 5 root root 4096 Oct 25 16:06 ../
+drwxr-xr-x 4 root root 4096 Oct 25 16:06 company/
+drwxr-xr-x 6 root root 4096 Oct 25 16:10 home/
+drwxr-xr-x 8 root root 4096 Oct 25 16:10 mnt/
+root@rds-k8s-18-svr0:~/xuran/aufs# tree ./mnt/
+./mnt/
+|-- code
+|-- eat
+|-- meeting
+`-- sleep
+
+4 directories, 0 files
+</code></pre>
+
+<p>通过上述例子最后对 ./mnt 目录结构的输出，可以看到原来两个目录下的内容都被合并到了一个 mnt 这个挂载点下。</p>
+
+<p>默认情况下，如果我们不对「联合」的目录指定权限，内核将根据从左至右的顺序将第一个目录指定为可读可写的，其余的都为只读。那么，当我们向只读的目录做一些写入操作的话，会发生什么呢？</p>
+
+<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/aufs# echo apple &gt; ./mnt/code
+root@rds-k8s-18-svr0:~/xuran/aufs# cat company/code
+root@rds-k8s-18-svr0:~/xuran/aufs# cat home/code
+apple
+root@rds-k8s-18-svr0:~/xuran/aufs#
+</code></pre>
+
+<p>通过对上面代码段的观察，我们可以看出，当写入操作发生在 company/code 文件时， 对应的修改并没有反映到原始的目录中。而是在 home 目录下又创建了一个名为 code 的文件，并将 apple 写入了进去。</p>
+
+<p>看起来很奇怪的现象，其实这正是 Union File System 的厉害之处：Union File System 联合了多个不同的目录，并且把他们挂载到一个统一的目录上。在这些「联合」的子目录中， 有一部分是可读可写的，但是有一部分只是可读的。当你对可读的目录内容做出修改的时候，其结果只会保存到可写的目录下，不会影响只读的目录。比如，我们可以把我们的服务的源代码目录和一个存放代码修改记录的目录「联合」起来构成一个 AUFS。前者设置只读权限，后者设置读写权限。那么，一切对源代码目录下文件的修改都只会影响那个存放修改的目录，不会污染原始的代码。</p>
+
+<p>对于被 AUFS 「联合」的目录来说，在「联合」之后，它们在挂载点下面的目录权限可能有以下几种：</p>
+
+<ul>
+<li>rw：可读可写，用户能直接修改这个 branch 的文件内容</li>
+<li>ro：只读，用户不能通过 aufs 的接口对文件进行写操作，只能读取里面的内容</li>
+<li>rr：real read only，底层的文件本来就是只读的（这种情况比较少见），这种情况下，aufs 就不用担心文件不通过它的接口被修改的情况</li>
+</ul>
+
+<p>但是，上面这些权限都仅仅是对于「联合」的目录来说的。实际上，我们仍然可以绕过这些目录而去直接更改「源目录」。当这种情况发生的时候，AUFS 所管理的联合目录会对一些修改有相应的反馈么？</p>
+
+<p>对于这个问题，AUFS 是通过在「联合」目录的时候传递一个特殊的参数来控制的：udba。 udba 一共有三种可能的取值：</p>
+
+<ul>
+<li>none：aufs 不会进行任何数据同步的检查，所以性能会比其他两种方式要高，但是可能会出现数据不一致的情况。</li>
+<li>reval：aufs 会检查底层的文件有没有改动，如果有的话，把改动的内容更新到挂载点。这个性能会导致 aufs 产生额外的性能损耗</li>
+<li>notify：通过 inotify 监听底层的文件变化，基于事件驱动，能够减少第二种方式的性能损耗</li>
+</ul>
+
+<p>除了上面说到的这些，在 AUFS 中还有一个特殊的概念需要提及一下：</p>
+
+<ol>
+<li>branch – 就是各个要被union起来的目录。它会根据 Union 的顺序形成一个 Stack 的结构，从下至上，最上面的目录是可读写的，其余都是可读的</li>
+</ol>
+
+<h2 id="什么是-docker-镜像分层机制">什么是 Docker 镜像分层机制？</h2>
+
+<p>首先，让我们来看下 Docker Image 中的 Layer 的概念：</p>
+
+<pre><code>Definition of: layer
+In an image, a layer is modification to the image, represented by an instruction in the Dockerfile. Layers are applied in sequence to the base image to create the final image. When an image is updated or rebuilt, only layers that change need to be updated, and unchanged layers are cached locally. This is part of why Docker images are so fast and lightweight. The sizes of each layer add up to equal the size of the final image.
+</code></pre>
+
+<p>简单来说，一个 Image 是通过一个 DockerFile 定义的，然后使用 docker build 命令构建它。DockerFile 中的每一条命令的执行结果都会成为 Image 中的一个 Layer。Docker Image 是有一个层级结构的，最底层的 Layer 为 BaseImage（一般为一个操作系统的 ISO 镜像），然后顺序执行每一条指令，生成的 Layer 按照入栈的顺序逐渐累加，最终形成一个 Image。如果 DockerFile 中的内容没有变动，那么相应的镜像在 build 的时候会复用之前的 layer，以便提升构建效率。并且，即使文件内容有修改，那也只会重新 build 修改的 layer，其他未修改的也仍然会复用。</p>
+
+<p>通过了解了 Docker Image 的分层机制，我们多多少少能够感觉到，Layer 和 Image 的关系与 AUFS 中的联合目录和挂载点的关系比较相似。而 Docker 也正是通过 AUFS 来管理 Images 的。</p>
+
+<p>这里，我们通过 Build 一个镜像，来观察 Image 的分层机制：</p>
+
+<p>Dockerfile:</p>
+
+<pre><code># Use an official Python runtime as a parent image
+FROM python:2.7-slim
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Define environment variable
+ENV NAME World
+
+# Run app.py when the container launches
+CMD [&quot;python&quot;, &quot;app.py&quot;]
+</code></pre>
+
+<p>构建结果：</p>
+
+<pre><code class="language-c">root@rds-k8s-18-svr0:~/xuran/exampleimage# docker build -t hello ./
+Sending build context to Docker daemon  5.12 kB
+Step 1/7 : FROM python:2.7-slim
+ ---&gt; 804b0a01ea83
+Step 2/7 : WORKDIR /app
+ ---&gt; Using cache
+ ---&gt; 6d93c5b91703
+Step 3/7 : COPY . /app
+ ---&gt; Using cache
+ ---&gt; feddc82d321b
+Step 4/7 : RUN pip install --trusted-host pypi.python.org -r requirements.txt
+ ---&gt; Using cache
+ ---&gt; 94695df5e14d
+Step 5/7 : EXPOSE 81
+ ---&gt; Using cache
+ ---&gt; 43c392d51dff
+Step 6/7 : ENV NAME World
+ ---&gt; Using cache
+ ---&gt; 78c9a60237c8
+Step 7/7 : CMD python app.py
+ ---&gt; Using cache
+ ---&gt; a5ccd4e1b15d
+Successfully built a5ccd4e1b15d
+</code></pre>
+
+<p>通过构建结果可以看出，构建的过程就是执行 Dockerfile 文件中我们写入的命令。构建一共进行了7个步骤，每个步骤进行完都会生成一个随机的 ID，来标识这一 layer 中的内容。 最后一行的 a5ccd4e1b15d 为镜像的 ID。由于我贴上来的构建过程已经是构建了第二次的结果了，所以可以看出，对于没有任何修改的内容，Docker 会复用之前的结果。</p>
+
+<h2 id="docker-和-aufs-是如何联系起来的">Docker 和 AUFS 是如何联系起来的？</h2>
+
+<p>和 Docker 有关的 AUFS 相关的内容，都在<code>/var/lib/docker/aufs</code>目录中。其实，AUFS 不仅会帮忙管理 Docker Image，还会帮我们管理运行中的容器。aufs的目录的结构一般如下所示：</p>
+
+<pre><code>root@rds-k8s-18-svr0:/var/lib/docker/aufs# tree -L 1
+.
+├── diff
+├── layers
+└── mnt
+</code></pre>
+
+<p>其中 diff 存放的是每一个 Image 中 Layers 的内容， 而 layer 目录则是保存的每一个镜像的 layer 的结构信息。mnt 目录下的内容，其实就是一个镜像或者容器运行起来之后，使用的 AUFS 的挂载点。可以认为它就是你在容器内部所看到的文件系统。通过这三个子目录，docker 就能实现镜像的分层存储、容器的 Copy-On-Write 启动。</p>
+
+<p>通过 <code>docker inspect hello</code>命令，我们可以看到之前构建的镜像的 Layer 信息：</p>
+
+<pre><code class="language-c">…
+        &quot;RootFS&quot;: {
+            &quot;Type&quot;: &quot;layers&quot;,
+            &quot;Layers&quot;: [
+                &quot;sha256:237472299760d6726d376385edd9e79c310fe91d794bc9870d038417d448c2d5&quot;,
+                &quot;sha256:9ff579683928293838edf785162e11d7362bdeadd1b91a913d0d777f07a0c14b&quot;,
+                &quot;sha256:473e9a98e4dd51cc459336e2e411eef27ceeb35c4698b2906d1473c155fbb620&quot;,
+                &quot;sha256:639216b11d4ff9961788a9198e663ae74db047fb720049fe1d84f23b5b5dc9d6&quot;,
+                &quot;sha256:c91ccb170b062fc1de577b156c9f16c6923d5a8ab177861e3a4b67aec53e8f13&quot;,
+                &quot;sha256:d2a243c9257f3caa11f31057472b86eeb91ebd4de14c61293cde71823395a187&quot;,
+                &quot;sha256:0c696b8e58cb0ce8528268fdb480f95ec3f005edc39caef6a31c76a8381e6825&quot;
+            ]
+        }
+…
+</code></pre>
+
+<p>Dockerfile 中一共有7个命令，所以layer 信息的数量也同样有7个。这个7个 layer，每一个 layer 都对应到 _var_lib_docker_aufs_diff 目录下的一个目录。但是上述代码段中的 sha256 ID 不是直接映射到 /var_lib_docker_aufs/diff 目录下的目录名的，这之间有一个比较复杂的映射关系。（由于这个映射关系比较复杂，且难以描述，所以这里暂不详细叙述。读者也不用过于纠结这里的映射关系，重点在于理解 AUFS 和镜像分层的工作机制）。</p>
+
+<p>接下来，我们运行一下刚刚构建好的镜像：</p>
+
+<pre><code>root@rds-k8s-18-svr0:~/xuran/exampleimage# docker run -it hello bash
+root@rds-k8s-18-svr0:~# docker ps | grep hello
+9d040e5b9999        hello                                                                                                                       &quot;bash&quot;                   7 minutes ago       Up 7 minutes        81/tcp              laughing_northcutt
+</code></pre>
+
+<p>通过 <code>docker ps</code>命令，可以看到当前运行的容器进程 ID 为 9d040e5b9999。按照上面所描述的，一个容器启动之后，会在 aufs_mnt 下挂载一个目录 /var_lib_docker_aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4，这个目录就是容器当中看到的文件系统。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/B2452573-13C1-448A-8D8A-956C2AB4061D.png" alt="" /></p>
+
+<p>在通过 mount 命令观察系统中的 AUFS 文件系统挂载情况时可以发现，每一条挂载记录后面都跟了一个sid:</p>
+
+<pre><code class="language-c">none /var/lib/docker/aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4 aufs rw,relatime,si=fcff2ee8dd687806,dio,dirperm1 0 0
+</code></pre>
+
+<p>hello 这个容器挂载的 AUFS 的 SID 为 fcff2ee8dd687806。我们将通过这个 ID，可以在 _sys_fs/aufs 的目录下找到对应的 AUFS  的详细信息：</p>
+
+<pre><code class="language-c">root@rds-k8s-18-svr0:/sys/fs/aufs/si_fcff2ee8dd687806# cat br[0-9]*
+/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4=rw
+/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4-init=ro+wh
+/var/lib/docker/aufs/diff/678e5401f758378d36dbc6f410c9324f9c5599db498aea5909b83d6a974af446=ro+wh
+/var/lib/docker/aufs/diff/81e4703c9d06f502774f8fb9af8734ac222af2c4c3aa65813e7bd73ad23f33cb=ro+wh
+/var/lib/docker/aufs/diff/877a44a6fdba1f633b7051b583ee3cc1953dac242cbf8ff2482b59e782fb2c32=ro+wh
+/var/lib/docker/aufs/diff/309ae284b55e1b4d5238ede32dc6fa197982a9f65c34b78c2091b846d9d089d6=ro+wh
+/var/lib/docker/aufs/diff/83507e141977e72a072d7530cb54ee32abff1ade3a8453183a39f3ea48fb4cfe=ro+wh
+/var/lib/docker/aufs/diff/c2e85f6f2e0d67d38f41adafe94c2d82a41247f5dcca690fedad554611c4dc08=ro+wh
+/var/lib/docker/aufs/diff/787977346a1c8653b2c535abd156ddf368f7839e385b237d7325177e6ef335a6=ro+wh
+</code></pre>
+
+<p>可以看到，不光是 Docker Image 是通过 AUFS 分层来管理的。因为 Image 是容器内文件的提供者，所以自然而然，容器内部的文件系统也需要通过 AUFS 的方式来进行管理。其中最上面的 branch 是允许修改的，它对应着这个容器内部的文件系统目录：<code>/var/lib/docker/aufs/mnt/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</code>。其余的 branch 都是只读。这就说明，我们在容器当中做的一些修改操作，最后都会反馈到最上面这个目录下：<code>/var/lib/docker/aufs/diff/755ee5904e25f223a5393cc9202e4daf0ffc9770f67715c966e939eeedf358d4</code>。</p>
+
+<p>一个能够反映出容器和镜像分层之间关系的图示如下：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/40A21FCD-8D88-491B-920D-AF10ED59E2D5.png" alt="" /></p>
+
+<p>其中下半部分都是镜像的只读 layer，而顶层才是允许在容器内部修改的。</p>
+
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/docker/">Docker</a>
+          <a href="http://littledriver.net/tags/linux/">Linux</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/2018/11/15/k8s-gc-design-principle/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">K8s GC Design Principle</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/2018/10/24/head-first-linux-namespace/">
+            <span class="next-text nav-default">Head First Linux Namespace</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>

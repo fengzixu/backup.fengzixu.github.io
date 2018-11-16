@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on LittleDriver</title>
+    <link>http://littledriver.net/post/</link>
+    <description>Recent content in Posts on LittleDriver</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 16 Nov 2018 15:41:12 +0800</lastBuildDate>
+    
+	<atom:link href="http://littledriver.net/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Detect Redis Config File</title>
+      <link>http://littledriver.net/post/2018/11/16/detect-redis-config-file/</link>
+      <pubDate>Fri, 16 Nov 2018 15:41:12 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/16/detect-redis-config-file/</guid>
+      <description>Include Part Include include 可以允许用户在 Redis 的 Conf 文件中引用一份「已经准备好」的配置。一般来说，我们都会把一些通用的且很少变化的配置放在一个「配置模板」中，然后在</description>
+    </item>
+    
+    <item>
+      <title>K8s GC Design Principle</title>
+      <link>http://littledriver.net/post/2018/11/15/k8s-gc-design-principle/</link>
+      <pubDate>Thu, 15 Nov 2018 22:40:55 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/15/k8s-gc-design-principle/</guid>
+      <description>Ref: https://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/garbage-collection.md#orphaning-the-descendants-with-orphan-finalizer Warning：设计文档的对应的 k8s 版本为1.7 Q: What is GC of Kuernetes ? A: GC 是 Garbage Collector 的简称。从功能层面上来说，它和编程语言当中的「GC」 基本上是一样的</description>
+    </item>
+    
+    <item>
+      <title>Head First AUFS and Docker Image</title>
+      <link>http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/</link>
+      <pubDate>Fri, 26 Oct 2018 10:13:21 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/</guid>
+      <description>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联</description>
+    </item>
+    
+    <item>
+      <title>Head First Linux Namespace</title>
+      <link>http://littledriver.net/post/2018/10/24/head-first-linux-namespace/</link>
+      <pubDate>Wed, 24 Oct 2018 16:16:21 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/10/24/head-first-linux-namespace/</guid>
+      <description>什么是 Linux Namespace？它解决了什么问题？ 简单来说，Linux Namespace 是操作系统内核在不同进程间实现的一种「环境隔离机制」。 举例来说：现在有两</description>
+    </item>
+    
+    <item>
+      <title>Deep into the process and thread 2</title>
+      <link>http://littledriver.net/post/2018/10/21/deep-into-the-process-and-thread-2/</link>
+      <pubDate>Sun, 21 Oct 2018 18:23:07 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/10/21/deep-into-the-process-and-thread-2/</guid>
+      <description>Q： 为什么都说「进程切换」是个比较昂贵的操作，它昂贵在哪呢？ A: 首先，就是由用户态向内核态的切换。因为我们需要保存旧的进程的状态。其次，我们可</description>
+    </item>
+    
+    <item>
+      <title>Deep into the process and thread</title>
+      <link>http://littledriver.net/post/2018/10/19/deep-into-the-process-and-thread/</link>
+      <pubDate>Fri, 19 Oct 2018 21:08:03 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/10/19/deep-into-the-process-and-thread/</guid>
+      <description>Q: 什么是进程？ A: 进程其实是一个比较抽象的概念，它是用来描述多道程序设计系统中的一个工作单元。单纯的给进程下一个定义是没有任何意义的。比如现在</description>
+    </item>
+    
+    <item>
+      <title>Head First SDS in Redis</title>
+      <link>http://littledriver.net/post/2018/10/14/head-first-sds-in-redis/</link>
+      <pubDate>Sun, 14 Oct 2018 18:37:32 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/10/14/head-first-sds-in-redis/</guid>
+      <description>Redis 设计与实现之动态字符串 Q: 什么是 SDS A: SDS 是 Redis 在实现过程中使用的一种「动态字符串」。由于 Redis 的代码基本都是通过 C 语言来实现的，所以 SDS 在最底层还是依</description>
+    </item>
+    
+    <item>
+      <title>How to Deploy Jaeger Cluster</title>
+      <link>http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/</link>
+      <pubDate>Wed, 26 Sep 2018 17:58:57 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/</guid>
+      <description>Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件 jaeger-agent jaeger-collector data-storage Elasticsearch Cassandra 由于我们想将 jaeger 部署到 k8s 集</description>
+    </item>
+    
+    <item>
+      <title>Head First of Tracing System</title>
+      <link>http://littledriver.net/post/2018/09/26/head-first-of-tracing-system/</link>
+      <pubDate>Wed, 26 Sep 2018 17:58:42 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/09/26/head-first-of-tracing-system/</guid>
+      <description>什么是 Link Tracing？ 为什么我们需要 Tracing？ Link Tracing 字面意思就是链路追踪，它是一个抽象的概念。针对于一个分布式的系统来说，「链路」主要</description>
+    </item>
+    
+    <item>
+      <title>The brief of PV and PVC</title>
+      <link>http://littledriver.net/post/2018/09/26/the-brief-of-pv-and-pvc/</link>
+      <pubDate>Wed, 26 Sep 2018 17:58:12 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/09/26/the-brief-of-pv-and-pvc/</guid>
+      <description>Overview 在 kubernetes 上部署服务，无论是「有状态」的，还是「无状态」的，可能大部分都有存储数据的需求。随之而来的就是对存储资源的需求。对于 k8s 来说，最底层的存</description>
+    </item>
+    
+    <item>
+      <title>Contrain Pod Scheduling</title>
+      <link>http://littledriver.net/post/2018/09/11/contrain-pod-scheduling/</link>
+      <pubDate>Tue, 11 Sep 2018 16:52:58 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/09/11/contrain-pod-scheduling/</guid>
+      <description>Overview 当我们创建一个 Pod 之后，Kubernetes 自身的一些调度规则将会根据集群节点的各项指标，为这个 Pod 选出一个合适的 Node 且将其调度上去。我们姑且可</description>
+    </item>
+    
+    <item>
+      <title>Heade First Redis Sentinel</title>
+      <link>http://littledriver.net/post/2018/08/27/heade-first-redis-sentinel/</link>
+      <pubDate>Mon, 27 Aug 2018 16:00:20 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/08/27/heade-first-redis-sentinel/</guid>
+      <description>WARNING: 本篇文章是在阅读了 Redis Sentinel 的设计文档之后产出的。但是由于该设计文档已经被官方标识为 draft 且时间也比较久远，笔者在阅读这份文档的时候还是发现了几处与</description>
+    </item>
+    
+    <item>
+      <title>Head First Scheduler of Golang</title>
+      <link>http://littledriver.net/post/2018/08/14/head-first-scheduler-of-golang/</link>
+      <pubDate>Tue, 14 Aug 2018 15:45:25 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/08/14/head-first-scheduler-of-golang/</guid>
+      <description>我们的程序是如何被运行的？ 学习过操作系统的人，应该对进程和线程的模型都是有所了解的。按照我的理解：「进程」是操作系统资源分配的基本单位，它给</description>
+    </item>
+    
+    <item>
+      <title>Redis 数据持久化机制</title>
+      <link>http://littledriver.net/post/2018/08/05/redis-%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/</link>
+      <pubDate>Sun, 05 Aug 2018 20:11:46 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/08/05/redis-%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/</guid>
+      <description>Redis 有两种持久化数据的机制 AOF： 将对数据库所有的「写操作」以追加的方式，写入一个文件当中。待 Redis 重启之后，可以通过这些指令恢复数据 RDB： 以生</description>
+    </item>
+    
+    <item>
+      <title>关于「争论」的一点思考</title>
+      <link>http://littledriver.net/post/2018/08/05/%E5%85%B3%E4%BA%8E%E4%BA%89%E8%AE%BA%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/</link>
+      <pubDate>Sun, 05 Aug 2018 20:11:46 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/08/05/%E5%85%B3%E4%BA%8E%E4%BA%89%E8%AE%BA%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/</guid>
+      <description>关于「争论」的一点思考 当我和其他人发生争论之后，我都有回家之后自己反思一下这个过程。这个行为在我18年初进入容器团队之后愈发频繁。促使我这么</description>
+    </item>
+    
+    <item>
+      <title>Golang Log Level Best Pratice-1</title>
+      <link>http://littledriver.net/post/2018/05/03/golang-log-level-best-pratice-1/</link>
+      <pubDate>Thu, 03 May 2018 13:39:17 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/05/03/golang-log-level-best-pratice-1/</guid>
+      <description>写在前面 在使用 Golang 语言开发的过程中，被广大开发者广泛使用的 Debug 方式应该就是观测服务输出的关键性日志信息了。这也就是我们俗称的「日志 Debug」 方</description>
+    </item>
+    
+    <item>
+      <title>gRPC Deadline Explanation</title>
+      <link>http://littledriver.net/post/2018/04/21/grpc-deadline-explanation/</link>
+      <pubDate>Sat, 21 Apr 2018 21:23:55 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/04/21/grpc-deadline-explanation/</guid>
+      <description>什么是 gRPC Deadline gRPC 框架中的 Deadline 的概念主要是针对于客户端而言的。它表明了一个 RPC 请求在完成之前或者被错误终止之前，gRPC client 需要等待多长时间。如果我们在</description>
+    </item>
+    
+    <item>
+      <title>记一次追查 gRPC Server 报错的过程</title>
+      <link>http://littledriver.net/post/2018/04/19/%E8%AE%B0%E4%B8%80%E6%AC%A1%E8%BF%BD%E6%9F%A5-grpc-server-%E6%8A%A5%E9%94%99%E7%9A%84%E8%BF%87%E7%A8%8B/</link>
+      <pubDate>Thu, 19 Apr 2018 23:56:41 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/04/19/%E8%AE%B0%E4%B8%80%E6%AC%A1%E8%BF%BD%E6%9F%A5-grpc-server-%E6%8A%A5%E9%94%99%E7%9A%84%E8%BF%87%E7%A8%8B/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Kubernetes pod schedular strategy</title>
+      <link>http://littledriver.net/post/2018/04/17/kubernetes-pod-schedular-strategy/</link>
+      <pubDate>Tue, 17 Apr 2018 14:34:48 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/04/17/kubernetes-pod-schedular-strategy/</guid>
+      <description>概述 在 k8s 中，调度 Pod 到 Node 上通常是不需要我们关心的。K8s 会自动的帮我们寻找具有合适资源的 Node，并且 Pod调度在上面。但是，有的时候，我们需</description>
+    </item>
+    
+    <item>
+      <title>Redis Sentinel Explanation 1</title>
+      <link>http://littledriver.net/post/2018/04/01/redis-sentinel-explanation-1/</link>
+      <pubDate>Sun, 01 Apr 2018 19:49:35 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/04/01/redis-sentinel-explanation-1/</guid>
+      <description>什么是 Sentinel? Sentinel 这个词在 Redis 中有很多不同的含义，它可以代表 Redis 的一种高可用的方案，也可以代表一个以 Sentinel 模式启动的 Redis 实例，甚至是可以代表你的 Redis 集群中，多个</description>
+    </item>
+    
+    <item>
+      <title>k8s 之 StatefulSets</title>
+      <link>http://littledriver.net/post/2018/02/24/k8s-%E4%B9%8B-statefulsets/</link>
+      <pubDate>Sat, 24 Feb 2018 17:13:44 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/02/24/k8s-%E4%B9%8B-statefulsets/</guid>
+      <description>Q： 什么是 StatefulSets？ A: StatefulSets 是一种 workload。k8s 中的一个 workload 通常由 CRD 和 controller 两部分构成，CRD 交由用户使用，创建资源实例，描</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 之 Operator(一)</title>
+      <link>http://littledriver.net/post/2018/01/24/kubernetes-%E4%B9%8B-operator%E4%B8%80/</link>
+      <pubDate>Wed, 24 Jan 2018 22:19:11 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/01/24/kubernetes-%E4%B9%8B-operator%E4%B8%80/</guid>
+      <description>Q: 什么是 Operator? A: Operator 在 k8s 系统中可以认为他是一个集 resource 和 controller 的结合体。他是对 resource 和 controller 的一个高度的抽象。通过扩展 Kubernetes API来达到这一效果。 Q: Operator 是如何工作的？ A:</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议--UDP用户数据报协议</title>
+      <link>http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/</link>
+      <pubDate>Mon, 27 Nov 2017 08:41:36 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/</guid>
+      <description>什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议动态选路</title>
+      <link>http://littledriver.net/post/2017/11/18/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</link>
+      <pubDate>Sat, 18 Nov 2017 21:13:49 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/11/18/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</guid>
+      <description>What is dynamic routing? 在之前的文章中，我们已经讲过静态选路的概念以及相应的行为。简单来说，静态选路，主要是路由表内容生成的方式是静态的，也就是选路策略，因</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议 IP 选路</title>
+      <link>http://littledriver.net/post/2017/11/09/tcp-ip-%E5%8D%8F%E8%AE%AE-ip-%E9%80%89%E8%B7%AF/</link>
+      <pubDate>Thu, 09 Nov 2017 22:41:48 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/11/09/tcp-ip-%E5%8D%8F%E8%AE%AE-ip-%E9%80%89%E8%B7%AF/</guid>
+      <description>IP 选路通常包含两个部分：选路策略和选路机制。我们平时常说的 IP 选路，大都都指的是一个 IP 数据报如何从路由表中找到一个合适的下一跳机器的 Ip 地址，这</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议 traceroute 程序(1)</title>
+      <link>http://littledriver.net/post/2017/11/07/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F1/</link>
+      <pubDate>Tue, 07 Nov 2017 23:04:36 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/11/07/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F1/</guid>
+      <description>什么是 traceroute 程序 traceroute从字面意思上来看，他是一个有着追踪功能，并且可以查看具体追踪路径的这么一个程序。实际上它的功能的确也很类似，</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议卷一之 IP 网际协议初探</title>
+      <link>http://littledriver.net/post/2017/10/30/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</link>
+      <pubDate>Mon, 30 Oct 2017 22:09:54 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/10/30/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</guid>
+      <description>IP 数据报字段 IP 数据报长度（首部长度+数据长度)用一个16位的字段进行标识，最大数据报长度为65535，但是链路层都会对数据报进行分片处理。数</description>
+    </item>
+    
+    <item>
+      <title>Python 的函数与作用域</title>
+      <link>http://littledriver.net/post/2017/10/08/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/</link>
+      <pubDate>Sun, 08 Oct 2017 22:24:17 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/10/08/python-%E7%9A%84%E5%87%BD%E6%95%B0%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F/</guid>
+      <description>def 是什么 python 中实现一个自定义的函数，以 def 开头。类比 c，golang 这种静态类型的语言，有的是以 func 开头，有的直接省略类似的「关键字」，直接写函数</description>
+    </item>
+    
+    <item>
+      <title>Data Structure Review - Circular Queue</title>
+      <link>http://littledriver.net/post/2017/09/28/data-structure-review-circular-queue/</link>
+      <pubDate>Thu, 28 Sep 2017 16:39:57 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/09/28/data-structure-review-circular-queue/</guid>
+      <description>0x01 为什么需要循环队列 普通的队列结构无论在逻辑上还是在物理存储上，都是一个连续的线性结构。队列的插入和弹出操作符合「FIFO」原则。我们一般在</description>
+    </item>
+    
+    <item>
+      <title>Python中的引用与拷贝</title>
+      <link>http://littledriver.net/post/2017/08/20/python%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E4%B8%8E%E6%8B%B7%E8%B4%9D/</link>
+      <pubDate>Sun, 20 Aug 2017 16:48:31 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/08/20/python%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E4%B8%8E%E6%8B%B7%E8%B4%9D/</guid>
+      <description>从赋值说起 之前在 python 变量相关的文章中，提到过赋值行为在 python 中和其他语言有何异同。说白了，其实就是默认传递引用，而不会拷贝整个对象。这种做法一个比</description>
+    </item>
+    
+    <item>
+      <title>Python迭代器与解析（1）</title>
+      <link>http://littledriver.net/post/2017/07/30/python%E8%BF%AD%E4%BB%A3%E5%99%A8%E4%B8%8E%E8%A7%A3%E6%9E%901/</link>
+      <pubDate>Sun, 30 Jul 2017 15:33:45 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/07/30/python%E8%BF%AD%E4%BB%A3%E5%99%A8%E4%B8%8E%E8%A7%A3%E6%9E%901/</guid>
+      <description>迭代 迭代这个概念，在很多编程语言当中都是存在的。说白了，就是对一个『可迭代对象』进行遍历的过程。如 for 循环，while 循环等等，都是对一个对象</description>
+    </item>
+    
+    <item>
+      <title>Python 中的变量、对象、引用</title>
+      <link>http://littledriver.net/post/2017/07/30/python-%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8/</link>
+      <pubDate>Sun, 30 Jul 2017 15:31:38 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/07/30/python-%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8/</guid>
+      <description>&lt;p&gt;很多编程语言都有所谓的引用，对象，变量等概念。这些概念在强类型的语言中貌似并不是那么的重要，但是在动态类型的语言中，还是值得去仔细思考一下的&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Learning for APUE(4)</title>
+      <link>http://littledriver.net/post/2017/06/27/learning-for-apue4/</link>
+      <pubDate>Tue, 27 Jun 2017 11:05:53 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/06/27/learning-for-apue4/</guid>
+      <description>刷新缓存 操作系统内核在写入和读取数据的时候，从cpu到硬盘，还有很长的一段路。这段路上，为了减少数据传输的延迟，操作系统采取的很多的措施。如</description>
+    </item>
+    
+    <item>
+      <title>Thinking in Java-1</title>
+      <link>http://littledriver.net/post/2017/06/25/thinking-in-java-1/</link>
+      <pubDate>Sun, 25 Jun 2017 17:13:19 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/06/25/thinking-in-java-1/</guid>
+      <description>一切皆是对象 Java编程中，最重要的不是语法，感觉是一种oop的思想。最近刚刚开始学java，但是还是感觉java这门语言在被设计的时候，还</description>
+    </item>
+    
+    <item>
+      <title>Learning-Process-In-Modern-Operating-System(4)</title>
+      <link>http://littledriver.net/post/2017/05/30/learning-process-in-modern-operating-system4/</link>
+      <pubDate>Tue, 30 May 2017 11:10:32 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/05/30/learning-process-in-modern-operating-system4/</guid>
+      <description>进程间通信(IPC) 竞争条件 在多个进程同时运行的情况下，如果他们都需要使用某一块共享内存中的数据，那么最后的结果取决于这些进程精确的执行顺序</description>
+    </item>
+    
+    <item>
+      <title>Learning-Process-In-Modern-Operating-System(3)</title>
+      <link>http://littledriver.net/post/2017/05/30/learning-process-in-modern-operating-system3/</link>
+      <pubDate>Tue, 30 May 2017 09:08:08 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/05/30/learning-process-in-modern-operating-system3/</guid>
+      <description>经典线程模型 对于进程来讲，它将进程本身运行所需要的众多资源都包含在了进程的地址空间中，对他们加以管理，来保证进程的正常运行。而在进程中，真正</description>
+    </item>
+    
+    <item>
+      <title>nginx Learning notes(2)</title>
+      <link>http://littledriver.net/post/2017/05/03/nginx-learning-notes2/</link>
+      <pubDate>Wed, 03 May 2017 17:50:55 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/05/03/nginx-learning-notes2/</guid>
+      <description>本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址</description>
+    </item>
+    
+    <item>
+      <title>Learning-Process-In-Modern-Operating-System(2)</title>
+      <link>http://littledriver.net/post/2017/04/27/learning-process-in-modern-operating-system2/</link>
+      <pubDate>Thu, 27 Apr 2017 22:49:25 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/04/27/learning-process-in-modern-operating-system2/</guid>
+      <description>有了进程为啥还要线程 上一篇和进程相关的文章讲过为啥操作系统需要进程这个概念，其实说白了，就是操作系统要干太多的事了，一个人搞不定，得让多个人</description>
+    </item>
+    
+    <item>
+      <title>Lua Learning notes(1)</title>
+      <link>http://littledriver.net/post/2017/04/24/lua-learning-notes1/</link>
+      <pubDate>Mon, 24 Apr 2017 18:30:28 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/04/24/lua-learning-notes1/</guid>
+      <description>Chunks 在Lua中，chunk是lua一系列语句的集合。Lua的语句结尾加分号分割，虽然语言上没有强制要求，但是每一个语句后面都加上分号会让程序的</description>
+    </item>
+    
+    <item>
+      <title>nginx Learning notes(1)</title>
+      <link>http://littledriver.net/post/2017/04/24/nginx-learning-notes1/</link>
+      <pubDate>Mon, 24 Apr 2017 18:30:13 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/04/24/nginx-learning-notes1/</guid>
+      <description>本博文是春哥nginx教程的读书笔记，博文内容如有侵权可以私信我删除。 hnustphoenix@gmail.com。春哥的nginx教程地址</description>
+    </item>
+    
+    <item>
+      <title>golang-net-http-package源码分析-4</title>
+      <link>http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</link>
+      <pubDate>Mon, 24 Apr 2017 10:34:39 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/</guid>
+      <description>Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，</description>
+    </item>
+    
+    <item>
+      <title>golang-net-http-package源码分析(3)</title>
+      <link>http://littledriver.net/post/2017/04/06/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%903/</link>
+      <pubDate>Thu, 06 Apr 2017 23:36:39 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/04/06/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%903/</guid>
+      <description>MaxBytesReader // MaxBytesReader is similar to io.LimitReader but is intended for // limiting the size of incoming request bodies. In contrast to // io.LimitReader, MaxBytesReader&#39;s result is a ReadCloser, returns a // non-EOF error for a Read beyond the limit, and closes the // underlying reader when its Close method is called. // // MaxBytesReader prevents clients from accidentally or maliciously // sending a large request and wasting server resources.</description>
+    </item>
+    
+    <item>
+      <title>golang-net/http-package源码分析(2)</title>
+      <link>http://littledriver.net/post/2017/04/05/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%902/</link>
+      <pubDate>Wed, 05 Apr 2017 19:58:31 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/04/05/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%902/</guid>
+      <description>Table of Contents generated with DocToc DetectContentType Error Handle ServeMux ServeMux.Handle Handler ServeMux.ServeHTTP HandleFunc ListenAndServe DetectContentType func DetectContentType(data []byte) string DetectContentType函数的功能是根据data字节数组的内容来判定它的Content-T</description>
+    </item>
+    
+    <item>
+      <title>Learning for APUE(3)--从操作系统的角度来看文件共享</title>
+      <link>http://littledriver.net/post/2017/04/04/learning-for-apue3-%E4%BB%8E%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%A7%92%E5%BA%A6%E6%9D%A5%E7%9C%8B%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB/</link>
+      <pubDate>Tue, 04 Apr 2017 22:01:51 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/04/04/learning-for-apue3-%E4%BB%8E%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%A7%92%E5%BA%A6%E6%9D%A5%E7%9C%8B%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB/</guid>
+      <description>先谈文件I/O效率 在unix系统中读写文件会涉及到i/o操作，大家也都清楚i/o操作是非常消耗系统资源的。对于简单的读写文件来说，其i/o效</description>
+    </item>
+    
+    <item>
+      <title>Learning Process In Modern Operating System (1)</title>
+      <link>http://littledriver.net/post/2017/03/29/learning-process-in-modern-operating-system-1/</link>
+      <pubDate>Wed, 29 Mar 2017 22:59:50 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/03/29/learning-process-in-modern-operating-system-1/</guid>
+      <description>为什么会有进程这个概念 进程的模型 创建进程 终止进程 进程的层次结构 进程的三种状态 为什么三种状态之间只有四种转换 我学习操作系统，向来不喜欢死记硬背</description>
+    </item>
+    
+    <item>
+      <title>Learning for APUE(2)--文件 I/O</title>
+      <link>http://littledriver.net/post/2017/03/19/learning-for-apue2-%E6%96%87%E4%BB%B6-i-o/</link>
+      <pubDate>Sun, 19 Mar 2017 17:01:23 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/03/19/learning-for-apue2-%E6%96%87%E4%BB%B6-i-o/</guid>
+      <description>文件描述符 对于内核而言，任何对文件的操作都需要文件描述符，因为这个文件描述符唯一标识了这个文件。文件描述符的有效性是针对某一个进程的，内核对</description>
+    </item>
+    
+    <item>
+      <title>Learning for APUE(1)</title>
+      <link>http://littledriver.net/post/2017/03/19/learning-for-apue1/</link>
+      <pubDate>Sun, 19 Mar 2017 12:11:38 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/03/19/learning-for-apue1/</guid>
+      <description>说来惭愧，像apue这种书籍被我买了一直放在书架里，仔细想想大学四年做的唯一一件错事就是没用大量的空闲时间去多读书。从集训队出来之后，一直被</description>
+    </item>
+    
+    <item>
+      <title>Reflection in golang (4)</title>
+      <link>http://littledriver.net/post/2017/03/12/reflection-in-golang-4/</link>
+      <pubDate>Sun, 12 Mar 2017 13:00:47 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/03/12/reflection-in-golang-4/</guid>
+      <description>Reflection in Struct tag golang中的struct类型，在使用的时候为了编码方便我们经常会给其内部的field指定一些特定的tag。这些tag不仅仅可以用</description>
+    </item>
+    
+    <item>
+      <title>Reflection in golang (3)</title>
+      <link>http://littledriver.net/post/2017/03/11/reflection-in-golang-3/</link>
+      <pubDate>Sat, 11 Mar 2017 15:53:31 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/03/11/reflection-in-golang-3/</guid>
+      <description>前景提要 上一篇文章当中，主要以实现了一个display函数为主要内容，阐述了如何通过golang的reflect包将一个自定义类型的数据格式</description>
+    </item>
+    
+    <item>
+      <title>Reflection in golang (2)</title>
+      <link>http://littledriver.net/post/2017/03/09/reflection-in-golang-2/</link>
+      <pubDate>Thu, 09 Mar 2017 19:41:34 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/03/09/reflection-in-golang-2/</guid>
+      <description>前景提要 在上一篇Reflection in golang的文章中，主要介绍了reflect.Type, reflect.Value, reflect.ValueOf, reflect.Type等数据结构以及接</description>
+    </item>
+    
+    <item>
+      <title>Reflection in golang (1)</title>
+      <link>http://littledriver.net/post/2017/03/05/reflection-in-golang-1/</link>
+      <pubDate>Sun, 05 Mar 2017 19:40:29 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/03/05/reflection-in-golang-1/</guid>
+      <description>工作当中需要用到go的反射相关功能，实话说，这还是第一次接触我所学语言当中的反射机制。我觉得这对我来说是一个好的现象，一个是证明了自己之前做</description>
+    </item>
+    
+    <item>
+      <title>工作中踩过的的坑之golang的临时变量</title>
+      <link>http://littledriver.net/post/2017/03/05/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</link>
+      <pubDate>Sun, 05 Mar 2017 11:26:36 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/03/05/%E5%B7%A5%E4%BD%9C%E4%B8%AD%E8%B8%A9%E8%BF%87%E7%9A%84%E7%9A%84%E5%9D%91%E4%B9%8Bgolang%E7%9A%84%E4%B8%B4%E6%97%B6%E5%8F%98%E9%87%8F/</guid>
+      <description>在使用golang的时候，经常在一些比较小的地方被绊倒，这些“坑”并不是什么难以理解和运用的技术，而是一些语言的细节我们没有了解清楚。这类的</description>
+    </item>
+    
+    <item>
+      <title>golang net/http package源码分析(1)</title>
+      <link>http://littledriver.net/post/2017/02/17/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%901/</link>
+      <pubDate>Fri, 17 Feb 2017 15:11:16 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/02/17/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%901/</guid>
+      <description>平时在工作的过程当中对net包里面的各种库有非常多的使用，本文将先对golang标准库中net/http包进行剖析，文末会向大家展示使用go</description>
+    </item>
+    
+    <item>
+      <title>Https通信机制</title>
+      <link>http://littledriver.net/post/2017/02/16/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</link>
+      <pubDate>Thu, 16 Feb 2017 19:45:51 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/02/16/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</guid>
+      <description>为何要使用加密通信 这个标题看起来似乎是一句废话，谁不想自己将要在互联网传递的信息是加密的呢？但是事实并不是这样。互联网中传递的信息类型有很多</description>
+    </item>
+    
+    <item>
+      <title>RabbitMq的数据持久化</title>
+      <link>http://littledriver.net/post/2017/01/03/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</link>
+      <pubDate>Tue, 03 Jan 2017 10:10:25 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/01/03/rabbitmq%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96/</guid>
+      <description>我们一般在异步系统的实现中，选择使用消息队列.其中一个比较重要的原因就是担心数据储存在内存中会因为物理上的影响而丢失。消息队列中都有使消息持</description>
+    </item>
+    
+    <item>
+      <title>Review 2016</title>
+      <link>http://littledriver.net/post/2016/12/29/review-2016/</link>
+      <pubDate>Thu, 29 Dec 2016 20:58:59 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2016/12/29/review-2016/</guid>
+      <description>我的一生，是抗争的一生。 Review Plan 整个第四季度都在忙，今天终于有空能够好好总结一下这即将过去的一年。仔细想想自己还有几天就要跨入24岁的高龄，不由</description>
+    </item>
+    
+    <item>
+      <title>初识RabbitMq</title>
+      <link>http://littledriver.net/post/2016/12/17/%E5%88%9D%E8%AF%86rabbitmq/</link>
+      <pubDate>Sat, 17 Dec 2016 15:11:59 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2016/12/17/%E5%88%9D%E8%AF%86rabbitmq/</guid>
+      <description>RabbitMq &amp;amp; AMQP rabbitmq是一个实现了AMQP(高级消息队列协议)的消息队列系统。消息队列使用消息将通信双方链接起来，使得消息通过像rabbit</description>
+    </item>
+    
+    <item>
+      <title>乐观锁和悲观锁</title>
+      <link>http://littledriver.net/post/2016/11/27/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/</link>
+      <pubDate>Sun, 27 Nov 2016 20:59:27 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2016/11/27/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/</guid>
+      <description>本科的时候学习过数据库，但是只限于书面上的东西，并没有过多的实践。而且我依稀记得，当时教学的重点是在关系代数和数据库三大范式这两方面。 学完之</description>
+    </item>
+    
+    <item>
+      <title>三种基本排序算法</title>
+      <link>http://littledriver.net/post/2016/11/09/%E4%B8%89%E7%A7%8D%E5%9F%BA%E6%9C%AC%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</link>
+      <pubDate>Wed, 09 Nov 2016 19:36:42 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2016/11/09/%E4%B8%89%E7%A7%8D%E5%9F%BA%E6%9C%AC%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</guid>
+      <description>学习三种最基本的排序算法思想，文中代码已经经过大量测试。如发现有误，欢迎指正。 选择排序算法 核心思想 如果以一个不含有重复元素并且元素个数为N的</description>
+    </item>
+    
+    <item>
+      <title>程序员，你的工作不只有代码</title>
+      <link>http://littledriver.net/post/2016/11/04/%E7%A8%8B%E5%BA%8F%E5%91%98%E4%BD%A0%E7%9A%84%E5%B7%A5%E4%BD%9C%E4%B8%8D%E5%8F%AA%E6%9C%89%E4%BB%A3%E7%A0%81/</link>
+      <pubDate>Fri, 04 Nov 2016 07:48:24 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2016/11/04/%E7%A8%8B%E5%BA%8F%E5%91%98%E4%BD%A0%E7%9A%84%E5%B7%A5%E4%BD%9C%E4%B8%8D%E5%8F%AA%E6%9C%89%E4%BB%A3%E7%A0%81/</guid>
+      <description>代码不是工作的全部，工作也不是生活的全部 当我还在大学的时候，我对以后的工作的认知可以用一句话来概括：技术好的吃肉，技术不好的吃屎。计算机虽然</description>
+    </item>
+    
+  </channel>
+</rss>

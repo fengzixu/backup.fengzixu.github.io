@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>TCP/IP 协议--UDP用户数据报协议 - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="TCP/IP 协议--UDP用户数据报协议" />
+<meta property="og:description" content="什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/" /><meta property="article:published_time" content="2017-11-27T08:41:36&#43;00:00"/>
+<meta property="article:modified_time" content="2017-11-27T08:41:36&#43;00:00"/>
+
+<meta itemprop="name" content="TCP/IP 协议--UDP用户数据报协议">
+<meta itemprop="description" content="什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一">
+
+
+<meta itemprop="datePublished" content="2017-11-27T08:41:36&#43;00:00" />
+<meta itemprop="dateModified" content="2017-11-27T08:41:36&#43;00:00" />
+<meta itemprop="wordCount" content="5337">
+
+
+
+<meta itemprop="keywords" content="Network," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="TCP/IP 协议--UDP用户数据报协议"/>
+<meta name="twitter:description" content="什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">TCP/IP 协议--UDP用户数据报协议</h1>
+      
+      <div class="post-meta">
+        <time datetime="2017-11-27" class="post-time">
+          2017-11-27
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+
+    
+    <div class="post-content">
+      
+
+<h1 id="什么是-udp-协议">什么是 UDP 协议</h1>
+
+<p>UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一个进程的输出，都会对应一个 UDP 或者 TCP 的数据报。</p>
+
+<h1 id="udp-数据报的组成">UDP 数据报的组成</h1>
+
+<p>UDP 数据报一共可分为5个部分</p>
+
+<ol>
+<li>目的端口号</li>
+<li>源端口号</li>
+<li>UDP 数据报长度(首部+数据部分，最低为8B)</li>
+<li>校验和</li>
+<li>数据部分</li>
+</ol>
+
+<p>目的端口号和源端口号都可以视作为对应了发送端和接收端的两个进程。UDP 数据报的长度包含了首部和数据部分，并且最小不能低于8，因为前4部分构成了 UDP 数据报的首部。这四个字段的字节数是8B。换句话说，网络中是可以传输数据部分为0字节的 UDP 数据报的。</p>
+
+<p>关于校验和字段，UDP 和 TCP 数据报都会有。唯一的区别是，UDP 是可选的，TCP 是必须的。UDP 计算校验和的方式和 IP 数据报计算的校验方式一样。除此之外，为了计算校验和，UDP 或者 TCP 数据报还会包含一个伪首部部分。它包含 IP 数据报的某些内容，通过源 IP 和目的 IP，我们可以知道是否这个数据报不应该由我们这台主机来处理，协议字段可以让我们了解到，这个数据报是应该交由 UDP 端口的进程来处理还是 TCP 端口的进程。</p>
+
+<h1 id="ip-分片">IP 分片</h1>
+
+<p>当 IP 数据报的长度，也就是总长度减去首部长度超过了 MTU 大小的时候，可能就会涉及到分片的操作。分片的标准应该是按照发送端所在网络的 MTU 进行的，但是当数据报流动到了其他的网络，并且两个网络之间的 MTU 是不一样的，很可能再次发生分片操作。因为网络层的 IP 协议并不是可靠的，面向连接的。那么，当接收端的网络层接收到一堆一些被分片了但是又属于同一个数据报的报文的时候，就需要按照一定的规则将他们组装起来，提供给传输层。</p>
+
+<ol>
+<li>标识字段： 在 IP 数据报的首部，通常有一个16bit 的标识字段。它是内存当中维持的一个计数器。每当网络层发送一个 IP 数据报，那么这个标识字段就会被加1。一个比较大的 IP 数据报在分片的时候，原始数据报中的标识字段会被复制到各个分片的数据报中。</li>
+<li>标志字段：在标识字段的后面紧接着3bit 的位置，有一个标志字段。当 IP 数据报发生分片的时候，除了最后一份分片的数据报之外，其余的每一片数据报都需要将某一位置为1，标识还有“更多”的分片数据报，相当于告诉接收端的网络层，这不是最后一份分片数据报。</li>
+<li>片偏移字段：此字段是紧接着标志字段的，一共有13bit 左右。它标识了分片数据报的起始字节距离原始数据报开始处的位置是多少</li>
+<li>总长度值：数据报被分片之后，相应分片的数据报总长度不再为原始数据报的长度，应为该分片数据报的实际长度</li>
+</ol>
+
+<p>IP 数据报因大小问题可能会导致分片，并且在分片之后，对于接收端来说也是可以通过 IP 首部字段将这些分片的数据组装在一起的。但是这里有一个非常严重的问题，IP 分片一旦发生，甚至分片的次数越多，数据报在网络传输的过程中丢失的概率也就越大。由于 IP 协议并不为数据传输提供可靠性，当某一分片的数据报丢失，传输层的 TCP 协议很可能会重传整个数据报。如果这种出错的概率较高但是出错的分片数站总分片数的比例比较低，就会对网络造成很大的负担。并且，很多时候，如果是在通信过程中的某个路由发生分片，我们的发送端甚至都是不知情的，因为它没有任何的超时重传和确认的机制。</p>
+
+<p>如果在传输层使用了 UDP 协议，那么在 IP 数据报数据部分的前8个字节中会存有 UDP的端口号。在 IP 分片的时候，仅仅只有第一片数据会存有 UDP 的端口号。但是所有的分片都会在 IP 数据报首部表明协议字段，代表传输层使用了何种协议。</p>
+
+<h1 id="icmp-不可达差错报文">ICMP 不可达差错报文</h1>
+
+<p>这里要说的 ICMP 不可达差错报文和 traceroute 程序到达目的主机所发送的不是一回事。traceroute 程序发送的 TTL 值递增的 ICMP 请求报文，当到达目的主机 TTL 值大于等于0时，会向源主机发送一个 ICMP 端口不可达差错报文。告诉源主机，发送这个差错报文的主机就是目的主机了，trace 的过程已经结束了。但是我们现在要说的这个 ICMP 不可达差错报文是和 IP 分片有关系的。</p>
+
+<p>在 IP 数据报首部有一个标志字段，它一共有三位，目前只有前两位是有意义的。低位为1代表还有更多的分片，中间一位为1代表该数据报不能分片。这个字段和 ICMP 不可达差错报文结合起来，主要用作我们发现通信路径当中最小的 MTU 是多少，即路径 MTU 发现机制。之所以这么办，也是为了能够在网络中尽量减少分片，路径 MTU 其实还是遵循了「木桶原理」，最短的板往往决定了整条链路中实际使用的 MTU 大小。</p>
+
+<p>这种 ICMP 不可达差错报文，和之前的不同之处在于，在 ICMP 的首部中，存有下一站网络的MTU。也就是说，当我们为 IP 数据报设置了不可分片的标志位，路径中如果发现 MTU 小于 IP 数据报长度的，返回的这个 ICMP 数据报内部的 MTU 值即可作作为下一次 IP 数据报的长度。这样就可以顺利的通过这个发送 ICMP 回显应答的路由器或者主机了。</p>
+
+<h1 id="路径-mtu-发现机制">路径 MTU 发现机制</h1>
+
+<p>排除以太网内相互通信的机器，大部分主机在进行通信的时候，还是需要跨越多个不同的链路的。我们都知道，不同的链路上有不同的 MTU。整条通信路径上最小的 MTU 被称作是路径 MTU。如果想尽可能的减少在通信过程中进行分片导致传输成功率降低的风险的话，我们需要去确认即将通信的链路上的路径 MTU。使用上面提到的 ICMP 不可达差错报文，即可实现这一点。</p>
+
+<p>通过改动 traceroute 和 ping，可以指定发送数据报的长度。在发送第一份数据报的时候，长度为当前主机所在链路的 MTU，并且将 IP 数据报的标志位的中间位置为1，代表不可被分片。在到达目的主机的过程中，如果遇到了链路 MTU 比当前数据报长度小的时候，所经过的路由器就会丢弃这份数据报，并且向源主机发送一份 ICMP 不可达差错报文，里面可能会有之前没有通过的那条链路上的MTU 值。</p>
+
+<p>即使我们通过上述过程获得了当前路径 MTU 进行正常的通讯，但是在观察向目的主机发送数据报分片现象的时候，每隔一段时间，源主机还是会向目的主机发送一份不可分片的数据报，来检测一下路径 MTU 有没有变化。路径 MTU 发现机制其实最重要的意义，笔者觉得还是想把分片这件事尽量控制在发送端上面，甚至是不分片。例如，如果 IP 数据报的首部没有设置不让分片，如果到了一些 MTU 比较小的链路上，还是会被中间的路由器所分片的，只不过这个时候我们是不知道的。并且对数据报进行分片次数太多，确实是一个风险比较高的事情，IP 层是没办法保证数据传输的可靠性的。只能依靠IP 数据报中的标识符，偏移量，标志位等字段来拼接好分片的数据报。</p>
+
+<h1 id="udp-和-arp-之间的相互作用">UDP 和 ARP 之间的相互作用</h1>
+
+<p>当我们在发送一个很大的 UDP 数据报的时候，在网络层就需要分片。但与此同时目的主机的物理地址我们是不知道的。这个时候，分片和 发送 ARP 请求报文获取目的主机物理地址的两件事情进行的先后顺序会对数据报的发送造成影响。</p>
+
+<p>UDP 数据报过大到达网络层会进行分片，假设现在分成了8片的 IP 数据报。因为这8份数据报都带有目的 IP 地址。所以，在获取目的主机 ARP 请求报文的数量上也应该和分片数是相等的。在返回第一个ARP应答报文的时候，只会发送最后一个分片的数据给目的端主机，这是和 ARP 协议实现有关的。并且，当目的端接收到第一个数据报分片的时候，会启动一个定时器，一段时间内如果没有收到完成的数据报，就会将已经接收到的内容丢弃，并且尝试发送给源主机一份 ICMP 差错报文。但是，也要看，是否第一个分片的数据报到达了目的端。因为只有第一个分片的数据报内才有源主机的 UDP 端口号，目的主机如果拿不到这个端口号，也是没办法给源主机发送 ICMP 差错报文的。</p>
+
+<blockquote>
+<p>由于写这篇文章的时候，笔者身边没有多余的电脑，使用手机和本机在局域网内测试的时候，并没有发现 arp 数据报的数量等于分片数。经人提醒，应该是无线网络环境的原因，稍后条件满足会把这部分抓包的实例图补上来。暂时先补一张 TCP/IP 协议卷一书上面的图</p>
+</blockquote>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/11fig17.gif" alt="" /></p>
+
+<h1 id="最大-udp-数据报长度与-icmp-源站抑制差错报文">最大 UDP 数据报长度与 ICMP 源站抑制差错报文</h1>
+
+<p>UDP 数据报也是被封装在 IP 数据报内部传输的，所以 UDP 数据报的长度，理应受到 IP 数据报长度的限制。IP 数据报首部有一个总长度的字段，占16位，也就是说 IP 数据报的最大长度可以达到2的16次幂个字节，也就是65535B。减去 IP 首部字段20B，UDP 数据报头部8B，UDP 数据报可以达到65507B。但是在现实的网络环境中，UDP 数据报的长度是远远小于这个值的。</p>
+
+<p>首先，UDP 数据报的长度受限于使用 UDP 协议的应用程序对发送和接受缓存大小的限制。比如，我的某个使用 UDP 协议的程序只要求读取最大大小不超过512B 的 UDP 数据报(不包括首部长度)，但是却收到一个长度大于这个阈值的 UDP 数据报，此时根据TCP/IP协议在内核的实现不同，可能会发生不同的行为，最常见的就是截断并且丢弃多余的部分，并且还不会通知接收者。</p>
+
+<p>在 TCP 协议当中，如果发送端发送数据报的速度过快，接收端可能会使用滑动窗口机制等措施来限制通信的流量。UDP 同样有解决这种问题的措施，但是却不一定会这么做。UDP 协议依赖的是 ICMP 源站抑制差错报文来通知发送端发送数据速度过快。这个 ICMP 数据报是否会发送，一个是和不同系统对 TCP/IP协议的实现有关，另外一个是，可能发送了但是被接收端忽略了，因为这个时候引起源站抑制的进程在发送端已经终止了。通过这个现象，也可以证明了，UDP 是一个不可靠的通信协议。</p>
+
+<h1 id="experiment1-udp-输入队列溢出">Experiment1: UDP 输入队列溢出</h1>
+
+<blockquote>
+<p>这里使用 TCP/IP 协议卷一作者提供的 sock 程序</p>
+</blockquote>
+
+<p>在 A 机器启动一个提供 UDP 的服务器，启动 sock 作为服务端进程监听客户端发送的 UDP 数据报</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/send2.png" alt="" /></p>
+
+<p>在 B 机器启动一个客户端 sock 进程，用于发送 UDP 数据报给 A 机器的服务端进程。并且发送一份数据报12345</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/send1.png" alt="" /></p>
+
+<p>A 机器此时会接收到一个来自 B 的 UDP 数据报，并打印出相关信息。可以同时观察，服务端进程的输出以及 tcpdump 的结果</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/send2.png" alt="" />
+<img src="http://o6sfmikvw.bkt.clouddn.com/send6.png" alt="" /></p>
+
+<p>但是现在，我们发送一个比较长的 UDP 数据报，411B，就会发现。虽然 A 机器上的 tcpdump 抓取到了发过来的 UDP 数据报，但是 A 上的 sock 进程却没有打印出这份数据报的信息。这说明了什么，说明客户端的 UDP 数据报被发送过来了，但是服务端并没有处理。在启动 A 机器上面的 sock 服务端进程的时候，我们使用-R 参数设置了 UDP 接收缓存为256B，很明显，我们发送的411B已经超出了服务端进程的 UDP 缓存大小，所以被服务端丢弃处理了。通过上面的实验我们就可以看出，在笔者所在的机器以及操作系统上面，服务端接收到了超过其接收缓存大小的 UDP 数据报将会被直接丢弃。</p>
+
+<h1 id="experiment2-udp-限制本地-ip-地址和远端-ip-地址">Experiment2: UDP 限制本地 IP 地址和远端 IP 地址</h1>
+
+<p>当我们以某一个端口号启动一个提供 UDP 服务的服务器时，通常不会指定本地的 IP 地址。至于为什么需要指定呢？很多人会比较疑惑，因为按照常理来讲一台主机应该只有一个IP。但是事实的情况是，很多服务器或者路由器都会安装多个网卡，每一块网卡都会有一个自己的 IP 地址和物理硬件的地址。因为这台主机所处的网络情况可能比较复杂，他可以同时连接两个不同的网络，这样对于他来说，就相当于有一个出口地址和入口地址。</p>
+
+<p>首先我们来看一下不指定 IP 地址而启动一个 UDP 服务器的情况：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/udp2.png" alt="" /></p>
+
+<p>通过这张图我们就可以看出，在本地启动了一个端口为7777的 UDP 服务器。然后通过 netstat 命令可以观察到，在展示结果的第四列 LocalAddress, 看到了我们所启动的 UDP 服务器的端口状态。<code>*.7777</code>代表了，任何发送到本机的7777端口的 udp 数据报都可以被接收并且处理。这应该是一种比较常见的情况。</p>
+
+<p>那么，再来看一下指定 IP 地址而启动一个 UDP 的服务器的情况：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/udp3.png" alt="" /></p>
+
+<p>对比上图我们可以看出，唯一的区别是，LocaAddress 一列中的 端口号7777前面变成了我们本机的 IP 地址，而不再是一个星号。那么这就相当于我们对本地 IP 做了限制。因为 UDP 数据报还是放在 IP 数据报内进行传输的，监听7777端口的 UDP 服务器进程也是通过网络层-&gt;运输层-&gt;应用层的顺序逐级将该数据报递交到服务器进程中的。这个时候，如果我们在启动 UDP 服务器的时候限制了本地的 IP 地址，那么，如果发送到我们主机的 UDP 数据报的目的 IP 地址不是我们所制定的 IP，运输层是不会将这个数据报交付给他上层的 UDP 服务端进程的。此时，该主机会向这个报文的发送端返回一个 ICMP 端口不可达的错误。</p>
+
+<p>当我们在创建 UDP 端点的时候，如果指定了本地 IP，那么对于同一个端口号来讲，如果恰巧此时本地也有多个可绑定的本地 IP，完全可以启动多个 UDP 端点，它们的 本地 IP 不同，但是端口号相同。不过，此时可能需要在创建 socket 的时候要指定一些特殊的参数才可以，如 SO_REUSEADDR 选项。除此之外，还有一个问题就是，当一个数据报到达目的主机的时候，出现了上述多个不同 IP 但是 port 相同的 UDP 端点，此时，匹配的优先级会按照先具体再模糊的原则，也就是说，带有星号的 UDP 端点可能是最后才会匹配到的，这和 IP 选路的机制其实是有些类似的。</p>
+
+<p>既然可以限制本地 IP 地址（可以理解为接收者的 IP 地址），按道理来说，应该也可以限制远端发送者的 IP 地址和端口号。这个道理就类似，接收者可以通过你的目的地址来过滤我是否要接收这个 UDP 数据报， 也可以通过发送者的 IP 地址和端口号来过滤。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/udp4.png" alt="" /></p>
+
+<p>如上图所示，我们限制了远端的 IP 地址和端口，再使用 netstat 命令观察的时候，发现第五列 ForeignAddress 也不再是<code>*.*</code>的形式了。这时，如果再有接收到的 UDP 数据报，就需要同时满足数据报携带的目的 IP 地址和端口号，源 IP 地址和端口号，符合我们制定的规则，才可以被接收并处理，否则，还是会以 ICMP 的形式进行报错。匹配规则和限制本地 IP 时是一样的。</p>
+
+<h1 id="最后-与多播和单播的关联">最后：与多播和单播的关联</h1>
+
+<p>在一个支持多播的系统上，是允许多个 UDP 服务进程共享一个 UDP 端点的(本地 IP+端口号)。此时，如果该本地 IP 是一个广播地址且规则匹配成功，到达的 UDP 数据报会复制 N 份发送给监听这个端口地址的多个 UDP 服务进程。如果本地 IP 地址是一个单播，那么会依照实现方式的不同，将数据报发送给某一个 UDP 进程。</p>
+
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/network/">Network</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/2018/01/24/kubernetes-%E4%B9%8B-operator%E4%B8%80/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">Kubernetes 之 Operator(一)</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/2017/11/18/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/">
+            <span class="next-text nav-default">TCP/IP 协议动态选路</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>

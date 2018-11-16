@@ -1,91 +1,51 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LittleDriver  | 工作中踩过的的坑之golang的临时变量</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>工作中踩过的的坑之golang的临时变量 | LittleDriver</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
-    <header>
 
-  
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="http://littledriver.net/">/home/littledriver</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/">~/home</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/categories/">~/categories</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/blog.css" />
+</head>
+<body>
 
-      
-      
-      <li class="pull-right">
-        <a href="/index.xml">~/subscribe</a>
-      </li>
-      
+    
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="http://littledriver.net/">Home</a>
+        </div>
+    </nav>
+    
 
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">工作中踩过的的坑之golang的临时变量</span></h1>
-
-<h2 class="date">2017/03/05</h2>
-<p class="terms">
-  
-  
-  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
-  
-  
-  
-  Tags: <a href="/tags/workingexperience">WorkingExperience</a> 
-  
-  
-</p>
-</div>
+    
+    <section class="hero is-info is-medium">
+        <div class="hero-body" style="background-image: url(http://littledriver.net/img/bg-blog.jpg);">
+            <div class="container has-text-centered">
+                <br>
+                <h1 class="title is-size-1">
+                    
+                        工作中踩过的的坑之golang的临时变量
+                    
+                </h1>
+                
+            </div>
+        </div>
+    </section>
 
 
-<nav id="TableOfContents">
-<ul>
-<li><a href="#golang中的临时变量">golang中的临时变量</a>
-<ul>
-<li><a href="#多个goroutine并发得到了同一个值">多个goroutine并发得到了同一个值</a></li>
-<li><a href="#取集合中多个元素的地址却得到的是同一个">取集合中多个元素的地址却得到的是同一个</a></li>
-</ul></li>
-</ul>
-</nav>
+<div class="container">
+    <div class="section">
+    
 
-
-<main>
-<p></p>
-
-<blockquote>
+<div class="columns">
+    <div class="column is-9">
+        <div class="tile is-child box">
+            <div class="content">
+                <blockquote>
 <p>在使用golang的时候，经常在一些比较小的地方被绊倒，这些“坑”并不是什么难以理解和运用的技术，而是一些语言的细节我们没有了解清楚。这类的问题我将他统一称为golang中的“坑”。这些细小的问题容易遗漏，特此记录，以便随时翻看。</p>
 </blockquote>
 
@@ -213,40 +173,105 @@ Addr: (*int)(0x1040a124), Item: 3
 <p>这与第一个遇到的问题其实是类似的，总结下来, 在遍历的过程当中，如果是同步逻辑，那么使用值没问题，但是使用地址不行。如果是异步逻辑，使用地址和值都是不行的。</p>
 
 <p>所以，在遍历集合类型数据的过程当中，要注意使用的是变量的地址还是值，并且要注意是在同步场景还是异步场景下。</p>
-</main>
-
-    <footer>
-      
-<script>
-(function() {
-  function center_el(tagName) {
-    var tags = document.getElementsByTagName(tagName), i, tag;
-    for (i = 0; i < tags.length; i++) {
-      tag = tags[i];
-      var parent = tag.parentElement;
-      
-      if (parent.childNodes.length === 1) {
+            </div>
+        </div>
+    </div>
+    <div class="column is-3">
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Tags</h1>
+        <div class="tags">
         
-        if (parent.nodeName === 'A') {
-          parent = parent.parentElement;
-          if (parent.childNodes.length != 1) continue;
-        }
-        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
-      }
-    }
-  }
-  var tagNames = ['img', 'embed', 'object'];
-  for (var i = 0; i < tagNames.length; i++) {
-    center_el(tagNames[i]);
-  }
-})();
-</script>
+            <span class="tag"><a href="http://littledriver.net/tags/apue">APUE</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/algorithm">Algorithm</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/bestpractice">BestPractice</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/datastructure">DataStructure</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/docker">Docker</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/golang">Golang</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/java">Java</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/kubernetes">Kubernetes</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/linux">Linux</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/lua">Lua</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/mq">MQ</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">NetWork</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">Network</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/nginx">Nginx</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/operatingsystem">OperatingSystem</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/python">Python</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/rds">RDS</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/redis">Redis</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/servicemesh">ServiceMesh</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/sourcecodeanalyse">SourceCodeAnalyse</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workexperience">WorkExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workingexperience">WorkingExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/grpc">gRPC</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/%E9%9A%8F%E7%AC%94">随笔</a></span>
+        
+        </div>          
+    </div>
+</div><br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Recent posts</h1>
+        
+            <h1><a href="http://littledriver.net/post/2018/11/16/my-first-post/">My First Post</a></h1>
+            <time class="has-text-grey-light is-size-7">16 November 2018</time>
+        
+    </div>
+</div>
+    <br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Archives</h1>
+        
+            <a href="http://littledriver.net/archives/2018">2018</a> (1)<br>
+        
+    </div>
+</div>
 
-      
-      <hr/>
-      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
-      
-    </footer>
-  </body>
+    </div>
+</div>
+
+
+    </div>
+</div>
+
+<footer class="footer has-background-grey-darker has-text-white">
+    <div class="content has-text-centered">
+        <p>
+            <span class="icon is-large"><a href="https://twitter.com/" class="mysocial"><i class="fab fa-twitter fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://www.youtube.com/" class="mysocial"><i class="fab fa-youtube fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://github.com/" class="mysocial"><i class="fab fa-github fa-3x"></i></a></span>&nbsp;&nbsp;
+            <br><br>
+            Copyright &copy; LittleDriver 2018 - Theme by <a href="https://jeffprod.com" class="mysocial">JeffProd.com</a>
+            - <a class="mysocial" href="http://littledriver.net/about">About</a>
+        </p>
+    </div>
+</footer>
+
+<script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+</body>
 </html>
-

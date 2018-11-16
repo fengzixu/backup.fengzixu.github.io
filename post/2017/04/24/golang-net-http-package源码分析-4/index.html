@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>golang-net-http-package源码分析-4 - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="golang-net-http-package源码分析-4" />
+<meta property="og:description" content="Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/" /><meta property="article:published_time" content="2017-04-24T10:34:39&#43;00:00"/>
+<meta property="article:modified_time" content="2017-04-24T10:34:39&#43;00:00"/>
+
+<meta itemprop="name" content="golang-net-http-package源码分析-4">
+<meta itemprop="description" content="Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，">
+
+
+<meta itemprop="datePublished" content="2017-04-24T10:34:39&#43;00:00" />
+<meta itemprop="dateModified" content="2017-04-24T10:34:39&#43;00:00" />
+<meta itemprop="wordCount" content="7636">
+
+
+
+<meta itemprop="keywords" content="SourceCodeAnalyse," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="golang-net-http-package源码分析-4"/>
+<meta name="twitter:description" content="Transport Field Proxy func(*Request) (*url.URL, error) Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">golang-net-http-package源码分析-4</h1>
+      
+      <div class="post-meta">
+        <time datetime="2017-04-24" class="post-time">
+          2017-04-24
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+
+    
+    <div class="post-content">
+      <h1 id="transport">Transport</h1>
+
+<h2 id="field">Field</h2>
+
+<pre><code> Proxy func(*Request) (*url.URL, error)
+</code></pre>
+
+<p>Proxy接受一个request，返回一个url.URL的对象。Proxy和ProxyEnvironment的函数签名是一样的，他们有着同样的类型。</p>
+
+<pre><code>DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
+Dial func(network, addr string) (net.Conn, error)
+</code></pre>
+
+<p>上面两个Field都是函数类型的对象，调用之后可以生成一个未加密的tcp链接。但是文档中明确提示我们，应该使用DialContext来代替Dail，因为前者可以在我们不需要这个链接的时候主动将它结束。如果一个Transport类型对象中这两个属性都赋值了，那么DialContext的优先级是要比Dial高的。</p>
+
+<pre><code>DialTLS func(network, addr string) (net.Conn, error)
+</code></pre>
+
+<p>DialTLS的调用将会建立一个TLS的链接。如果DialTLS成员被初始化，那么对于https的request就会被DialTLS成员给Hook住，否则就由Dial和TLSClientConfig两个成员配合起来做这件事。DialTLS调用之后返回的链接默认是Tls握手已经完成的状态。</p>
+
+<pre><code>TLSClientConfig *tls.Config
+TLSHandshakeTimeout time.Duration
+</code></pre>
+
+<p>客户端上https的相关配置以及https握手的超时时间。但是在DialTLS成员被赋值了之后，这两个成员的值就将会被忽略了。</p>
+
+<pre><code>DisableKeepAlives bool
+</code></pre>
+
+<p>如果这个属性被置为true,那么在两次不同的请求之间就不会对同一条tcp链接进行重用了，即关闭了Keep-Alive功能。</p>
+
+<pre><code>MaxIdleConns int
+MaxIdleConnsPerHost int
+IdleConnTimeout time.Duration
+</code></pre>
+
+<p>MaxIdleConns属性为一个Transport对所有的host开启的最大空闲连接数，是一个总量，MaxIdleConnsPerHost为对每一个host所能开启的最大空闲连接数。IdleConnTimeout为空闲链接保持多久将会关闭它。</p>
+
+<pre><code>ResponseHeaderTimeout time.Duration
+</code></pre>
+
+<p>ResponseHeaderTimeout指定了一个从发送了所有的request到得到服务端发送的response的Header的超时时间。</p>
+
+<pre><code>MaxResponseHeaderBytes int64
+</code></pre>
+
+<p>MaxResponseHeaderBytes指定了客户端所能接受服务端发送response的最大字节数。</p>
+
+<h2 id="method">Method</h2>
+
+<pre><code>func (t *Transport) CancelRequest(req *Request) {
+	t.cancelRequest(req, errRequestCanceled)
+}
+</code></pre>
+
+<p>cancelRequest函数内部读取了一个map[*Request]func(error)类型的map，key为request，value是request对应的cancel方法。先把request对应的cancel method拷贝出来，然后从map中删除这一条记录，最后调用这个cancel方法，关闭连接。</p>
+
+<pre><code>func (t *Transport) CloseIdleConnections() {
+	t.nextProtoOnce.Do(t.onceSetNextProtoDefaults)
+	t.idleMu.Lock()
+	m := t.idleConn
+	t.idleConn = nil
+	t.idleConnCh = nil
+	t.wantIdle = true
+	t.idleLRU = connLRU{}
+	t.idleMu.Unlock()
+	for _, conns := range m {
+		for _, pconn := range conns {
+			pconn.close(errCloseIdleConns)
+		}
+	}
+	if t2 := t.h2transport; t2 != nil {
+		t2.CloseIdleConnections()
+	}
+}
+</code></pre>
+
+<p>CloseIdleConnections函数主要用来关闭因之前的请求建立并且其目前处于空闲的链接。Transport内部有一个idleConn成员，他是一个map类型的变量，其value是persistConn类型，表示了一个已经建立的链接。CloseIdleConnections刚一执行，就将Transport内和空闲链接相关的field都清空，并且将idleConn成员copy了一份。之后它就遍历这个存有很多空闲链接的map，将他们一一关闭。在关闭每一个空闲链接的时候，最终调用了persistConn类型的closeLocked方法，在其内部调用了net包内Conn类型的close方法以真正关闭这条tcp链接。</p>
+
+<pre><code>func (t *Transport) RegisterProtocol(scheme string, rt RoundTripper) {
+	t.altMu.Lock()
+	defer t.altMu.Unlock()
+	oldMap, _ := t.altProto.Load().(map[string]RoundTripper)
+	if _, exists := oldMap[scheme]; exists {
+		panic(&quot;protocol &quot; + scheme + &quot; already registered&quot;)
+	}
+	newMap := make(map[string]RoundTripper)
+	for k, v := range oldMap {
+		newMap[k] = v
+	}
+	newMap[scheme] = rt
+	t.altProto.Store(newMap)
+}
+</code></pre>
+
+<p>RegisterProtocol函数将会注册一个scheme和处理使用这个scheme请求的RoundTripper方法到map中。在处理请求的时候，会根据请求使用的scheme对map中的roundtripe方法进行匹配。如果没有根据scheme注册特殊的RoundTripper方法，那么会调用默认的RoundTripper</p>
+
+<h3 id="roundtrip">RoundTrip</h3>
+
+<p>RoundTrip其实是RoundTriper这个Interface的一个方法，你给它一个请求，它吐给你一个响应。在golang的http框架中，Client发送请求接受响应的逻辑主要就是依赖于对RoundTrip函数的实现，Client定义中有一个名为Transport的成员，它的类型是RoundTripper，一般来说都是调用这个成员的RoundTrip方法。在我们创建一个Client对象的时候，如果没为其特意指定一个实现了RoundTrip方法的对象，那么Client会使用一个预定义的Transport类型的变量。所以说，Transport应该才是Client的核心实现。</p>
+
+<pre><code>	t.nextProtoOnce.Do(t.onceSetNextProtoDefaults)
+	ctx := req.Context()
+	trace := httptrace.ContextClientTrace(ctx)
+
+	if req.URL == nil {
+		req.closeBody()
+		return nil, errors.New(&quot;http: nil Request.URL&quot;)
+	}
+	if req.Header == nil {
+		req.closeBody()
+		return nil, errors.New(&quot;http: nil Request.Header&quot;)
+	}
+	scheme := req.URL.Scheme
+	isHTTP := scheme == &quot;http&quot; || scheme == &quot;https&quot;
+	if isHTTP {
+		for k, vv := range req.Header {
+			if !httplex.ValidHeaderFieldName(k) {
+				return nil, fmt.Errorf(&quot;net/http: invalid header field name %q&quot;, k)
+			}
+			for _, v := range vv {
+				if !httplex.ValidHeaderFieldValue(v) {
+					return nil, fmt.Errorf(&quot;net/http: invalid header field value %q for key %v&quot;, v, k)
+				}
+			}
+		}
+	}
+</code></pre>
+
+<p>在RoundTrip前半部分的代码中我们可以看到，它主要做了了些参数检查工作，如url，header等字段值的合法性。</p>
+
+<pre><code>	altProto, _ := t.altProto.Load().(map[string]RoundTripper)
+	if altRT := altProto[scheme]; altRT != nil {
+		if resp, err := altRT.RoundTrip(req); err != ErrSkipAltProtocol {
+			return resp, err
+		}
+	}
+</code></pre>
+
+<p>接下来RoundTrip方法将在altProto这个atmoic.Value类型的变量中取出一个值，并且将它转换为一个map。其中这个map的value就是一个实现了RoundTrip方法的对象。altProto看起来是Transport这个类型对象中的一个成员，它是atomic.Value类型，里面存储了一个map，注册和请求协议相对应的RoundTrip方法。如果之前已经对某个协议指定了处理使用该协议发送请求的方法，那么在这里就会直接调用RoundTrip方法进行处理。</p>
+
+<p>如果没有已经事先准备好的RoundTrip方法，那么就需要客户端先与服务端建立tcp连接，以便之后的通信。</p>
+
+<pre><code>		// Get the cached or newly-created connection to either the
+		// host (for http or https), the http proxy, or the http proxy
+		// pre-CONNECTed to https server. In any case, we'll be ready
+		// to send it requests.
+		pconn, err := t.getConn(treq, cm)
+		if err != nil {
+			t.setReqCanceler(req, nil)
+			req.closeBody()
+			return nil, err
+		}
+</code></pre>
+
+<p>RoundTrip方法中，transport对象调用了getConn方法，这个方法获取一条连接，这条连接可能是之前请求处理完空闲等待使用的，也有可能是新建立的。</p>
+
+<pre><code>func (t *Transport) getConn(treq *transportRequest, cm connectMethod) (*persistConn, error) {
+	req := treq.Request
+	trace := treq.trace
+	ctx := req.Context()
+	if trace != nil &amp;&amp; trace.GetConn != nil {
+		trace.GetConn(cm.addr())
+	}
+	if pc, idleSince := t.getIdleConn(cm); pc != nil {
+		if trace != nil &amp;&amp; trace.GotConn != nil {
+			trace.GotConn(pc.gotIdleConnTrace(idleSince))
+		}
+		// set request canceler to some non-nil function so we
+		// can detect whether it was cleared between now and when
+		// we enter roundTrip
+		}
+		t.setReqCanceler(req, func(error) {})
+		return pc, nil
+	}
+	
+	...
+}
+</code></pre>
+
+<p>getConn函数一进来就先调用getIdleConn去获取已经建立但是目前闲置的链接。</p>
+
+<pre><code>func (t *Transport) getIdleConn(cm connectMethod) (pconn *persistConn, idleSince time.Time) {
+	key := cm.key()
+	t.idleMu.Lock()
+	defer t.idleMu.Unlock()
+	for {
+		pconns, ok := t.idleConn[key]
+		if !ok {
+			return nil, time.Time{}
+		}
+		if len(pconns) == 1 {
+			pconn = pconns[0]
+			delete(t.idleConn, key)
+		} else {
+			// 2 or more cached connections; use the most
+			// recently used one at the end.
+			pconn = pconns[len(pconns)-1]
+			t.idleConn[key] = pconns[:len(pconns)-1]
+		}
+		t.idleLRU.remove(pconn)
+		if pconn.isBroken() {
+			// There is a tiny window where this is
+			// possible, between the connecting dying and
+			// the persistConn readLoop calling
+			// Transport.removeIdleConn. Just skip it and
+			// carry on.
+			continue
+		}
+		if pconn.idleTimer != nil &amp;&amp; !pconn.idleTimer.Stop() {
+			// We picked this conn at the ~same time it
+			// was expiring and it's trying to close
+			// itself in another goroutine. Don't use it.
+			continue
+		}
+		return pconn, pconn.idleAt
+	}
+}
+</code></pre>
+
+<p>在getIdleConn函数内将运行一个死循环，循环内部会在idleConn这个map内根据connectMethod类型内的一些和请求有关的信息，找到一条满足条件的链接返回给外部使用。</p>
+
+<ol>
+<li>在只有一条空闲链接的时候没有选择，只有使用这条</li>
+<li>超过2条及以上的空闲链接，选取最近最久未使用的那一条</li>
+</ol>
+
+<p>在选到链接的之后，在返回给外面使用之前还要检查这个链接是否已经中断了以及这条空闲链接是否已经超时了，如果已经超时了，那么很有可能在别的地方就会被关闭了。不管是中断还是超时，都应该执行continue逻辑重新再空闲连接池内再找一条。</p>
+
+<p>无论是在调用getIdleConn之前还是之后，都会看到一个ClientTrace类型的变量trace来调用GetConn和GotConn。其实ClientTrace这个类型里面的成员以及方法都是对一个请求具有钩子功能的，其内部的成员和方法可以用来时刻跟踪一个请求在真正发送给服务端之前的各种情况。如果成功获取到空闲的网络连接之后，还将调用setReqCanceler函数，它将设置和本次请求有关的一个取消函数以便在之后可以有效检查一个req是否已经被取消处理。</p>
+
+<p>如果getIdleConn函数成功获取到一个空闲链接，那么getConn函数将返回这个链接以供外面使用。如果没有获取到合适的空闲链接，那么接下来的逻辑将会创建一条新的链接。</p>
+
+<pre><code>	cancelc := make(chan error, 1)
+	t.setReqCanceler(req, func(err error) { cancelc &lt;- err })
+
+	go func() {
+		pc, err := t.dialConn(ctx, cm)
+		dialc &lt;- dialRes{pc, err}
+	}()
+
+	idleConnCh := t.getIdleConnCh(cm)
+	select {
+	case v := &lt;-dialc:
+		// Our dial finished.
+		if v.pc != nil {
+			if trace != nil &amp;&amp; trace.GotConn != nil &amp;&amp; v.pc.alt == nil {
+				trace.GotConn(httptrace.GotConnInfo{Conn: v.pc.conn})
+			}
+			return v.pc, nil
+		}
+		// Our dial failed. See why to return a nicer error
+		// value.
+		select {
+		case &lt;-req.Cancel:
+			// It was an error due to cancelation, so prioritize that
+			// error value. (Issue 16049)
+			return nil, errRequestCanceledConn
+		case &lt;-req.Context().Done():
+			return nil, req.Context().Err()
+		case err := &lt;-cancelc:
+			if err == errRequestCanceled {
+				err = errRequestCanceledConn
+			}
+			return nil, err
+		default:
+			// It wasn't an error due to cancelation, so
+			// return the original error message:
+			return nil, v.err
+		}
+	case pc := &lt;-idleConnCh:
+		// Another request finished first and its net.Conn
+		// became available before our dial. Or somebody
+		// else's dial that they didn't use.
+		// But our dial is still going, so give it away
+		// when it finishes:
+		handlePendingDial()
+		if trace != nil &amp;&amp; trace.GotConn != nil {
+			trace.GotConn(httptrace.GotConnInfo{Conn: pc.conn, Reused: pc.isReused()})
+		}
+		return pc, nil
+	case &lt;-req.Cancel:
+		handlePendingDial()
+		return nil, errRequestCanceledConn
+	case &lt;-req.Context().Done():
+		handlePendingDial()
+		return nil, req.Context().Err()
+	case err := &lt;-cancelc:
+		handlePendingDial()
+		if err == errRequestCanceled {
+			err = errRequestCanceledConn
+		}
+		return nil, err
+	}
+</code></pre>
+
+<p>可以看出，再创建新的链接时候，主要是靠dialConn这个函数，在一个goroutine里面调用它之后，利用select语句来等待处理建立链接过程当中的各种情况。这里是阻塞的，因为select的case都是阻塞的channel在等待接受到来的值。当链接顺利建立完成的之后，dialc这个channel将会接收到一个值，因此将会命中select的第一个case。如果其接收到的值当中的persistConn类型的成员部位nil那么就应该返回它，一个新的网络链接就已经建立好了。</p>
+
+<p>那么接下来，我们就来看一下dialConn函数都做了些什么：</p>
+
+<pre><code>pconn := &amp;persistConn{
+		t:             t,
+		cacheKey:      cm.key(),
+		reqch:         make(chan requestAndChan, 1),
+		writech:       make(chan writeRequest, 1),
+		closech:       make(chan struct{}),
+		writeErrCh:    make(chan error, 1),
+		writeLoopDone: make(chan struct{}),
+	}
+	trace := httptrace.ContextClientTrace(ctx)
+	tlsDial := t.DialTLS != nil &amp;&amp; cm.targetScheme == &quot;https&quot; &amp;&amp; cm.proxyURL == nil
+	if tlsDial {
+		...
+	} else {
+		conn, err := t.dial(ctx, &quot;tcp&quot;, cm.addr())
+		if err != nil {
+			if cm.proxyURL != nil {
+				// Return a typed error, per Issue 16997:
+				err = &amp;net.OpError{Op: &quot;proxyconnect&quot;, Net: &quot;tcp&quot;, Err: err}
+			}
+			return nil, err
+		}
+		pconn.conn = conn
+	}
+
+	...
+	
+	pconn.br = bufio.NewReader(pconn)
+	pconn.bw = bufio.NewWriter(persistConnWriter{pconn})
+	go pconn.readLoop()
+	go pconn.writeLoop()
+	return pconn, nil
+</code></pre>
+
+<p>在不考虑https和代理的情况下，dialConn函数首先会通过t.dial函数建立一个网络链接。之后，通过bufio.NewReader和bufio.NewWriter分别初始化了persistConn类型对象内的br和bw成员。这两个成员一个负责从连接中读取数据，另外一个负责向链接中写入数据。接下来启动两个goroutine，运行读循环和写循环。</p>
+
+<p>暂时不关心读写循环中做的事情，链接建立之后，回到RoundTrip函数中.</p>
+
+<p>如果新的链接已经创建好了，那么我们就会拿到一个persistConn类型的连接对象。如果此次http通信的请求还是建立在1.1的版本上的话，就会调用persistConn类型对象的roundTrip函数。</p>
+
+<pre><code>		pconn, err := t.getConn(treq, cm)
+		if err != nil {
+			t.setReqCanceler(req, nil)
+			req.closeBody()
+			return nil, err
+		}
+
+		var resp *Response
+		if pconn.alt != nil {
+			// HTTP/2 path.
+			t.setReqCanceler(req, nil) // not cancelable with CancelRequest
+			resp, err = pconn.alt.RoundTrip(req)
+		} else {
+			resp, err = pconn.roundTrip(treq)
+		}
+		if err == nil {
+			
+</code></pre>
+
+<p>到目前为止，尽管这一路看下来其中的逻辑比较复杂，又是空闲链接，又是读写循环的。但是我们在看这部分源码的时候，要始终记住一条线。客户端与服务端建立链接，在次连接上发送请求，从此链接上获取请求响应。那么到目前为止，客户端已经与服务端建立了一个连接了，接下来就是在这条连接上进行Http的通信。那么发送请求和接收响应的的逻辑主要就是在roundTrip这个方法内了。因为我们可以清楚的看到，这个方法传进去一个request，返回一个response.</p>
+
+<blockquote>
+<p>ps: 个人觉得看源码最忌讳的就是被源码绕晕了。任何一个开源项目的远吗都是很复杂的，如果你一头扎进去，深度优先遍历得看，那老铁你很快就从入门到放弃了。所以说，看源码第一遍的时候，尽量不要在意太多细节。把整体的脉络先屡清楚，然后一点点的去追各种细节。</p>
+</blockquote>
+
+<p>roundTrip方法内具体是怎么做的，我们跟进去看看。</p>
+
+<pre><code>func (pc *persistConn) roundTrip(req *transportRequest) (resp *Response, err error) {
+	....
+	writeErrCh := make(chan error, 1)
+	pc.writech &lt;- writeRequest{req, writeErrCh, continueCh}
+
+	resc := make(chan responseAndError)
+	pc.reqch &lt;- requestAndChan{
+		req:        req.Request,
+		ch:         resc,
+		addedGzip:  requestedGzip,
+		continueCh: continueCh,
+		callerGone: gone,
+	}
+
+	var re responseAndError
+	var respHeaderTimer &lt;-chan time.Time
+	cancelChan := req.Request.Cancel
+	ctxDoneChan := req.Context().Done()
+WaitResponse:
+	for {
+		testHookWaitResLoop()
+		select {
+		case err := &lt;-writeErrCh:
+			if err != nil {
+				if cerr := pc.canceled(); cerr != nil {
+					err = cerr
+				}
+				re = responseAndError{err: err}
+				pc.close(fmt.Errorf(&quot;write error: %v&quot;, err))
+				break WaitResponse
+			}
+			if d := pc.t.ResponseHeaderTimeout; d &gt; 0 {
+				timer := time.NewTimer(d)
+				defer timer.Stop() // prevent leaks
+				respHeaderTimer = timer.C
+			}
+		case &lt;-pc.closech:
+			re = responseAndError{err: pc.mapRoundTripErrorAfterClosed(req.Request, startBytesWritten)}
+			break WaitResponse
+		case &lt;-respHeaderTimer:
+			pc.close(errTimeout)
+			re = responseAndError{err: errTimeout}
+			break WaitResponse
+		case re = &lt;-resc:
+			re.err = pc.mapRoundTripErrorFromReadLoop(req.Request, startBytesWritten, re.err)
+			break WaitResponse
+		case &lt;-cancelChan:
+			pc.t.CancelRequest(req.Request)
+			cancelChan = nil
+		case &lt;-ctxDoneChan:
+			pc.t.cancelRequest(req.Request, req.Context().Err())
+			cancelChan = nil
+			ctxDoneChan = nil
+		}
+	}
+
+	if re.err != nil {
+		pc.t.setReqCanceler(req.Request, nil)
+	}
+	if (re.res == nil) == (re.err == nil) {
+		panic(&quot;internal error: exactly one of res or err should be set&quot;)
+	}
+	return re.res, re.err
+}
+</code></pre>
+
+<p>roundTrip方法前面做了很多检查参数，以及我根本看不到为啥要这么做的逻辑。暂时先忽略，我们要关注的还是核心的发送请求和接收响应的逻辑。所以，我们需要额外注意两行代码：</p>
+
+<pre><code>	writeErrCh := make(chan error, 1)
+	pc.writech &lt;- writeRequest{req, writeErrCh, continueCh}
+
+	resc := make(chan responseAndError)
+	pc.reqch &lt;- requestAndChan{
+		req:        req.Request,
+		ch:         resc,
+		addedGzip:  requestedGzip,
+		continueCh: continueCh,
+		callerGone: gone,
+	}
+</code></pre>
+
+<p>上面这段代码看起来很普通，但是确实开启发请求和读相应的重要部分。代码对pc.writech和pc.reqch两个channel进行了赋值操作。在go语言中，对阻塞性的channel赋值，往往都意味着gorountine之间的通信。那么这两个管道的两段究竟链接了哪些goroutine呢？</p>
+
+<p>通过查看这两个channel的定义我们就一目了然了：</p>
+
+<pre><code>	reqch     chan requestAndChan // written by roundTrip; read by readLoop
+	writech   chan writeRequest   // written by roundTrip; read by writeLoop
+</code></pre>
+
+<p>这两个channel，正是连接了之前在dialConn函数内开启的两个读写goroutine以及我们目前所看到的roundTrip方法所在的goroutine。这么一看，貌似和之前看到的东西一下子就串起来了。所以说再看源码的时候，不要死磕一个地方，往往你顺着一条线接着向后看看，自然而然的就能够领会到作者这么实现的精妙之处。</p>
+
+<p>看起来，这一个读goroutine和一个写goroutine都是运行在这条前面所建立的连接上的。猜测一下，读循环负责从连接上读取服务端返回的resp，写循环负责将req传递给服务端。带着这个猜想，我们可以来看看读写goroutine的实现了。</p>
+
+<pre><code>func (pc *persistConn) writeLoop() {
+	defer close(pc.writeLoopDone)
+	for {
+		select {
+		case wr := &lt;-pc.writech:
+			startBytesWritten := pc.nwrite
+			err := wr.req.Request.write(pc.bw, pc.isProxy, wr.req.extra, pc.waitForContinue(wr.continueCh))
+			if err == nil {
+				err = pc.bw.Flush()
+			}
+			if err != nil {
+				wr.req.Request.closeBody()
+				if pc.nwrite == startBytesWritten &amp;&amp; wr.req.outgoingLength() == 0 {
+					err = nothingWrittenError{err}
+				}
+			}
+			pc.writeErrCh &lt;- err // to the body reader, which might recycle us
+			wr.ch &lt;- err         // to the roundTrip function
+			if err != nil {
+				pc.close(err)
+				return
+			}
+		case &lt;-pc.closech:
+			return
+		}
+	}
+}
+</code></pre>
+
+<p>从上面的代码中我们可以看出，pc.writech这个用于写循环的管道在接收了roundtrip方法对其的赋值操作后，有三个关键的操作。</p>
+
+<ol>
+<li>err = pc.bw.Flush()</li>
+<li>wr.ch &lt;- err         // to the roundTrip function</li>
+<li>pc.writeErrCh &lt;- err</li>
+</ol>
+
+<p>第一个操作是调用了bw的Flush方法，跳转bw成员的定义，可以看到它就是为了向链接以及链接另一边链接的服务端写数据用的，他是一个bufio.Writer类型的对象。也就是说，当经过前期的一些处理之后，我们就可以针对使用的链接写入数据。写入数据之后，无论写入的有没有问题，都会把结果通过writech内的ch成员传递给外层的roundTrip，也会传给writeErrCh这个channel。</p>
+
+<p>既然writech.ch这个成员是为了通知外部的roundTrip方法的，那么writeErrCh这个channel又是用来做什么的呢？首先，在看channel作用的时候，还是要遵守一个原则，channel肯定是连接了两个goroutine。那么这两个goroutine是哪两个呢？查看这个channel的引用我们就可以看到，在readLoop中，我们会调用一个wroteRequest的方法，这个方法内会接受writeErrch这个channel所发送过来的消息。也就是说这个channel是负责链接writeloop和readloop这两个gorountine的。</p>
+
+<p>其次，我们要看下这个channel的定义，它连接读写循环的gorountine具体起了什么作用。</p>
+
+<pre><code>	// writeErrCh passes the request write error (usually nil)
+	// from the writeLoop goroutine to the readLoop which passes
+	// it off to the res.Body reader, which then uses it to decide
+	// whether or not a connection can be reused. Issue 7569.
+</code></pre>
+
+<p>源码中的注释说，writeErrCh这个channel，是为了能将请求写入的错误从写循环的goroutine中传递到读循环的goroutine中，以此来判定目前的这条连接是否可用，如果在这条连接上写入数据的时候都出错了，那么想在这条连接读数据也会有问题。
+看完了写循环中的几个关键操作，那么是时候先跟着wr.ch的脚步，回到外层的roundTrip中了。</p>
+
+<p>roundTrip中的后半部分，起了一个死循环外加一个select，用来监控这条连接上的请求和响应的情况。可以看出在监控writeErrCh这个channel的case上，框架先检查在连接上写入数据有误错误，如果没有，那么就要设置定时器，后面应该会等待响应的传输。
+基本上writeloop所做的事情就是这样。下面让我们来看下readloop。</p>
+
+<p>在看readLoop的时候，我们可以换一个思路，这次先看roundTrip方法对读循环channel的监控情况。roundTrip在select中监控了传递给readloop的pc.reqch这个变量里面的ch成员，也就是resc这个channel。可以看出，在成功接收了这个channel返回回来的response之后，roundTrip的任务就完成了，如果期间没有发生任何错误的话，那么这个response就会返回给这个客户端的调用者。</p>
+
+<pre><code>	for alive {
+		pc.readLimit = pc.maxHeaderResponseSize()
+		_, err := pc.br.Peek(1)
+
+		pc.mu.Lock()
+		if pc.numExpectedResponses == 0 {
+			pc.readLoopPeekFailLocked(err)
+			pc.mu.Unlock()
+			return
+		}
+		pc.mu.Unlock()
+
+		rc := &lt;-pc.reqch
+		trace := httptrace.ContextClientTrace(rc.req.Context())
+
+		var resp *Response
+		if err == nil {
+			resp, err = pc.readResponse(rc, trace)
+		} else {
+			err = transportReadFromServerError{err}
+			closeErr = err
+		}
+	...
+}
+</code></pre>
+
+<p>读循环中的关键逻辑如上，在readLoop中起了循环，起循环的前提条件是通信的这条连接的是活跃的。也就是通过alive来判断的。运行到rc := &lt;- pc.reqch这一句的时候，如果pc.reqch这个channel如果还没有接受到数据的时候，会在这里卡住。当外层的roundTrip方法向这个channel发送数据的时候，rc接收到数据，开始进入pc.readResponse的逻辑，这个逻辑就是从连接中读取响应数据的关键。</p>
+
+<p>在pc.readResponse这个方法里，会调用一个同名的大写方法resp, err = ReadResponse(pc.br, rc.req)。这个方法将会从pc.br这个*bufio.Reader类型的对象内，不断的读取response的内容。先逐行的将Http响应的头部的基本信息都解析出来，最后通过readTransfer函数将body以及其他的响应信息都解析出来。</p>
+
+<p>解析完服务端发回来的响应之后，</p>
+
+<pre><code>	if resp.StatusCode == 100 {
+		pc.readLimit = pc.maxHeaderResponseSize() // reset the limit
+		resp, err = ReadResponse(pc.br, rc.req)
+		if err != nil {
+			return
+		}
+	}
+</code></pre>
+
+<p>go还会检查一下服务端吐出来的statusCode是否是100，如果是100就要继续去读取真正的响应，并且把读取数据的长度限制重置。这里要请求一点的时候，为什么接收到100的状态码之后，客户端仅仅只是继续去读接下来的响应而不是再发一次请求，是因为我们的写循环已经一次性把请求的内容都传递给服务端了。不存在先发送100-continue的请求测试服务端然后再处理的情况。</p>
+
+<p>获取并解析完body之后，readLoop中会发分几种情况来处理这个响应。</p>
+
+<ol>
+<li>接收这个响应的时候有错误，那么直接将错误返回给外层的roundTrip</li>
+<li>接收的响应没有Body,直接将解析出来的response返回</li>
+<li>如果有body，那么对body要做一些处理。最终返回给外部。</li>
+</ol>
+
+<p>至此，Transport类型中的RoundTrip方法就已经介绍完毕了。其中还是有很多细节没有去探究的，但是这并不影响我们领略go语言这套http框架实现的精妙之处。这么一边看下来，我觉得实现比较巧妙的就是对几个channel的运用。我目前觉得，能否把go用好，一个是看channel的运用，还有一个就是interface的使用。</p>
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/sourcecodeanalyse/">SourceCodeAnalyse</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/2017/04/24/nginx-learning-notes1/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">nginx Learning notes(1)</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/2017/04/06/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%903/">
+            <span class="next-text nav-default">golang-net-http-package源码分析(3)</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2017/04/24/golang-net-http-package%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-4/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>

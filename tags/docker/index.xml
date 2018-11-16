@@ -13,30 +13,20 @@
     
     <item>
       <title>Head First AUFS and Docker Image</title>
-      <link>http://littledriver.net/posts/head-first-aufs-and-docker-image/</link>
+      <link>http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/</link>
       <pubDate>Fri, 26 Oct 2018 10:13:21 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-aufs-and-docker-image/</guid>
-      <description>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联系我删除。
- Docker Image 和 AUFS 是什么关系？ Image 是 Docker 部署的基本单位，一个 Image 运行在一个 Docker Container 上面。这个 Image 包含了我们的程序文件，以及这个程序依赖的资源的环境。Docker Image 对外是以一个文件的形式展示的（更准确的说是一个 mount 点）。既然说到文件，那么它肯定是受到文件系统来管理的。
-在 Linux 内核 4.0以及之前的版本上（主要是 Ubuntu 和 Debian），Docker 使用 AUFS 来管理 Docker Image 的存储。虽然，在一些新的 Docker 版本中，已经使用了其他不同的方案来管理镜像，如 DeviceMapper，overlay2。但是 AUFS 是一个比较标准且简单的实现方式，通过 AUFS 来了解 Docker Image 的原理是一个不错的选择。
-什么是 AUFS？ AUFS 是 Union File System 众多实现方式的一种。Union File System 从字面意思上来理解就是「联合文件系统」。它将多个物理位置不同的文件目录「联合」起来，挂载到某一个目录下，形成一个抽象的文件系统。
-概念理解起来比较枯燥，最好是有一个真实的例子来帮助我们理解：
-首先，我们建立 company 和 home 两个目录，并且分别为他们创造两个文件
-root@rds-k8s-18-svr0:~/xuran/aufs# tree . .</description>
+      <guid>http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/</guid>
+      <description>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联</description>
     </item>
     
     <item>
       <title>Head First Linux Namespace</title>
-      <link>http://littledriver.net/posts/head-first-linux-namespace/</link>
+      <link>http://littledriver.net/post/2018/10/24/head-first-linux-namespace/</link>
       <pubDate>Wed, 24 Oct 2018 16:16:21 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-linux-namespace/</guid>
-      <description>什么是 Linux Namespace？它解决了什么问题？ 简单来说，Linux Namespace 是操作系统内核在不同进程间实现的一种「环境隔离机制」。
-举例来说：现在有两个进程A，B。他们处于两个不同的 PID Namespace 下：ns1, ns2。在ns1下，A 进程的 PID 可以被设置为1，在 ns2 下，B 进程的 PID 也可以设置为1。但是它们两个并不会冲突，因为 Linux PID Namespace 对 PID 这个资源在进程 A，B 之间做了隔离。A 进程在 ns1下是不知道 B 进程在 ns2 下面的 PID 的。
-这种环境隔离机制是实现容器技术的基础。因为在整个操作系统的视角下，一个容器表现出来的就是一个进程。
-Linux 一共构建了 6 种不同的 Namespace，用于不同场景下的隔离：
- Mount - isolate filesystem mount points UTS - isolate hostname and domainname IPC - isolate interprocess communication (IPC) resources PID - isolate the PID number space Network - isolate network interfaces User - isolate UID/GID number spaces  Docker 的网络隔离机制——Linux Network Namespace Docker 使用的网络模型是 CNM（Container Network Model），根据官方的设计文档，它的结构大致如下：</description>
+      <guid>http://littledriver.net/post/2018/10/24/head-first-linux-namespace/</guid>
+      <description>什么是 Linux Namespace？它解决了什么问题？ 简单来说，Linux Namespace 是操作系统内核在不同进程间实现的一种「环境隔离机制」。 举例来说：现在有两</description>
     </item>
     
   </channel>

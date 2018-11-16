@@ -1,95 +1,51 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LittleDriver  | Golang Log Level Best Pratice-1</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Golang Log Level Best Pratice-1 | LittleDriver</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <link rel="stylesheet" href="http://littledriver.net/css/theme-override.css">
-    <header>
 
-  
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="http://littledriver.net/">/home/littledriver</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/">~/home</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/categories/">~/categories</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+    <link rel="stylesheet" href="http://littledriver.net/css/blog.css" />
+</head>
+<body>
 
-      
-      
-      <li class="pull-right">
-        <a href="/index.xml">~/subscribe</a>
-      </li>
-      
+    
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="http://littledriver.net/">Home</a>
+        </div>
+    </nav>
+    
 
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">Golang Log Level Best Pratice-1</span></h1>
-
-<h2 class="date">2018/05/03</h2>
-<p class="terms">
-  
-  
-  Categories: <a href="/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97">工作了也不能放松系列</a> 
-  
-  
-  
-  Tags: <a href="/tags/golang">Golang</a> <a href="/tags/bestpractice">BestPractice</a> 
-  
-  
-</p>
-</div>
+    
+    <section class="hero is-info is-medium">
+        <div class="hero-body" style="background-image: url(http://littledriver.net/img/bg-blog.jpg);">
+            <div class="container has-text-centered">
+                <br>
+                <h1 class="title is-size-1">
+                    
+                        Golang Log Level Best Pratice-1
+                    
+                </h1>
+                
+            </div>
+        </div>
+    </section>
 
 
-<nav id="TableOfContents">
-<ul>
-<li><a href="#写在前面">写在前面</a>
-<ul>
-<li><a href="#warn">Warn</a></li>
-<li><a href="#fatal">Fatal</a>
-<ul>
-<li><a href="#在-library-中">在 Library 中</a></li>
-<li><a href="#在-main-中">在 Main 中</a></li>
-</ul></li>
-<li><a href="#error">Error</a></li>
-<li><a href="#info-debug">Info &amp;&amp; Debug</a></li>
-</ul></li>
-</ul>
-</nav>
+<div class="container">
+    <div class="section">
+    
 
-
-<main>
-
+<div class="columns">
+    <div class="column is-9">
+        <div class="tile is-child box">
+            <div class="content">
+                
 
 <h1 id="写在前面">写在前面</h1>
 
@@ -122,76 +78,76 @@
 
 <p>即使在 logrus 日志工具库中提供了 Warn 日志级别，它的注释中也对这种日志级别定义的比较模糊：</p>
 
-<p><code>// WarnLevel level. Non-critical entries that deserve eyes.</code></p>
+<pre><code class="language-//">
+&gt; Best Practice1: 不要在你的服务中使用 Warn 的日志级别。根据日志输出的性质不同，选择更加明确的日志级别
 
-<blockquote>
-<p>Best Practice1: 不要在你的服务中使用 Warn 的日志级别。根据日志输出的性质不同，选择更加明确的日志级别</p>
-</blockquote>
 
-<h2 id="fatal">Fatal</h2>
+## Fatal
 
-<p>无论是 Golang Standard Library 中的 Log 库，还是 Logrus 这种第三方日志工具库，Fatal 级别的日志输出实现起来都是相同的：</p>
+无论是 Golang Standard Library 中的 Log 库，还是 Logrus 这种第三方日志工具库，Fatal 级别的日志输出实现起来都是相同的：
 
-<ol>
-<li>输出日志信息</li>
-<li>调用 <code>os.Exit(1)</code>方法结束程序</li>
-</ol>
+1. 输出日志信息
+2. 调用 ```os.Exit(1)```方法结束程序
 
-<p>有了上面信息，在思索一下 Golang 中内置的一些函数，就会发现，Fatal 和 Panic 只差的了一个输出信息的功能。既然涉及到了 Panic，那么就不得不对 Fatal 的使用场景做出区分了。</p>
+有了上面信息，在思索一下 Golang 中内置的一些函数，就会发现，Fatal 和 Panic 只差的了一个输出信息的功能。既然涉及到了 Panic，那么就不得不对 Fatal 的使用场景做出区分了。
 
-<h3 id="在-library-中">在 Library 中</h3>
+### 在 Library 中
 
-<p>在对外提供的 Package 中，社区的建议是不应该使用 Panic 的。那么很自然的，使用  Fatal 也是不合适的。道理很简单，任何一个使用你提供的 Package 的程序结束与否，都不应该由你来决定，而是需要调用者来决定。</p>
+在对外提供的 Package 中，社区的建议是不应该使用 Panic 的。那么很自然的，使用  Fatal 也是不合适的。道理很简单，任何一个使用你提供的 Package 的程序结束与否，都不应该由你来决定，而是需要调用者来决定。
 
-<h3 id="在-main-中">在 Main 中</h3>
+### 在 Main 中
 
-<p>我们通常看到 Fatal 出现频率最高的地方估计就是启动一个 Server 的时候了：</p>
+我们通常看到 Fatal 出现频率最高的地方估计就是启动一个 Server 的时候了：
 
-<pre><code>s := &amp;http.Server{
-	Addr:           &quot;:8080&quot;,
-	Handler:        myHandler,
-	ReadTimeout:    10 * time.Second,
-	WriteTimeout:   10 * time.Second,
-	MaxHeaderBytes: 1 &lt;&lt; 20,
+</code></pre>
+
+<p>s := &amp;http.Server{
+    Addr:           &ldquo;:8080&rdquo;,
+    Handler:        myHandler,
+    ReadTimeout:    10 * time.Second,
+    WriteTimeout:   10 * time.Second,
+    MaxHeaderBytes: 1 &lt;&lt; 20,
 }
-log.Fatal(s.ListenAndServe())
+log.Fatal(s.ListenAndServe())</p>
+
+<pre><code>然而启动一个 Server 的逻辑也大都出现在 Main 函数中。
+
+所以，如果要使用 Fatal ，也不要在 Library 中进行使用。即使在 Main 函数中，可能还有另外一个问题需要注意----「Gracefully Shutdown」。因为直接调用 `os.Exit` 函数，一些包含在 defer 执行的函数内的「清理」操作就都不会被执行了，所以在使用 Fatal 的时候，要注意一下「Gracefully Shutdown」的问题，尤其是在使用一些第三方的日志工具库的时候。
+
+&gt; Best Practice2: 出于对 Gracefully Shutdown 问题的考虑，尽量不要使用 Fatal 这种日志级别。若确实在程序中遇到了无法处理的错误且必须要结束程序，可以将错误一直向上抛出，直到 Main 函数中。并且在退出程序之前还需要处理好 resource clearup 的问题。
+
+
+## Error
+
+Error 这个日志级别应该是我们在开发过程中最常使用的。但是很多人在使用的过程中可能都存在一个比较大的误区，就是把 「Error Handling」 和 「Error Logging」 混淆了，甚至是将它们合二为一，用 「Error Logging」 作为 「Error Handling」的方式。
+那么当我们在面对一个`error`的时候，我们有哪几种处理它的选择呢？
+
+1. Return the caller
+2. Handle at once
+
+对于第一个选择来说，它绝不意味着下面的代码：
+
 </code></pre>
 
-<p>然而启动一个 Server 的逻辑也大都出现在 Main 函数中。</p>
-
-<p>所以，如果要使用 Fatal ，也不要在 Library 中进行使用。即使在 Main 函数中，可能还有另外一个问题需要注意&mdash;-「Gracefully Shutdown」。因为直接调用 <code>os.Exit</code> 函数，一些包含在 defer 执行的函数内的「清理」操作就都不会被执行了，所以在使用 Fatal 的时候，要注意一下「Gracefully Shutdown」的问题，尤其是在使用一些第三方的日志工具库的时候。</p>
-
-<blockquote>
-<p>Best Practice2: 出于对 Gracefully Shutdown 问题的考虑，尽量不要使用 Fatal 这种日志级别。若确实在程序中遇到了无法处理的错误且必须要结束程序，可以将错误一直向上抛出，直到 Main 函数中。并且在退出程序之前还需要处理好 resource clearup 的问题。</p>
-</blockquote>
-
-<h2 id="error">Error</h2>
-
-<p>Error 这个日志级别应该是我们在开发过程中最常使用的。但是很多人在使用的过程中可能都存在一个比较大的误区，就是把 「Error Handling」 和 「Error Logging」 混淆了，甚至是将它们合二为一，用 「Error Logging」 作为 「Error Handling」的方式。
-那么当我们在面对一个<code>error</code>的时候，我们有哪几种处理它的选择呢？</p>
-
-<ol>
-<li>Return the caller</li>
-<li>Handle at once</li>
-</ol>
-
-<p>对于第一个选择来说，它绝不意味着下面的代码：</p>
-
-<pre><code>	if err := SayHello(); err != nil {
-		logger.Error(err)
-		return err
-	}
+<pre><code>if err := SayHello(); err != nil {
+    logger.Error(err)
+    return err
+}
 </code></pre>
 
-<p>仔细想想上面的这段代码，它的目的是非常不清晰的。如果是想将错误抛给调用者，那么应该直接 <code>return err</code>而不是在 return 之前还要用 Error 输出一下错误信息。上面的实现方式，明显是把错误处理和错误返回混合在一起使用了，并且错误处理的方式就是&mdash;-输出错误信息（(⊙﹏⊙)b。</p>
+<pre><code>仔细想想上面的这段代码，它的目的是非常不清晰的。如果是想将错误抛给调用者，那么应该直接 `return err`而不是在 return 之前还要用 Error 输出一下错误信息。上面的实现方式，明显是把错误处理和错误返回混合在一起使用了，并且错误处理的方式就是----输出错误信息（(⊙﹏⊙)b。
 
-<p>对于第二种选择来说，如果想在调用报错的位置处理错误，如进行重试等，则可以输出错误信息并执行相应的错误处理函数</p>
+对于第二种选择来说，如果想在调用报错的位置处理错误，如进行重试等，则可以输出错误信息并执行相应的错误处理函数
 
-<pre><code>	if err := SayHello(); err != nil {
-		logger.Error(err)
-		HandleError()
-	}
 </code></pre>
+
+<pre><code>if err := SayHello(); err != nil {
+    logger.Error(err)
+    HandleError()
+}
+</code></pre>
+
+<p>```</p>
 
 <p>现在看来，除了在能够处理错误的地方可以输出错误信息之外，其余的地方都是不适合的。但是这仅限于 Library 和 Package 中的功能性函数里，如果是在一些对外暴露的 HTTP 接口中，在将错误信息返回给 client 之前，输出错误信息还是非常必要的。不过，如果在你的代码中，error 一直向上抛，结果抛到顶层了还没有处理他的地方，或处理不了退出整个程序的地方，可能就是你的程序有问题了。需要再仔细的检查下你代码。</p>
 
@@ -216,40 +172,105 @@ log.Fatal(s.ListenAndServe())
 <p>BestPractice4: 输出开发者关心的信息使用 Debug，输出用户关心的信息使用 Info。</p>
 </blockquote>
 
-</main>
-
-    <footer>
-      
-<script>
-(function() {
-  function center_el(tagName) {
-    var tags = document.getElementsByTagName(tagName), i, tag;
-    for (i = 0; i < tags.length; i++) {
-      tag = tags[i];
-      var parent = tag.parentElement;
-      
-      if (parent.childNodes.length === 1) {
+            </div>
+        </div>
+    </div>
+    <div class="column is-3">
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Tags</h1>
+        <div class="tags">
         
-        if (parent.nodeName === 'A') {
-          parent = parent.parentElement;
-          if (parent.childNodes.length != 1) continue;
-        }
-        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
-      }
-    }
-  }
-  var tagNames = ['img', 'embed', 'object'];
-  for (var i = 0; i < tagNames.length; i++) {
-    center_el(tagNames[i]);
-  }
-})();
-</script>
+            <span class="tag"><a href="http://littledriver.net/tags/apue">APUE</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/algorithm">Algorithm</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/bestpractice">BestPractice</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/datastructure">DataStructure</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/docker">Docker</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/golang">Golang</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/java">Java</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/kubernetes">Kubernetes</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/linux">Linux</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/lua">Lua</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/mq">MQ</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">NetWork</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/network">Network</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/nginx">Nginx</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/operatingsystem">OperatingSystem</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/python">Python</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/rds">RDS</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/redis">Redis</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/servicemesh">ServiceMesh</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/sourcecodeanalyse">SourceCodeAnalyse</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workexperience">WorkExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/workingexperience">WorkingExperience</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/grpc">gRPC</a></span>
+        
+            <span class="tag"><a href="http://littledriver.net/tags/%E9%9A%8F%E7%AC%94">随笔</a></span>
+        
+        </div>          
+    </div>
+</div><br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Recent posts</h1>
+        
+            <h1><a href="http://littledriver.net/post/2018/11/16/my-first-post/">My First Post</a></h1>
+            <time class="has-text-grey-light is-size-7">16 November 2018</time>
+        
+    </div>
+</div>
+    <br>
+        <div class="card">
+    <div class="card-content">
+        <h1 class="title is-5">Archives</h1>
+        
+            <a href="http://littledriver.net/archives/2018">2018</a> (1)<br>
+        
+    </div>
+</div>
 
-      
-      <hr/>
-      Open-Source | <a href="https://github.com/goodroot/hugo-classic">Github</a> | <a href="https://twitter.com/thegoodroot">Twitter</a>
-      
-    </footer>
-  </body>
+    </div>
+</div>
+
+
+    </div>
+</div>
+
+<footer class="footer has-background-grey-darker has-text-white">
+    <div class="content has-text-centered">
+        <p>
+            <span class="icon is-large"><a href="https://twitter.com/" class="mysocial"><i class="fab fa-twitter fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://www.youtube.com/" class="mysocial"><i class="fab fa-youtube fa-3x"></i></a></span>&nbsp;&nbsp;
+            <span class="icon is-large"><a href="https://github.com/" class="mysocial"><i class="fab fa-github fa-3x"></i></a></span>&nbsp;&nbsp;
+            <br><br>
+            Copyright &copy; LittleDriver 2018 - Theme by <a href="https://jeffprod.com" class="mysocial">JeffProd.com</a>
+            - <a class="mysocial" href="http://littledriver.net/about">About</a>
+        </p>
+    </div>
+</footer>
+
+<script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+</body>
 </html>
-

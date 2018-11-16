@@ -13,74 +13,56 @@
     
     <item>
       <title>Head First AUFS and Docker Image</title>
-      <link>http://littledriver.net/posts/head-first-aufs-and-docker-image/</link>
+      <link>http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/</link>
       <pubDate>Fri, 26 Oct 2018 10:13:21 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-aufs-and-docker-image/</guid>
-      <description>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联系我删除。
- Docker Image 和 AUFS 是什么关系？ Image 是 Docker 部署的基本单位，一个 Image 运行在一个 Docker Container 上面。这个 Image 包含了我们的程序文件，以及这个程序依赖的资源的环境。Docker Image 对外是以一个文件的形式展示的（更准确的说是一个 mount 点）。既然说到文件，那么它肯定是受到文件系统来管理的。
-在 Linux 内核 4.0以及之前的版本上（主要是 Ubuntu 和 Debian），Docker 使用 AUFS 来管理 Docker Image 的存储。虽然，在一些新的 Docker 版本中，已经使用了其他不同的方案来管理镜像，如 DeviceMapper，overlay2。但是 AUFS 是一个比较标准且简单的实现方式，通过 AUFS 来了解 Docker Image 的原理是一个不错的选择。
-什么是 AUFS？ AUFS 是 Union File System 众多实现方式的一种。Union File System 从字面意思上来理解就是「联合文件系统」。它将多个物理位置不同的文件目录「联合」起来，挂载到某一个目录下，形成一个抽象的文件系统。
-概念理解起来比较枯燥，最好是有一个真实的例子来帮助我们理解：
-首先，我们建立 company 和 home 两个目录，并且分别为他们创造两个文件
-root@rds-k8s-18-svr0:~/xuran/aufs# tree . .</description>
+      <guid>http://littledriver.net/post/2018/10/26/head-first-aufs-and-docker-image/</guid>
+      <description>WARNING：文中的一些Demo， 均是模仿了陈皓老师在 https://coolshell.cn/articles/17061.html 文章中给出的实例。在这里只做学习和记录使用，欢迎大家去原文观看，若有版权问题，可联</description>
     </item>
     
     <item>
       <title>Head First Linux Namespace</title>
-      <link>http://littledriver.net/posts/head-first-linux-namespace/</link>
+      <link>http://littledriver.net/post/2018/10/24/head-first-linux-namespace/</link>
       <pubDate>Wed, 24 Oct 2018 16:16:21 +0800</pubDate>
       
-      <guid>http://littledriver.net/posts/head-first-linux-namespace/</guid>
-      <description>什么是 Linux Namespace？它解决了什么问题？ 简单来说，Linux Namespace 是操作系统内核在不同进程间实现的一种「环境隔离机制」。
-举例来说：现在有两个进程A，B。他们处于两个不同的 PID Namespace 下：ns1, ns2。在ns1下，A 进程的 PID 可以被设置为1，在 ns2 下，B 进程的 PID 也可以设置为1。但是它们两个并不会冲突，因为 Linux PID Namespace 对 PID 这个资源在进程 A，B 之间做了隔离。A 进程在 ns1下是不知道 B 进程在 ns2 下面的 PID 的。
-这种环境隔离机制是实现容器技术的基础。因为在整个操作系统的视角下，一个容器表现出来的就是一个进程。
-Linux 一共构建了 6 种不同的 Namespace，用于不同场景下的隔离：
- Mount - isolate filesystem mount points UTS - isolate hostname and domainname IPC - isolate interprocess communication (IPC) resources PID - isolate the PID number space Network - isolate network interfaces User - isolate UID/GID number spaces  Docker 的网络隔离机制——Linux Network Namespace Docker 使用的网络模型是 CNM（Container Network Model），根据官方的设计文档，它的结构大致如下：</description>
+      <guid>http://littledriver.net/post/2018/10/24/head-first-linux-namespace/</guid>
+      <description>什么是 Linux Namespace？它解决了什么问题？ 简单来说，Linux Namespace 是操作系统内核在不同进程间实现的一种「环境隔离机制」。 举例来说：现在有两</description>
     </item>
     
     <item>
       <title>Learning for APUE(4)</title>
-      <link>http://littledriver.net/posts/learning-for-apue-4/</link>
+      <link>http://littledriver.net/post/2017/06/27/learning-for-apue4/</link>
       <pubDate>Tue, 27 Jun 2017 11:05:53 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-for-apue-4/</guid>
-      <description>刷新缓存 操作系统内核在写入和读取数据的时候，从cpu到硬盘，还有很长的一段路。这段路上，为了减少数据传输的延迟，操作系统采取的很多的措施。如：就近原则的读取，内存，寄存器的使用，甚至是高速缓存，多级cache。这些办法都能够有效的提高数据传输的速率。当内核想向一个文件写入数据的时候，它并不会直接将数据写入文件所在的硬盘块，而是先将数据写入高速缓存当中，当高速缓存满了，或者说需要重用高速缓存的时候，就将高速缓存的数据写入到磁盘中。但是这个动作也不是立即发生的，写入磁盘的任务会进入一个队列中进行排队，等待处理。
-为了保持高速缓存和硬盘上面的数据的一致性，就需要提供一定的接口，使得用户可以主动的发起写入数据到磁盘的这种行为。为此，linux上面提供了三个api可以实现这种效果：
- sync fsync fdatasync  三个系统调用均可以实现上面所说的功能，但是fsync是对特定的文件起作用，而fdatasync只会将文件的“数据”部分写入至磁盘，文件类型等信息是不会写入的。相反，其他两个方法是会把文件所有的信息以及数据都会写入。
-操纵文件描述符&amp;ndash;fcntl fcntl这个函数的作用，就是通过参数中传递进来的文件描述符来修改文件相关的描述符标志和状态标志信息。不过一般修改标志位的方式，都是先获取目前的标志位，然后根据位或运算增加新的标志位。
-首先是对于文件描述符标志位的设定，其中有一个标志位在介绍dup函数的时候也出现过，就是FD_CLOSEXEC。这个标志位设定的效果在于，此文件描述符所在进程，如果通过execl函数执行了另外一个子进程的话，那么在execl执行的这个进程中，此文件描述符即使被传递过去也无法使用了，但是如果是使用fork的话，那么在子进程中还是可以使用的。相关的一个例子，可以看看这篇文章http://blog.csdn.net/ustc_dylan/article/details/6930189。
-按照之前说明的设置文件描述符标志位的规则，首先可以调用fcntl函数，使用F_GETFD命令来获取相应的标志位，使用位或运算计算之后，再使用F_SETFD命令来设置新的标志位即可。
-文件描述符的信息应该是属于某一个进程的，所以它应该存在于进程表项中。除了文件描述符之外，还和进程打开文件相关的一个指标就是文件的状态标志。内核为操作系统中打开的文件维护了一张表，这张表内就存储着被打开文件的状态标志信息。之前在讨论文件共享的时候就说过，文件状态标志信息应该是和文件描述符绑定的。也就是说，进程，文件描述符，文件状态标识三者是1对多，1对1的关系。一个进程可以同时打开很多文件，所以是一对多。但是每打开一个文件，获得一个文件描述符，都和唯一的一个文件状态标识所绑定，所以是1对1的关系。
-文件状态标志之前在open函数中有过说明，其中一个很重要的标志就是访问方式标志。如只读，只写，读写等等。访问方式标志的取值为0-5，每一个值代表了一种访问方式。但是他们并不是按位来排列的。所以在确定一个文件描述符对应的文件状态标识中到底是使用了何种访问标志，需要使用一个屏蔽字通过按位与的方式来取出访问标志的值到底是多少。
-除了文件访问标志之外，另外一个重要且常见的标志就是O_SYNC，同步标志。这个标志可以在调用open函数的时候对文件进行设置，也可以通过fcntl函数来进行设置。但是后者在某些操作系统上面设置之后也并不会生效，所以一般都是在open函数的时候就设置好。该标志被设置之后，在想文件写入数据的时候，就不会采用系统原有的，先写入缓存，然后进队列，适当的时候再写入磁盘这套机制。而是直接采用同步I/O的形式，直到写入的数据已经落在磁盘上了，那么这次写入的操作才会返回。</description>
+      <guid>http://littledriver.net/post/2017/06/27/learning-for-apue4/</guid>
+      <description>刷新缓存 操作系统内核在写入和读取数据的时候，从cpu到硬盘，还有很长的一段路。这段路上，为了减少数据传输的延迟，操作系统采取的很多的措施。如</description>
     </item>
     
     <item>
       <title>Learning for APUE(3)--从操作系统的角度来看文件共享</title>
-      <link>http://littledriver.net/posts/learning-for-apue-3/</link>
+      <link>http://littledriver.net/post/2017/04/04/learning-for-apue3-%E4%BB%8E%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%A7%92%E5%BA%A6%E6%9D%A5%E7%9C%8B%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB/</link>
       <pubDate>Tue, 04 Apr 2017 22:01:51 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-for-apue-3/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/04/04/learning-for-apue3-%E4%BB%8E%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%A7%92%E5%BA%A6%E6%9D%A5%E7%9C%8B%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB/</guid>
+      <description>先谈文件I/O效率 在unix系统中读写文件会涉及到i/o操作，大家也都清楚i/o操作是非常消耗系统资源的。对于简单的读写文件来说，其i/o效</description>
     </item>
     
     <item>
       <title>Learning for APUE(2)--文件 I/O</title>
-      <link>http://littledriver.net/posts/learning-for-apue-2/</link>
+      <link>http://littledriver.net/post/2017/03/19/learning-for-apue2-%E6%96%87%E4%BB%B6-i-o/</link>
       <pubDate>Sun, 19 Mar 2017 17:01:23 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-for-apue-2/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/19/learning-for-apue2-%E6%96%87%E4%BB%B6-i-o/</guid>
+      <description>文件描述符 对于内核而言，任何对文件的操作都需要文件描述符，因为这个文件描述符唯一标识了这个文件。文件描述符的有效性是针对某一个进程的，内核对</description>
     </item>
     
     <item>
       <title>Learning for APUE(1)</title>
-      <link>http://littledriver.net/posts/learning-for-apue-1/</link>
+      <link>http://littledriver.net/post/2017/03/19/learning-for-apue1/</link>
       <pubDate>Sun, 19 Mar 2017 12:11:38 +0000</pubDate>
       
-      <guid>http://littledriver.net/posts/learning-for-apue-1/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;</description>
+      <guid>http://littledriver.net/post/2017/03/19/learning-for-apue1/</guid>
+      <description>说来惭愧，像apue这种书籍被我买了一直放在书架里，仔细想想大学四年做的唯一一件错事就是没用大量的空闲时间去多读书。从集训队出来之后，一直被</description>
     </item>
     
   </channel>

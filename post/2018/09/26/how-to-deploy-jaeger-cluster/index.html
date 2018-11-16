@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>How to Deploy Jaeger Cluster - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件 jaeger-agent jaeger-collector data-storage Elasticsearch Cassandra 由于我们想将 jaeger 部署到 k8s 集" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="How to Deploy Jaeger Cluster" />
+<meta property="og:description" content="Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件 jaeger-agent jaeger-collector data-storage Elasticsearch Cassandra 由于我们想将 jaeger 部署到 k8s 集" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/" /><meta property="article:published_time" content="2018-09-26T17:58:57&#43;08:00"/>
+<meta property="article:modified_time" content="2018-09-26T17:58:57&#43;08:00"/>
+
+<meta itemprop="name" content="How to Deploy Jaeger Cluster">
+<meta itemprop="description" content="Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件 jaeger-agent jaeger-collector data-storage Elasticsearch Cassandra 由于我们想将 jaeger 部署到 k8s 集">
+
+
+<meta itemprop="datePublished" content="2018-09-26T17:58:57&#43;08:00" />
+<meta itemprop="dateModified" content="2018-09-26T17:58:57&#43;08:00" />
+<meta itemprop="wordCount" content="4213">
+
+
+
+<meta itemprop="keywords" content="Kubernetes,ServiceMesh," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="How to Deploy Jaeger Cluster"/>
+<meta name="twitter:description" content="Deploy Jaeger in Kubernetes Preparation 通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件 jaeger-agent jaeger-collector data-storage Elasticsearch Cassandra 由于我们想将 jaeger 部署到 k8s 集"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">How to Deploy Jaeger Cluster</h1>
+      
+      <div class="post-meta">
+        <time datetime="2018-09-26" class="post-time">
+          2018-09-26
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+
+    
+    <div class="post-content">
+      
+
+<h1 id="deploy-jaeger-in-kubernetes">Deploy Jaeger in Kubernetes</h1>
+
+<h2 id="preparation">Preparation</h2>
+
+<p><img src="https://www.jaegertracing.io/img/architecture.png" alt="" /></p>
+
+<p>通过一张 Jaeger 的架构图，我们可以知道，要在我们的开发环境中部署一套Jaeger，需要部署以下几个组件</p>
+
+<ol>
+<li>jaeger-agent</li>
+<li>jaeger-collector</li>
+<li>data-storage
+
+<ol>
+<li>Elasticsearch</li>
+<li>Cassandra</li>
+</ol></li>
+</ol>
+
+<p>由于我们想将 jaeger 部署到 k8s 集群中，针对于这个特定的部署环境，我们可以对部署方案做如下的梳理：</p>
+
+<ul>
+<li>部署方式： helm+jaeger 的 chart 包（参考：<a href="https://github.com/jaegertracing/jaeger-kubernetes">https://github.com/jaegertracing/jaeger-kubernetes</a>, <a href="https://github.com/helm/charts/tree/master/incubator/jaeger）">https://github.com/helm/charts/tree/master/incubator/jaeger）</a></li>
+<li>存储中间件：helm + ElasticSearch 的 chart 包（参考：<a href="https://github.com/helm/charts/tree/master/incubator/elasticsearch）">https://github.com/helm/charts/tree/master/incubator/elasticsearch）</a></li>
+<li>底层存储方案：宿主机外挂500G 数据盘+ Ceph RBD</li>
+<li>访问：ingress+nginx—ingress-controller+service</li>
+</ul>
+
+<p>通过对<a href="https://github.com/jaegertracing/jaeger-kubernetes">GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes</a>的了解，我们可以知道，其实 jaeger 本身的组件部署时比较简单的，直接 kubectl applpy 一个编排文件即可搞定。唯一比较麻烦的是对底层存储的配置。针对这样的情况，我们决定将 jaeger 部署的顺序做如下安排：</p>
+
+<ol>
+<li>准备一个 k8s 集群（笔者有一个一主一从的 k8s 集群，基于虚拟机建立的），主从节点各挂在一块500G 的数据盘</li>
+<li>Ceph RBD 集群和 k8s 混布（╮(╯▽╰)╭，没办法，穷啊），创建需要分配存储的测试 pod，查看 pvc 和 pv 的创建情况</li>
+<li>部署 Elasticsearch</li>
+<li>部署 Jaeger，测试集群内部是否能够成功访问 jaeger-query</li>
+<li>部署 ingress+nginx-ingress-controller，测试集群外部访问情况</li>
+</ol>
+
+<blockquote>
+<p>本文默认用户已经部署好了 k8s 集群并且挂载了数据盘，因为 k8s 的部署步骤也比较复杂，足以写另外一篇文章了。而且对于挂载磁盘的问题来说，用户所处平台的不同（云主机，物理机，本地的虚拟机）可能处理的方式也不太一样。这两部分在本文中就不做过多的描述了。</p>
+</blockquote>
+
+<h2 id="部署-ceph-rbd-集群">部署 Ceph RBD 集群</h2>
+
+<blockquote>
+<p>Ref: <a href="https://tonybai.com/2016/11/07/integrate-kubernetes-with-ceph-rbd/">https://tonybai.com/2016/11/07/integrate-kubernetes-with-ceph-rbd/</a> （感谢作者）<br />
+部署 ceph 的部分，都是借鉴作者的经验，这里只是做一个记录，帮自己梳理部署的步骤。</p>
+</blockquote>
+
+<p>一个 Ceph RBD 集群可以大致分为三个部分：</p>
+
+<ul>
+<li>Deploy Node：部署节点，相当于 k8s 集群中的 Master 节点</li>
+<li>OSD Node： 存储节点</li>
+<li>MON Node： 监控节点</li>
+</ul>
+
+<p>首先，我们需要安装 ceph 官方提供的部署工具： ceph-deploy。由于 k8s 集群所在 Node 的系统是 Ubuntu，所以这里使用 apt-get 来安装</p>
+
+<pre><code>export CEPH_DEPLOY_REPO_URL=http://mirrors.163.com/ceph/debian-jewel
+export CEPH_DEPLOY_GPG_URL=http://mirrors.163.com/ceph/keys/release.asc
+（使用国内的镜像，速度会快一点）
+将 deb https://mirrors.163.com/ceph/debian-jewel/ xenial main 写入到 /etc/apt/sources.list 中
+apt-get update	
+apt-get install ceph-deploy
+</code></pre>
+
+<p>为了方便起见，我们给安装 ceph 创建一个具有 root 权限的专门的 user</p>
+
+<pre><code>以下命令在每个Node上都要执行：
+
+useradd -d /home/cephd -m cephd
+passwd cephd
+
+添加sudo权限：
+echo &quot;cephd ALL = (root) NOPASSWD:ALL&quot; | sudo tee /etc/sudoers.d/cephd
+sudo chmod 0440 /etc/sudoers.d/cephd
+</code></pre>
+
+<p>将不同 Node 上面的 ssh public key 相互拷贝到 <code>~/.ssh_authorized_keys</code> 文件中，且在 <code>~/.ssh_config</code> 中配置好使用 cephd 账户登录到其他机器上面的捷径。如：</p>
+
+<pre><code>Host xr-service-mesh-lab
+   Hostname xr-service-mesh-lab
+   User cephd
+Host xr-service-mesh-lab1
+   Hostname xr-service-mesh-lab1
+   User cephd
+</code></pre>
+
+<p>如果你之前在当前集群安装过 ceph，可以运行如下命令清理：</p>
+
+<pre><code>ceph-deploy purge xr-service-mesh-lab xr-service-mesh-lab1
+ceph-deploy forgetkeys
+ceph-deploy purgedata xr-service-mesh-lab xr-service-mesh-lab1
+</code></pre>
+
+<p>在集群的任意节点中，选取一个作为 deploy node，以 cephd 账户登录。在该节点上执行</p>
+
+<pre><code class="language-ceph-deploy">
+将该节点同时作为 monitor 节点。执行了该命令之后，我们可以发现，在当前目录下会自动生成一些文件，这些文件是在之后的部署过程中会用到的。
+
+编辑 `ceph.conf`文件，在末尾添加几行内容：
+</code></pre>
+
+<p>osd pool default size = 2 (该参数可以根据自己搭建的 ceph 集群的 osd 节点的个数修改)
+osd max object name len = 256
+osd max object namespace len = 64</p>
+
+<pre><code>
+接下来，执行
+
+```ceph-deploy install xr-service-mesh-lab xr-service-mesh-lab1```
+
+命令，在两个节点上安装好部署 ceph 集群所需要的 binary。
+
+在 mon-node 上（如果你没有切换过节点操作的话，就是当前的 node，也是 deploy-node），进行初始化操作 
+
+```ceph-deploy mon create-initial```
+
+执行完毕后，会在当前目录下观察到很多以 .keyring 后缀结尾的文件。之后，可以运行
+
+ ```ps aux | grep ceph```
+ 
+ 命令，查看 ceph-mon 进程已经运行。
+
+截止目前，对于这个 ceph 集群，我们还有 osd 节点没有部署。osd 节点的部署分为两部分：prepare, activate
+
+### Prepare
+
+&gt; 执行这一步之前，最好是在 Node 上都挂载好了专用的数据盘，否则，只能是创建一个目录，使用「系统盘」的空间。笔者在部署的时候，在两个节点的_mnt目录下分别挂在了两块500G 的 数据盘，并且在这两块盘上分别创建了两个目录： /mnt/osd0 /mnt/osd1  
+
+在 deploy-node 上执行如下命令：`ceph-deploy osd prepare xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1`
+
+### Activate
+
+在 deploy-node 上执行如下命令：`ceph-deploy osd activate xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1`
+若发现如如下报错信息：
+
+</code></pre>
+
+<p>[WARNIN] 2016-11-04 14:25:40.325075 7fd1aa73f800 -1  ** ERROR: error creating empty object store in /mnt/osd0: (13) Permission denied</p>
+
+<pre><code>
+进一步查看 `/mnt/osd0`目录权限信息：
+
+</code></pre>
+
+<p>drwxr-sr-x 2 root root 4096 Nov  4 14:25 osd0</p>
+
+<pre><code>可以发现该目录的 user 和 group 都是 root，且除了创建者之外其余的 user 是没有 w 权限的，这也就解释了上面，创建目录因权限问题失败的现象。
+再次观察执行 activate 命令输出的日志，可以发现：
+
+</code></pre>
+
+<p>&hellip; &hellip;
+[xr-service-mesh-lab][WARNIN] got monmap epoch 1
+[xr-service-mesh-lab][WARNIN] command: Running command: /usr/bin/timeout 300 ceph-osd &ndash;cluster ceph &ndash;mkfs &ndash;mkkey -i 0 &ndash;monmap /mnt/osd0/activate.monmap &ndash;osd-data /mnt/osd0 &ndash;osd-journal /mnt/osd0/journal &ndash;osd-uuid 6def4f7f-4f37-43a5-8699-5c6ab608c89c &ndash;keyring /var/mnt/keyring &ndash;setuser cephd &ndash;setgroup cephd</p>
+
+<pre><code>我们在 Node 上启动 ceph-osd 进程使用的都是名为 cephd 的 user 和 group。所以，要处理这个问题，可以手动对 Node 上对应的目录使用`chown -R cephd:cephd &lt;dir&gt;`命令，更改目录权限。修复完成后可以重新执行 activate 命令，正常情况下会顺利通过。
+
+### Ceph rbd Cluster State
+
+ ceph 集群 activate 成功之后，可以在 deploy-node 上使用两个命令来查看集群的健康情况：
+
+</code></pre>
+
+<p>$ ceph osd tree</p>
+
+<p>ID WEIGHT  TYPE NAME                     UP/DOWN REWEIGHT PRIMARY-AFFINITY
+-1 0.49959 root default
+-2 0.01909     host xr-service-mesh-lab
+ 0 0.01909         osd.0                      up  1.00000          1.00000
+-3 0.48050     host xr-service-mesh-lab1
+ 1 0.48050         osd.1                      up  1.00000          1.00000</p>
+
+<p>$ ceps -s</p>
+
+<pre><code>cluster d38afe19-16bd-40f1-b1e4-4249471d656c
+ health HEALTH_OK
+ monmap e1: 1 mons at {xr-service-mesh-lab=172.20.6.29:6789/0}
+        election epoch 3, quorum 0 xr-service-mesh-lab
+ osdmap e10: 2 osds: 2 up, 2 in; 10 remapped pgs
+        flags sortbitwise,require_jewel_osds
+  pgmap v31: 64 pgs, 1 pools, 0 bytes data, 0 objects
+        11934 MB used, 473 GB / 511 GB avail
+              54 active+clean
+              10 active
+</code></pre>
+
+<pre><code>
+可以看到，两个 osd 节点目前都是正常的
+
+### Cooperate with kubernetes
+
+在部署了 ceph 集群之后，要想在 kubernetes 中通过 ceph 使用集群中的存储资源，还需要一个「桥梁」，它就是 Storage Class。Storage Class 究竟是什么，以及我们要如何构造一个 Storage Class。可以看下另外一篇文章，对 Storage Class 有一个基本的了解：[notion-of-pv-and-pvc](http://localhost:1313/posts/notion-of-pv-and-pvc/)。
+
+要想创建 ceph rbd 的 Storage Class，根据如下链接所给出的步骤操作即可：[https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd](https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd)
+
+### Create pod with pv on ceph
+
+在按照上面的步骤创建好了 ceph rbd 集群以及对应的 Storage Class 资源对象之后，就可以通过创建一个使用了存储资源的 Pod 来测试我们的 ceph rbd 集群是否工作正常。
+
+首先，我们创建一个 PVC，在 ceph rbd 集群上申请一定量的存储资源：
+
+</code></pre>
+
+<p>kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: claim1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: rbd
+  resources:
+    requests:
+      storage: 1Gi</p>
+
+<pre><code>
+其次，创建一个 Pod，并且通过挂载的方式，在容器内使用我们刚刚申请的存储资源：
+
+</code></pre>
+
+<p>kind: Pod
+apiVersion: v1
+metadata:
+  name: test-pod
+spec:
+  containers:
+  - name: test-pod
+    image: gcr.io/google_containers/busybox:1.24
+    command:
+    - &ldquo;/bin/sh&rdquo;
+    args:
+    - &ldquo;-c&rdquo;
+    - &ldquo;touch /mnt/SUCCESS &amp;&amp; exit 0 || exit 1&rdquo;
+    volumeMounts:
+    - name: pvc
+      mountPath: &ldquo;/mnt&rdquo;
+  restartPolicy: &ldquo;Never&rdquo;
+  volumes:
+  - name: pvc
+    persistentVolumeClaim:
+      claimName: claim1</p>
+
+<pre><code>
+最终，我们可以看到 PV 成功的被创建：
+
+</code></pre>
+
+<p>root@xr-service-mesh-lab:~/external-storage/ceph/rbd# kubectl -n xuran get pv pvc-556fbe5a-c074-11e8-a174-fa163eebca40 -o yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: ceph.com/rbd
+    rbdProvisionerIdentity: ceph.com/rbd
+  creationTimestamp: 2018-09-25T03:37:38Z
+  finalizers:
+  - kubernetes.io/pv-protection
+  name: pvc-556fbe5a-c074-11e8-a174-fa163eebca40
+  resourceVersion: &ldquo;2755796&rdquo;
+  selfLink: /api/v1/persistentvolumes/pvc-556fbe5a-c074-11e8-a174-fa163eebca40
+  uid: 59406bdb-c074-11e8-a174-fa163eebca40
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: claim1
+    namespace: xuran
+    resourceVersion: &ldquo;2755787&rdquo;
+    uid: 556fbe5a-c074-11e8-a174-fa163eebca40
+  persistentVolumeReclaimPolicy: Delete
+  rbd:
+    image: kubernetes-dynamic-pvc-59252351-c074-11e8-9c73-dab2986e8f3a
+    keyring: /etc/ceph/keyring
+    monitors:
+    - 172.20.6.29:6789
+    pool: kube
+    secretRef:
+      name: ceph-secret
+      namespace: kube-system
+    user: kube
+  storageClassName: rbd
+status:
+  phase: Bound</p>
+
+<pre><code>
+## 部署 ElasticSearch
+在部署 elasticsearch 的时候，我们将参考 elasticsearch Chart 中的编排文件：[https://github.com/helm/charts/tree/master/incubator/elasticsearch](https://github.com/helm/charts/tree/master/incubator/elasticsearch)。它将帮助我们搭建一个含有三个 master 节点，两个 client 节点	，两个 data 节点的 elasticsearch 集群。
+
+在部署之前，对于上述编排文件，唯一需要改正的就是 elasticsearch 依赖的 storageclass。对此，我们可以使用`helm template`命令，对 storageclass 的相关参数进行修改，并且最终导出到一个 yaml 文件中，方便我们后续部署.
+
+首先，我们需要下载相应的 chart 包，然后执行如下命令：
+
+</code></pre>
+
+<p>helm template elasticsearch &ndash;name jaeger-es &ndash;set cluster.name=tracing-es &ndash;set master.persistence.storageClass=ceph &ndash;set data.persistence.storageClass=ceph &gt; jaeger-es.yaml</p>
+
+<pre><code>
+**注意：persistence.storageClass 的值一定要和我们之前部署 ceph 时创建的 StorageClass 的 meta.name 的值相同**
+
+然后，我们可以执行 `kubectl create -f jaeger-es.yaml -n xxx`命令来部署 elasticsearch。
+
+## 部署 Jaeger
+在部署 Jaeger 的时候，我们参考：[GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes](https://github.com/jaegertracing/jaeger-kubernetes)。由于我们已经部署好了 elasticsearch，所以链接中关于存储中间件的内容我们可以不用关心。
+
+首先，我们需要创建一个 configMap：
+
+</code></pre>
+
+<p>kubectl create -f <a href="https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/production-elasticsearch/configmap.yml">https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/production-elasticsearch/configmap.yml</a></p>
+
+<pre><code>
+然后，开始部署 jaeger 相关的 component：
+
+</code></pre>
+
+<p>kubectl create -f <a href="https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/jaeger-production-template.yml">https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/jaeger-production-template.yml</a></p>
+
+<pre><code>
+Jaeger 部署成功之后，可以在相应的 ns 下发现一个名为 jaeger-query 的 service。
+
+</code></pre>
+
+<p>root@xr-service-mesh-lab:~/external-storage/ceph/rbd# kubectl -n istio-system get svc | grep jaeger
+jaeger-collector                    ClusterIP      10.103.47.166    <none>        14267/TCP,14268/TCP,9411/TCP                                                                                              5d
+jaeger-es-elasticsearch-client      ClusterIP      10.100.101.147   <none>        9200/TCP                                                                                                                  5d
+jaeger-es-elasticsearch-discovery   ClusterIP      None             <none>        9300/TCP                                                                                                                  5d
+jaeger-query                        LoadBalancer   10.105.139.8     <pending>     80:31624/TCP                                                                                                              5d</p>
+
+<pre><code>
+如果是在集群内部，我们是可以直接通过这个 service 的地址访问 jaeger 的查询页面的。但是由于我们现在想在集群外部访问，可选择的方案有如下几种：
+
+1. 修改这个 service 的 type 为 nodePort 并指定一个宿主机的端口。这样在集群外部就可以通过集群的`外网 IP：宿主机端口/path` 的形式访问 jaeger-query。请求的流量将从宿主机的端口转发至目的 Pod 对应的端口。
+2. 使用 ingress+ingress-controller 的形式。 ingress 写入转发规则，属于一个具有文本记录功能的资源对象。ingress-controller 会根据 ingress 中写入的规则，将请求的流量转发到目的 Pod 对应的端口上。
+
+**如果想了解更多关于 k8s 中部署的服务和「访问」相关的问题，可以看下这个链接：https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/**
+
+## 部署 ingress+nginx-ingress-controller
+首先，我们需要创建一个 Ingress：
+
+</code></pre>
+
+<p>apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tracing
+  namespace: istio-system
+spec:
+  rules:
+  - host: tracing.istio.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: jaeger-query
+          servicePort: 80</p>
+
+<pre><code>
+规则写的很清楚，当我们进行一次 host 为 tracing.istio.io，且 path 为根目录，端口为80的 http 请求的时候，流量就会被转发到同 ns 下的一个名为 jaeger-query 的 svc 上，最终，由这个 svc 将请求流量打向目的 Pod。
+
+有了 ingress 还不行，还需要一个 ingress-controller 加载上面的规则并且根据它转发请求流量：
+
+</code></pre>
+
+<p>kubectl apply -f <a href="https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml">https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml</a>
+```</p>
+
+<p>在本次部署中，笔者使用了 nginx-ingress-controller。本质上来说，nginx-controller 就是对 nginx 的一个封装。你可以这样理解 ingress 和 nginx-ingress-controller 之间的关系：ingress 写入一系列的路由规则，nginx-ingress-controller 中封装的 nginx 会加载这些规则，以实现对指定请求的流量控制。</p>
+
+<h2 id="访问-jaeger-query">访问 jaeger-query</h2>
+
+<p>此时，将你的 k8s 集群的公网 ip 和 tracing.istio.io 的 DNS解析映射关系写入你所在机器的 /etc/hosts 文件，然后就可以在浏览器通过访问 <a href="http://tracing.istio.io">http://tracing.istio.io</a> 看到 jaeger-query 的 UI 界面</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/jager-ui" alt="" /></p>
+
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/kubernetes/">Kubernetes</a>
+          <a href="http://littledriver.net/tags/servicemesh/">ServiceMesh</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/2018/10/14/head-first-sds-in-redis/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">Head First SDS in Redis</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/2018/09/26/head-first-of-tracing-system/">
+            <span class="next-text nav-default">Head First of Tracing System</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2018/09/26/how-to-deploy-jaeger-cluster/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>
