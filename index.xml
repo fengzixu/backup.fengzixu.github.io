@@ -625,13 +625,13 @@
 Warning：设计文档的对应的 k8s 版本为1.7&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;&lt;em&gt;Q: What is GC of Kuernetes ?&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;q-what-is-gc-of-kuernetes&#34;&gt;Q: What is GC of Kuernetes ?&lt;/h3&gt;
 
 &lt;p&gt;&lt;em&gt;A:&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;GC 是 Garbage Collector 的简称。从功能层面上来说，它和编程语言当中的「GC」 基本上是一样的。它清理 Kubernetes 中「符合特定条件」的 Resource Object。（在 k8s 中，你可以认为万物皆资源，很多逻辑的操作对象都是 Resource Object。）&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;Q: What are dependent mechanisms to clear needless resource objects?&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;q-what-are-dependent-mechanisms-to-clear-needless-resource-objects&#34;&gt;Q: What are dependent mechanisms to clear needless resource objects?&lt;/h3&gt;
 
 &lt;p&gt;&lt;em&gt;A:&lt;/em&gt;&lt;/p&gt;
 
@@ -702,7 +702,7 @@ Warning：设计文档的对应的 k8s 版本为1.7&lt;/p&gt;
 
 &lt;p&gt;所以，k8s 是通过 &lt;code&gt;Garbage Collector&lt;/code&gt; 和 &lt;code&gt;ownerReference&lt;/code&gt; 一起配合实现了「垃圾回收」的功能。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;Q: What is the relationship like ?(owner-dependent)&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&#34;q-what-is-the-relationship-like-owner-dependent&#34;&gt;Q: What is the relationship like ?(owner-dependent)&lt;/h3&gt;
 
 &lt;p&gt;&lt;strong&gt;A:&lt;/strong&gt;&lt;/p&gt;
 
@@ -877,7 +877,7 @@ root@xr-service-mesh-lab:~/istio-1.0.2#&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/ta
 
 &lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/relationship&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;Q: What is the working mechanism of Garbage Collector?&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;q-what-is-the-working-mechanism-of-garbage-collector&#34;&gt;Q: What is the working mechanism of Garbage Collector?&lt;/h3&gt;
 
 &lt;p&gt;&lt;em&gt;A:&lt;/em&gt;&lt;/p&gt;
 
@@ -937,7 +937,7 @@ root@xr-service-mesh-lab:~/istio-1.0.2#&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/ta
 
 &lt;p&gt;在有了 Propagator 的加入之后，我们完全可以仅在 GC 开始运行的时候，让 Scanner 扫描一下系统中所有的 Object，然后将这些信息传递给 Propagator 和 Dirty Queue。只要 DAG 一建立起来之后，那么 Scanner 其实就没有再工作的必要了。「事件驱动」的机制提供了一种增量的方式让 GC 来监控 k8s 集群内部的资源对象变化情况。&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;Q: How can I delete the owner and reserve dependents ?&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;q-how-can-i-delete-the-owner-and-reserve-dependents&#34;&gt;Q: How can I delete the owner and reserve dependents ?&lt;/h3&gt;
 
 &lt;p&gt;&lt;em&gt;A:&lt;/em&gt;&lt;/p&gt;
 
@@ -995,7 +995,7 @@ root@xr-service-mesh-lab:~/istio-1.0.2#&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/ta
 
 &lt;p&gt;但是仔细想一下，这种「互斥」保护机制的实现方式，看起来是借助了一个「锁变量」(meta.DeletionTimestamp)的帮助。不过，我们并不需要担心这个字段的「竞争」问题，因为能修改它的操作，只有「删除」操作，而删除操作是肯定会发生在 orphan finalizer 执行之前的。也就是说，当 orphan finalizer 执行的时候，这个值早就被设置进去了。 &lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/7f23a743e8c23ac6489340bbb34fa6f1d392db9d/pkg/controller/replicaset/replica_set.go#L644&#34;&gt;kubernetes/replica_set.go at 7f23a743e8c23ac6489340bbb34fa6f1d392db9d · kubernetes/kubernetes · GitHub&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;Q: How Kubernetes defines delete operation of resource object?&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;q-how-kubernetes-defines-delete-operation-of-resource-object&#34;&gt;Q: How Kubernetes defines delete operation of resource object?&lt;/h3&gt;
 
 &lt;p&gt;&lt;em&gt;A:&lt;/em&gt;&lt;/p&gt;
 
@@ -1123,7 +1123,7 @@ const (
 
 &lt;p&gt;Background 模式的级联删除不会因 dependent 对象而影响 owner 对象的删除操作。当我们发送给 API-Server 删除一个 owner 身份的对象的请求之后，这个资源对象会立即被删除。它「管辖」的 dependent 对象会以「静默」的方式删除。&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;Q: What problems GC handles in k8s?&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;q-what-problems-gc-handles-in-k8s&#34;&gt;Q: What problems GC handles in k8s?&lt;/h3&gt;
 
 &lt;p&gt;&lt;em&gt;A:&lt;/em&gt;&lt;/p&gt;
 
