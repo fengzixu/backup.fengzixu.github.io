@@ -6,10 +6,19 @@
     <description>Recent content in Linux on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 26 Oct 2018 10:13:21 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 17 Nov 2018 17:17:44 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Head First CGroup</title>
+      <link>http://littledriver.net/post/2018/11/17/head-first-cgroup/</link>
+      <pubDate>Sat, 17 Nov 2018 17:17:44 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/17/head-first-cgroup/</guid>
+      <description>Docker 的资源隔离机制——CGroup 为什么需要 CGroup Linux Namespace 为容器（进程）提供了环境上的隔离，它的行为类似 chroot 这个命令，将某个用户jail 到一个特定的环境</description>
+    </item>
     
     <item>
       <title>Head First AUFS and Docker Image</title>
