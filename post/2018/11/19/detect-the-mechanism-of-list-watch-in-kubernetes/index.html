@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-11-19T23:51:51&#43;08:00" />
 <meta itemprop="dateModified" content="2018-11-19T23:51:51&#43;08:00" />
-<meta itemprop="wordCount" content="3361">
+<meta itemprop="wordCount" content="3333">
 
 
 
@@ -341,9 +341,7 @@
 
 <p>逆向的想一下这个问题， k8s 的实现者肯定是考虑到了并且解决了这个问题。那我们也来思考一下：</p>
 
-<p>目前看来，API Server 只能保证发送消息的顺序，而目的组件在处理消息的时候又没有对新旧 ResourceVersion 做对比。那么处理上述所说风险的唯一可行的位置就是中间的通信链路。而之前也提到过，通信双方使用了 HTTP Streaming 的协议。看起来大概率是协议本身有一些特性保证了传输报文的顺序性。</p>
-
-<p>通过阅读  HTTP RFC 的文档可知，HTTP 协议本身没有保存成对的请求和响应之间的标识。也就是说没人来维护请求和响应的对应关系。但是它保证了服务端返回响应的顺序一定是和请求的顺序一致的: <a href="http://svn.tools.ietf.org/svn/wg/httpbis/specs/rfc7230.html#associating.response.to.request">RFC 7230 - Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing</a>。 那也就是说，其实我们上面假想的那个问题是不存在的。</p>
+<p>目前看来，API Server 只能保证发送消息的顺序，而目的组件在处理消息的时候又没有对新旧 ResourceVersion 做对比。那么处理上述所说风险的唯一可行的位置就是中间的通信链路。由于 HTTP Streaming 在传输层依赖的是 TCP 协议。而 TCP 协议本身就保证的报文传递的顺序性：发送方会按照报文的顺序等待相应的 ACK 报文，否则会启动超时重传机制。而接收方也会将接收到的报文先存于缓冲区中，按顺序进行消费。如果发现接下来要消费的报文没有按顺序到达，可能会启用快重传机制，不断的给发送房发送上一个顺序到达报文的 ACK 报文。</p>
 
 <h3 id="如何保证可靠性">如何保证可靠性？</h3>
 
