@@ -6,10 +6,19 @@
     <description>Recent content in Posts on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 17 Nov 2018 17:17:44 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 19 Nov 2018 23:51:51 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect the mechanism of list-watch in Kubernetes</title>
+      <link>http://littledriver.net/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/</link>
+      <pubDate>Mon, 19 Nov 2018 23:51:51 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/</guid>
+      <description>先来看一个小例子 一个 Kubernetes 的集群的架构通常如下图所示： 当一个用户通过kubectl命令行想要创建一个 Pod 数量为3的 Deployment 的资源对象的时候。此请求会先通</description>
+    </item>
     
     <item>
       <title>Head First CGroup</title>

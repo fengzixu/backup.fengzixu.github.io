@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-11-17T17:17:44&#43;08:00" />
 <meta itemprop="dateModified" content="2018-11-17T17:17:44&#43;08:00" />
-<meta itemprop="wordCount" content="1728">
+<meta itemprop="wordCount" content="1730">
 
 
 
@@ -247,7 +247,7 @@
 
 <p>Linux Namespace 为容器（进程）提供了环境上的隔离，它的行为类似 chroot 这个命令，将某个用户jail 到一个特定的环境下，与外界隔离。但是在之前介绍 Namespace 的文章中我们也提到过，虽然 Namespace 提供的隔离机制有很多，但实际上我们操作的一些资源仍然是全局的，并且基本上是没有什么限制的，如：内存，CPU，硬盘等。一些在已经「隔离」了的进程中做的操作还是会影响到其他进程的。</p>
 
-<p>所以，Linux 在内核中以文件系统的形式为我们实现了一种资源隔离的机制：Linux CGroup，位于 _sys_fs/cgroup 目录 。它用来限制，控制一个进程群组的资源。工作方式类似于：先对计算机的某个资源设置了一些限制规则，如只能使用 CPU 的20%。然后，如果我们想一些进程去遵守这个使用 CPU 资源的限制的话，就将它加入到这个规则所绑定的进程组中，之后，相应的限制就会对其生效。</p>
+<p>所以，Linux 在内核中以文件系统的形式为我们实现了一种资源隔离的机制：Linux CGroup，位于 /sys/fs/cgroup 目录 。它用来限制，控制一个进程群组的资源。工作方式类似于：先对计算机的某个资源设置了一些限制规则，如只能使用 CPU 的20%。然后，如果我们想一些进程去遵守这个使用 CPU 资源的限制的话，就将它加入到这个规则所绑定的进程组中，之后，相应的限制就会对其生效。</p>
 
 <p>总的来说，使用 CGroup，可以以进程组为单位，对其使用的操作系统的资源做更精细的控制。</p>
 
@@ -294,10 +294,10 @@ dr-xr-xr-x  4 root root   0 10月 24 19:33 devices/
 dr-xr-xr-x  2 root root   0 10月 24 19:33 freezer/
 dr-xr-xr-x  2 root root   0 10月 24 19:33 hugetlb/
 dr-xr-xr-x  4 root root   0 10月 24 19:33 memory/
-lrwxrwxrwx  1 root root  16 10月 24 14:35 net_cls -&gt; net_cls,net_prio/
-dr-xr-xr-x  2 root root   0 10月 24 19:33 net_cls,net_prio/
-lrwxrwxrwx  1 root root  16 10月 24 14:35 net_prio -&gt; net_cls,net_prio/
-dr-xr-xr-x  2 root root   0 10月 24 19:33 perf_event/
+lrwxrwxrwx  1 root root  16 10月 24 14:35 net/cls -&gt; net/cls,net/prio/
+dr-xr-xr-x  2 root root   0 10月 24 19:33 net/cls,net/prio/
+lrwxrwxrwx  1 root root  16 10月 24 14:35 net/prio -&gt; net/cls,net/prio/
+dr-xr-xr-x  2 root root   0 10月 24 19:33 perf/event/
 dr-xr-xr-x  4 root root   0 10月 24 19:33 pids/
 dr-xr-xr-x  2 root root   0 10月 24 19:33 rdma/
 dr-xr-xr-x  5 root root   0 10月 24 19:33 systemd/
@@ -332,7 +332,7 @@ dr-xr-xr-x  5 root root   0 10月 24 19:33 unified/</pre></td></tr></table>
 <p>现在，我们准备继续改造一下这个小程序：</p>
 
 <ol>
-<li>父进程启动后且创建子进程之前在 _sys_fs_cgroup_cpu 目录下再新建一个目录，作为一个我们自定义的进程组。并且对这个进程组使用的 CPU 资源写入一个限制规则：只能使用 CPU 的50%</li>
+<li>父进程启动后且创建子进程之前在 /sys/fs/cgroup/cpu 目录下再新建一个目录，作为一个我们自定义的进程组。并且对这个进程组使用的 CPU 资源写入一个限制规则：只能使用 CPU 的50%</li>
 <li>创建一个子进程并将其加入到我们已经创建好的进程组中，然后执行「死循环」逻辑</li>
 </ol>
 <div class="highlight"><div class="chroma">
@@ -435,7 +435,7 @@ dr-xr-xr-x  5 root root   0 10月 24 19:33 unified/</pre></td></tr></table>
 
 <h3 id="子系统">子系统</h3>
 
-<p>在 CGroup 中，有很多子系统。一个子系统就代表一个资源控制器。_sys_fs<em>cgroup</em> 目录下的项目就是目前操作系统提供的全部子系统。</p>
+<p>在 CGroup 中，有很多子系统。一个子系统就代表一个资源控制器。/sys/fs/cgroup/ 目录下的项目就是目前操作系统提供的全部子系统。</p>
 
 <h3 id="控制组-control-group">控制组 (Control Group)</h3>
 
@@ -467,6 +467,19 @@ dr-xr-xr-x  5 root root   0 10月 24 19:33 unified/</pre></td></tr></table>
       
       <nav class="post-nav">
         
+          <a class="prev" href="/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">Detect the mechanism of list-watch in Kubernetes</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
         
           <a class="next" href="/post/2018/11/16/detect-redis-config-file/">
             <span class="next-text nav-default">Detect Redis Config File</span>

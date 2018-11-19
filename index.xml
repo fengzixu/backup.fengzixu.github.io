@@ -6,10 +6,136 @@
     <description>Recent content in Home on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 17 Nov 2018 17:17:44 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 19 Nov 2018 23:51:51 +0800</lastBuildDate>
     
         <atom:link href="http://littledriver.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect the mechanism of list-watch in Kubernetes</title>
+      <link>http://littledriver.net/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/</link>
+      <pubDate>Mon, 19 Nov 2018 23:51:51 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/</guid>
+      
+        <description>
+
+&lt;h2 id=&#34;先来看一个小例子&#34;&gt;先来看一个小例子&lt;/h2&gt;
+
+&lt;p&gt;一个 Kubernetes 的集群的架构通常如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/EAE14BFE-CD40-444E-A2E6-FBE8178F2F8E.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;当一个用户通过&lt;code&gt;kubectl&lt;/code&gt;命令行想要创建一个 Pod 数量为3的 Deployment 的资源对象的时候。此请求会先通过 HTTP 协议发送到 API Server。随后，API Server 会将此资源对象的相关信息持久化至 etcd 中。紧接着，ControllerManager 中负责管理  Deployment 的 Controller 将会通过&lt;code&gt;List-Watch&lt;/code&gt; 机制感知到目前有一个 Deployment 的资源需要被创建，它会通过一段逻辑来处理这个「新增」的资源：创建一个 ReplicaSet。ReplicaSet 资源的创建请求在 Kubernetes 中被处理的方式和 Deployment 是一样的。最终，在 ReplicaSet Controller 中将会创建符合用户预期数量的 Pod。而 Pod 被创建的行为将会被 Scheduler 通过&lt;code&gt;List-Watch&lt;/code&gt; 感知到。在通过一定的调度策略选取好 Pod 要调度的 Node 之后，Kubelet 也将通过 &lt;code&gt;ListWatch&lt;/code&gt;机制感知到这一结果。最终，Kubelet 将会在相应的 Node 上为 Pod 创建符合预期数量的容器，并且把 Pod 最新的状态通过 API Server 写回至 etcd。&lt;/p&gt;
+
+&lt;p&gt;在了解了一个 Deployment 资源被创建的过程之后，再对比上面 k8s 的架构图。我们可以知道，粉色线标识的，基本就是&lt;code&gt;List-Watch&lt;/code&gt; 机制传递消息的过程。&lt;/p&gt;
+
+&lt;h2 id=&#34;对上述例子的思考&#34;&gt;对上述例子的思考&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;细心观察一下就会发现，整个 Kubernetes 集群中各个组件执行一些逻辑的依据都来源于&lt;code&gt;List-Watch&lt;/code&gt;机制传递过来的资源对象的信息。而这些信息基本上都存放在 etcd 中，依靠 API Server 所暴露的 HTTP 接口对外提供。&lt;/li&gt;
+&lt;li&gt;整个 Kubernetes 集群中的组件除了 etcd 之外均为无状态服务。这就预示着除了 etcd 之外，其他服务如果因为故障或者升级等出现短暂断开是完全不影响整个集群的正常工作的。&lt;/li&gt;
+&lt;li&gt;Kubernetes 的设计理念决定了它的各种行为依赖的是具体资源对象的状态信息，而不是某个用户传递至 API Server 的命令。&lt;/li&gt;
+&lt;li&gt;Kubernetes 作为一个由多个组件联合构成的一个分布式系统，对一致性的要求是「最终一致」。因为和资源对象相关的信息在不断被获取的同时也在不断被修改。整个过程中可能要有一些非预期的行为，但是只要最终某个操作的结果和正确的，对于 Kubernetes 来说就是可以接受的。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;kubernetes-的架构以及核心组件的职责&#34;&gt;Kubernetes 的架构以及核心组件的职责&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/E1D0F39B-0909-4E43-B78D-4604269036E3.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;etcd：集群中唯一有状态的服务，负责存储资源对象的信息&lt;/li&gt;
+&lt;li&gt;API Server：集群资源的访问入口。任何对资源对象的操作（内置，自定义）都需要通过它暴露出来的HTTP 接口&lt;/li&gt;
+&lt;li&gt;Scheduler：集群的调度器。通过一定的调度策略，为 Pod 选取符合条件的调度机器并将其调度到相应的机器上&lt;/li&gt;
+&lt;li&gt;Controller Manager： 集群资源控制器的集合。其内部包含了多个处理不同类型资源的 Controller。它们负责通过一定的逻辑将各个资源对象维护至用户期望的状态（desire state）。&lt;/li&gt;
+&lt;li&gt;Kubelet：集群中各节点的守护进程。负责管理其 Node 上对应的 Container 的生命周期&lt;/li&gt;
+&lt;li&gt;Container Runtime：集群底层依赖的容器运行时。负责管理容器镜像以及容器的运行&lt;/li&gt;
+&lt;li&gt;Kube-proxy：  负责管理集群内部的服务发现和负载均衡，给各个服务提供网络通信层面的支持&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;什么是-list-watch&#34;&gt;什么是 List-Watch？&lt;/h2&gt;
+
+&lt;p&gt;List-Watch 准确的说是 Kubernetes 集群内部的一种「异步消息传递机制」。任何集群内部资源对象的状态变化，都将通过这种机制传递给关心它的组件。如上面描述的关于创建 Deployment 资源对象的过程，scheduler，kubelet，controller 等组件都会通过 List-Watch 机制来监听整个创建过程中的变化。&lt;/p&gt;
+
+&lt;h2 id=&#34;一个好的-list-watch-机制需要解决哪些问题&#34;&gt;一个好的 List-Watch 机制需要解决哪些问题？&lt;/h2&gt;
+
+&lt;p&gt;一个好的「异步消息传递机制」，应该保证如下几个关键的性质：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;实时性：尤其是对于 Kubernetes 来说，集群中的各项操作都依赖于「资源对象的消息」。所以消息传递的实时性就显得尤为重要&lt;/li&gt;
+&lt;li&gt;顺序性：同一个资源对象的操作，很多时候都是互斥的且要遵守一定的顺序执行的。如 Pod 的删除和创建操作，明显不能先响应删除，再响应创建&lt;/li&gt;
+&lt;li&gt;可靠性：一旦某个组件在接收到「消息 」之后发生故障进行重启，那么这个消息需要按照一定的机制重传&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;如何保证高实时性&#34;&gt;如何保证高实时性？&lt;/h3&gt;
+
+&lt;p&gt;既然信息是通过 API Server 向外输出的，那么想更加实时的获取这部分信息就得减少除了真正通讯之外的操作的消耗。对于网络通信而言，我们很容易就想到一个办法：尽量减少链接的创建和销毁操作，保持一个长连接，一直等待着服务端数据。所以，在 Kubernetes 1.7 版本之后，使用 HTTP Streaming 协议与 API Server 建立链接，不断等待从 API Server 到来的数据。&lt;/p&gt;
+
+&lt;h3 id=&#34;如何保证顺序性&#34;&gt;如何保证顺序性？&lt;/h3&gt;
+
+&lt;p&gt;在分布式系统中，若想保证某一个操作或者资源的顺序性，最常见的办法就是加入「版本号」机制。即给那些需要保证顺序的资源添加一个 Version 字段。Version 从小到大依次递增，每当这个资源的信息被更新时，它的 Version 也就相应的+1。通常，一个系统中对于同一个资源可能有多个不同的版本。当目的组件想要 Watch 一个资源对象的信息的时候，可以带上之前本地缓存的资源对象的版本号。API Server 会按照递增的顺序进行传递。默认这个版本号从0开始递增。&lt;/p&gt;
+
+&lt;p&gt;在 Kubernetes 中，这个 Version 字段加在了资源对象的 meta 信息部分：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;	&lt;span class=&#34;c1&#34;&gt;// An opaque value that represents the internal version of this object that can
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// be used by clients to determine when objects have changed. May be used for optimistic
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// concurrency, change detection, and the watch operation on a resource or set of resources.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// Clients must treat these values as opaque and passed unmodified back to the server.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// They may only be valid for a particular resource or set of resources.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;//
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// Populated by the system.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// Read-only.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// Value must be treated as opaque by clients and .
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#concurrency-control-and-consistency
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// +optional
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;ResourceVersion&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt; &lt;span class=&#34;s&#34;&gt;`json:&amp;#34;resourceVersion,omitempty&amp;#34; protobuf:&amp;#34;bytes,6,opt,name=resourceVersion&amp;#34;`&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;这种「版本号机制」的正常运行，依赖于更新版本号的操作必须是原子的。而这部分操作应该由 etcd 来保证。&lt;/p&gt;
+
+&lt;h4 id=&#34;关于顺序性的一点小思考&#34;&gt;关于顺序性的一点小思考&lt;/h4&gt;
+
+&lt;p&gt;通过对「实时性」的了解，我们知道，在目的组件和 api server 之间是有一条长链接用于传输资源对象信息的。虽然我们通过 ResourceVersion 可以保证  API Server 向目的组件发送的消息是按照递增顺序的。但其实对于目的组件而言，我们貌似是无法保证消息的到达顺序的。并且，在我观察了 client-go 中关于&lt;code&gt;List-Watch&lt;/code&gt; 机制的代码逻辑之后，我发现 client-go 对于向缓存中更新这个最新的 ResourceVersion 之前并没有将新旧 Version 进行对比。那么，这里就有一个隐含的风险：长链接中有 1，2两个资源按照递增的顺序发出。但是当到达目的组件的时候，2先到达，1后到达。当这种情况发生的时候，ResourceVersion 是不是就有可能被错误的更新呢？&lt;/p&gt;
+
+&lt;p&gt;逆向的想一下这个问题， k8s 的实现者肯定是考虑到了并且解决了这个问题。那我们也来思考一下：&lt;/p&gt;
+
+&lt;p&gt;目前看来，API Server 只能保证发送消息的顺序，而目的组件在处理消息的时候又没有对新旧 ResourceVersion 做对比。那么处理上述所说风险的唯一可行的位置就是中间的通信链路。而之前也提到过，通信双方使用了 HTTP Streaming 的协议。看起来大概率是协议本身有一些特性保证了传输报文的顺序性。&lt;/p&gt;
+
+&lt;p&gt;通过阅读  HTTP RFC 的文档可知，HTTP 协议本身没有保存成对的请求和响应之间的标识。也就是说没人来维护请求和响应的对应关系。但是它保证了服务端返回响应的顺序一定是和请求的顺序一致的: &lt;a href=&#34;http://svn.tools.ietf.org/svn/wg/httpbis/specs/rfc7230.html#associating.response.to.request&#34;&gt;RFC 7230 - Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing&lt;/a&gt;。 那也就是说，其实我们上面假想的那个问题是不存在的。&lt;/p&gt;
+
+&lt;h3 id=&#34;如何保证可靠性&#34;&gt;如何保证可靠性？&lt;/h3&gt;
+
+&lt;p&gt;Kubernetes 不但提供了持续 Watch 资源对象信息这种增量获取的机制，还提供了一种 List 操作，即一次性获取集群中所有的符合条件的资源对象信息。这样一来，当目的组件第一次启动或者重启，甚至是 Watch 操作出错的时候，可以通过 List 操作统一的获取集群中相关的资源对象，刷新掉可能已经被污染的数据。&lt;/p&gt;
+
+&lt;h2 id=&#34;现有的-list-watch-机制有哪些弊端&#34;&gt;现有的 List-Watch 机制有哪些弊端？&lt;/h2&gt;
+
+&lt;p&gt;通过对 List-Watch 机制实现「消息传递的可靠性」的思路可知，当发生异常情况或客户端重启的时候，会调用 List 接口对 Kubernetes 集群内部所有的资源对象都扫描一次。这个操作是比较昂贵的，尤其是当集群内资源对象的数量达到一定量级的时候。所以，我们应当在日常的开发中尽量减少触发 List 接口。&lt;/p&gt;
+
+&lt;h2 id=&#34;关于-list-watch-机制中长连接的一点思考&#34;&gt;关于 List-Watch 机制中长连接的一点思考&lt;/h2&gt;
+
+&lt;p&gt;在 HTTP 1.1 版本中，每一个长连接都会占用一个单独的 TCP 链接。所以，当这个长连接断掉的时候，客户端和服务端是感知不到的。仅仅只是发现长时间没有数据。如果此时 TCP 打开了 keep-alive 功能，那么客户端或者服务端会间隔一定的时间向对方发送 keep-alive 报文来检测链接是否正常。如果对方多次都没有返回一个 ACK 报文的话，发送端会主动断开这个链接，并且重新建立一个新的链接。&lt;/p&gt;
+
+&lt;p&gt;在 HTTP2.0版本中，多个 HTTP 链接会共用一个 TCP 链接。这个链接上可能无时不刻都有数据在传递。此时，keep-alive 功能就不起作用了。但是，在连接异常的情况下，发送端（可能是客户端也可能是服务端）发送的报文可能一直得不到接收端的 ACK 报文。这就会持续引发发送端的「超时重传」机制。由于链接断开，即使发生重传也依然会失败。最终，发送端会因为达到最大的超时重传次数而重置掉当前的 TCP 链接。&lt;/p&gt;
+
+&lt;p&gt;List-Watch 机制为了减少链接创建和销毁的开销，使用了 HTTP Streaming 协议。客户端是不能确定一个准确的关闭连接的时间点的，因为它也不知道什么时候服务端会有数据过来。所以，关闭连接的任务一般都由服务端来发起。&lt;/p&gt;
+</description>
+      
+    </item>
     
     <item>
       <title>Head First CGroup</title>
@@ -26,7 +152,7 @@
 
 &lt;p&gt;Linux Namespace 为容器（进程）提供了环境上的隔离，它的行为类似 chroot 这个命令，将某个用户jail 到一个特定的环境下，与外界隔离。但是在之前介绍 Namespace 的文章中我们也提到过，虽然 Namespace 提供的隔离机制有很多，但实际上我们操作的一些资源仍然是全局的，并且基本上是没有什么限制的，如：内存，CPU，硬盘等。一些在已经「隔离」了的进程中做的操作还是会影响到其他进程的。&lt;/p&gt;
 
-&lt;p&gt;所以，Linux 在内核中以文件系统的形式为我们实现了一种资源隔离的机制：Linux CGroup，位于 _sys_fs/cgroup 目录 。它用来限制，控制一个进程群组的资源。工作方式类似于：先对计算机的某个资源设置了一些限制规则，如只能使用 CPU 的20%。然后，如果我们想一些进程去遵守这个使用 CPU 资源的限制的话，就将它加入到这个规则所绑定的进程组中，之后，相应的限制就会对其生效。&lt;/p&gt;
+&lt;p&gt;所以，Linux 在内核中以文件系统的形式为我们实现了一种资源隔离的机制：Linux CGroup，位于 /sys/fs/cgroup 目录 。它用来限制，控制一个进程群组的资源。工作方式类似于：先对计算机的某个资源设置了一些限制规则，如只能使用 CPU 的20%。然后，如果我们想一些进程去遵守这个使用 CPU 资源的限制的话，就将它加入到这个规则所绑定的进程组中，之后，相应的限制就会对其生效。&lt;/p&gt;
 
 &lt;p&gt;总的来说，使用 CGroup，可以以进程组为单位，对其使用的操作系统的资源做更精细的控制。&lt;/p&gt;
 
@@ -73,10 +199,10 @@ dr-xr-xr-x  4 root root   0 10月 24 19:33 devices/
 dr-xr-xr-x  2 root root   0 10月 24 19:33 freezer/
 dr-xr-xr-x  2 root root   0 10月 24 19:33 hugetlb/
 dr-xr-xr-x  4 root root   0 10月 24 19:33 memory/
-lrwxrwxrwx  1 root root  16 10月 24 14:35 net_cls -&amp;gt; net_cls,net_prio/
-dr-xr-xr-x  2 root root   0 10月 24 19:33 net_cls,net_prio/
-lrwxrwxrwx  1 root root  16 10月 24 14:35 net_prio -&amp;gt; net_cls,net_prio/
-dr-xr-xr-x  2 root root   0 10月 24 19:33 perf_event/
+lrwxrwxrwx  1 root root  16 10月 24 14:35 net/cls -&amp;gt; net/cls,net/prio/
+dr-xr-xr-x  2 root root   0 10月 24 19:33 net/cls,net/prio/
+lrwxrwxrwx  1 root root  16 10月 24 14:35 net/prio -&amp;gt; net/cls,net/prio/
+dr-xr-xr-x  2 root root   0 10月 24 19:33 perf/event/
 dr-xr-xr-x  4 root root   0 10月 24 19:33 pids/
 dr-xr-xr-x  2 root root   0 10月 24 19:33 rdma/
 dr-xr-xr-x  5 root root   0 10月 24 19:33 systemd/
@@ -111,7 +237,7 @@ dr-xr-xr-x  5 root root   0 10月 24 19:33 unified/&lt;/pre&gt;&lt;/td&gt;&lt;/t
 &lt;p&gt;现在，我们准备继续改造一下这个小程序：&lt;/p&gt;
 
 &lt;ol&gt;
-&lt;li&gt;父进程启动后且创建子进程之前在 _sys_fs_cgroup_cpu 目录下再新建一个目录，作为一个我们自定义的进程组。并且对这个进程组使用的 CPU 资源写入一个限制规则：只能使用 CPU 的50%&lt;/li&gt;
+&lt;li&gt;父进程启动后且创建子进程之前在 /sys/fs/cgroup/cpu 目录下再新建一个目录，作为一个我们自定义的进程组。并且对这个进程组使用的 CPU 资源写入一个限制规则：只能使用 CPU 的50%&lt;/li&gt;
 &lt;li&gt;创建一个子进程并将其加入到我们已经创建好的进程组中，然后执行「死循环」逻辑&lt;/li&gt;
 &lt;/ol&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -214,7 +340,7 @@ dr-xr-xr-x  5 root root   0 10月 24 19:33 unified/&lt;/pre&gt;&lt;/td&gt;&lt;/t
 
 &lt;h3 id=&#34;子系统&#34;&gt;子系统&lt;/h3&gt;
 
-&lt;p&gt;在 CGroup 中，有很多子系统。一个子系统就代表一个资源控制器。_sys_fs&lt;em&gt;cgroup&lt;/em&gt; 目录下的项目就是目前操作系统提供的全部子系统。&lt;/p&gt;
+&lt;p&gt;在 CGroup 中，有很多子系统。一个子系统就代表一个资源控制器。/sys/fs/cgroup/ 目录下的项目就是目前操作系统提供的全部子系统。&lt;/p&gt;
 
 &lt;h3 id=&#34;控制组-control-group&#34;&gt;控制组 (Control Group)&lt;/h3&gt;
 
