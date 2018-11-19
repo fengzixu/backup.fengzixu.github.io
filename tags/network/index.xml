@@ -1,23 +1,59 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>NetWork on LittleDriver</title>
+    <title>Network on LittleDriver</title>
     <link>http://littledriver.net/tags/network/</link>
-    <description>Recent content in NetWork on LittleDriver</description>
+    <description>Recent content in Network on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 16 Feb 2017 19:45:51 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 27 Nov 2017 08:41:36 +0000</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/network/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Https通信机制</title>
-      <link>http://littledriver.net/post/2017/02/16/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</link>
-      <pubDate>Thu, 16 Feb 2017 19:45:51 +0000</pubDate>
+      <title>TCP/IP 协议--UDP用户数据报协议</title>
+      <link>http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/</link>
+      <pubDate>Mon, 27 Nov 2017 08:41:36 +0000</pubDate>
       
-      <guid>http://littledriver.net/post/2017/02/16/https%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6/</guid>
-      <description>为何要使用加密通信 这个标题看起来似乎是一句废话，谁不想自己将要在互联网传递的信息是加密的呢？但是事实并不是这样。互联网中传递的信息类型有很多</description>
+      <guid>http://littledriver.net/post/2017/11/27/tcp-ip-%E5%8D%8F%E8%AE%AE-udp%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8A%A5%E5%8D%8F%E8%AE%AE/</guid>
+      <description>什么是 UDP 协议 UDP 是一个简单的面向数据报的传输协议，它处于传输层中。无论是 TCP 还是 UDP 都是有端口的概念的，端口一般又和 socket 联系在一起。所以说，基本上一</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议动态选路</title>
+      <link>http://littledriver.net/post/2017/11/18/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</link>
+      <pubDate>Sat, 18 Nov 2017 21:13:49 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/11/18/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8A%A8%E6%80%81%E9%80%89%E8%B7%AF/</guid>
+      <description>What is dynamic routing? 在之前的文章中，我们已经讲过静态选路的概念以及相应的行为。简单来说，静态选路，主要是路由表内容生成的方式是静态的，也就是选路策略，因</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议 IP 选路</title>
+      <link>http://littledriver.net/post/2017/11/09/tcp-ip-%E5%8D%8F%E8%AE%AE-ip-%E9%80%89%E8%B7%AF/</link>
+      <pubDate>Thu, 09 Nov 2017 22:41:48 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/11/09/tcp-ip-%E5%8D%8F%E8%AE%AE-ip-%E9%80%89%E8%B7%AF/</guid>
+      <description>IP 选路通常包含两个部分：选路策略和选路机制。我们平时常说的 IP 选路，大都都指的是一个 IP 数据报如何从路由表中找到一个合适的下一跳机器的 Ip 地址，这</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议 traceroute 程序(1)</title>
+      <link>http://littledriver.net/post/2017/11/07/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F1/</link>
+      <pubDate>Tue, 07 Nov 2017 23:04:36 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/11/07/tcp-ip-%E5%8D%8F%E8%AE%AE-traceroute-%E7%A8%8B%E5%BA%8F1/</guid>
+      <description>什么是 traceroute 程序 traceroute从字面意思上来看，他是一个有着追踪功能，并且可以查看具体追踪路径的这么一个程序。实际上它的功能的确也很类似，</description>
+    </item>
+    
+    <item>
+      <title>TCP/IP 协议卷一之 IP 网际协议初探</title>
+      <link>http://littledriver.net/post/2017/10/30/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</link>
+      <pubDate>Mon, 30 Oct 2017 22:09:54 +0000</pubDate>
+      
+      <guid>http://littledriver.net/post/2017/10/30/tcp-ip-%E5%8D%8F%E8%AE%AE%E5%8D%B7%E4%B8%80%E4%B9%8B-ip-%E7%BD%91%E9%99%85%E5%8D%8F%E8%AE%AE%E5%88%9D%E6%8E%A2/</guid>
+      <description>IP 数据报字段 IP 数据报长度（首部长度+数据长度)用一个16位的字段进行标识，最大数据报长度为65535，但是链路层都会对数据报进行分片处理。数</description>
     </item>
     
   </channel>
