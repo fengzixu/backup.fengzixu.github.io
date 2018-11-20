@@ -3,6 +3,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://littledriver.net/post/2018/11/21/%E5%86%99%E7%BB%99-pouch-%E4%B8%8E%E6%88%91%E7%83%AD%E6%81%8B%E7%9A%84%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/</loc>
+    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://littledriver.net/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/</loc>
     <lastmod>2018-11-19T23:51:51+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -486,7 +493,7 @@
   
   <url>
     <loc>http://littledriver.net/</loc>
-    <lastmod>2018-11-19T23:51:51+08:00</lastmod>
+    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -556,7 +563,14 @@
   
   <url>
     <loc>http://littledriver.net/post/</loc>
-    <lastmod>2018-11-19T23:51:51+08:00</lastmod>
+    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://littledriver.net/tags/pouch/</loc>
+    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -633,7 +647,14 @@
   
   <url>
     <loc>http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/</loc>
-    <lastmod>2018-11-19T23:51:51+08:00</lastmod>
+    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://littledriver.net/tags/%E5%BC%80%E6%BA%90%E8%B4%A1%E7%8C%AE/</loc>
+    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
