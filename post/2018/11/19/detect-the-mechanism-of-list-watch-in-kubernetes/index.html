@@ -284,6 +284,8 @@
 
 <p>List-Watch 准确的说是 Kubernetes 集群内部的一种「异步消息传递机制」。任何集群内部资源对象的状态变化，都将通过这种机制传递给关心它的组件。如上面描述的关于创建 Deployment 资源对象的过程，scheduler，kubelet，controller 等组件都会通过 List-Watch 机制来监听整个创建过程中的变化。</p>
 
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/listwatch.png" alt="" /></p>
+
 <h2 id="一个好的-list-watch-机制需要解决哪些问题">一个好的 List-Watch 机制需要解决哪些问题？</h2>
 
 <p>一个好的「异步消息传递机制」，应该保证如下几个关键的性质：</p>
