@@ -28,7 +28,7 @@
 
 &lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/list1&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;在之前讨论 Deployment 资源创建过程的时候，我们了解到Deployment 和 ReplicaSet 使用&lt;code&gt;List-Watch&lt;/code&gt;机制的方式是一样的。所以在本文我们省略掉对Deployment 资源对象的创建过程的分析，直接以 ReplicaSet 资源对象的创建作为分析的入口。&lt;/p&gt;
+&lt;p&gt;通过上面的时序图我们可以看到，在 Controller 和 API Server 交互之前，API Server 和 Kubectl 以及 etcd 还有一段交互的过程。这个过程对于整个 List-Watch 机制是非常重要的，因为它是 List-Watch 机制对外提供的数据的生产过程。所以，本文将对这一过程做出详细的分析。&lt;/p&gt;
 
 &lt;h2 id=&#34;api-server&#34;&gt;API Server&lt;/h2&gt;
 
