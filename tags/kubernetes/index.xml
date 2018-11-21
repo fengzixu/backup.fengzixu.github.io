@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>kubernetes on LittleDriver</title>
+    <title>Kubernetes on LittleDriver</title>
     <link>http://littledriver.net/tags/kubernetes/</link>
-    <description>Recent content in kubernetes on LittleDriver</description>
+    <description>Recent content in Kubernetes on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 15 Nov 2018 22:40:55 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 19 Nov 2018 23:51:51 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect the mechanism of list-watch in Kubernetes</title>
+      <link>http://littledriver.net/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/</link>
+      <pubDate>Mon, 19 Nov 2018 23:51:51 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/</guid>
+      <description>先来看一个小例子 一个 Kubernetes 的集群的架构通常如下图所示： 当一个用户通过kubectl命令行想要创建一个 Pod 数量为3的 Deployment 的资源对象的时候。此请求会先通</description>
+    </item>
     
     <item>
       <title>K8s GC Design Principle</title>
