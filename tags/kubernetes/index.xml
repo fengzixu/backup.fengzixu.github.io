@@ -6,10 +6,19 @@
     <description>Recent content in Kubernetes on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 19 Nov 2018 23:51:51 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 21 Nov 2018 13:13:45 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect the Source Code of List Watch Between API Server and Etcd</title>
+      <link>http://littledriver.net/post/2018/11/21/detect-the-source-code-of-list-watch-between-api-server-and-etcd/</link>
+      <pubDate>Wed, 21 Nov 2018 13:13:45 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/21/detect-the-source-code-of-list-watch-between-api-server-and-etcd/</guid>
+      <description>写在前面 在上一篇文章中，我们通过 Kubernetes 的架构图以及一个 Deployment 资源对象创建的过程大致了解了List-Watch机制在一个 Kubernetes 集群中所起的作用以及它所面临</description>
+    </item>
     
     <item>
       <title>Detect the mechanism of list-watch in Kubernetes</title>

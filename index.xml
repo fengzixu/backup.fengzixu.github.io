@@ -6,10 +6,342 @@
     <description>Recent content in Home on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 21 Nov 2018 01:57:23 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 21 Nov 2018 13:13:45 +0800</lastBuildDate>
     
         <atom:link href="http://littledriver.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect the Source Code of List Watch Between API Server and Etcd</title>
+      <link>http://littledriver.net/post/2018/11/21/detect-the-source-code-of-list-watch-between-api-server-and-etcd/</link>
+      <pubDate>Wed, 21 Nov 2018 13:13:45 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/21/detect-the-source-code-of-list-watch-between-api-server-and-etcd/</guid>
+      
+        <description>
+
+&lt;h2 id=&#34;写在前面&#34;&gt;写在前面&lt;/h2&gt;
+
+&lt;p&gt;在上一篇文章中，我们通过 Kubernetes 的架构图以及一个 Deployment 资源对象创建的过程大致了解了&lt;code&gt;List-Watch&lt;/code&gt;机制在一个 Kubernetes 集群中所起的作用以及它所面临的问题。本文我们将继续深入&lt;code&gt;List-Watch&lt;/code&gt;机制的实现原理，从源码的角度再次探索它其中的奥秘。&lt;/p&gt;
+
+&lt;h2 id=&#34;list-watch-机制时序图&#34;&gt;List-Watch 机制时序图&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/list1&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;在之前讨论 Deployment 资源创建过程的时候，我们了解到Deployment 和 ReplicaSet 使用&lt;code&gt;List-Watch&lt;/code&gt;机制的方式是一样的。所以在本文我们省略掉对Deployment 资源对象的创建过程的分析，直接以 ReplicaSet 资源对象的创建作为分析的入口。&lt;/p&gt;
+
+&lt;h2 id=&#34;api-server&#34;&gt;API Server&lt;/h2&gt;
+
+&lt;p&gt;一个资源创建的起点是从 API Server 提供的 HTTP API 开始的。这里之所以没有提到时序图中的 kubelet 是因为，除了使用 kubelet，我们还可以通过 client-go 或者直接发送 HTTP 请求的方式给 API Server 来创建资源。既然&lt;code&gt;List-Watch&lt;/code&gt;机制中消息的发送端为 API Server，那么它肯定就提供了相应的 List 和 Watch 的 HTTP。API。通过观察 API Server 中注册 HTTP API 的代码逻辑：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/master/pkg/endpoints/installer.go#L166&#34;&gt;apiserver/installer.go at master · kubernetes/apiserver · GitHub&lt;/a&gt;， 我们可以发现它通过「类型转换」构造了一个 Lister 对象还有一个 Watcher 对象：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;	&lt;span class=&#34;c1&#34;&gt;// what verbs are supported by the storage, used to know what verbs we support per path
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;creater&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isCreater&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Creater&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;namedCreater&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isNamedCreater&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;NamedCreater&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;lister&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isLister&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Lister&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;getter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isGetter&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Getter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;getterWithOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isGetterWithOptions&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;GetterWithOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;gracefulDeleter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isGracefulDeleter&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;GracefulDeleter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;collectionDeleter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isCollectionDeleter&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;CollectionDeleter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;updater&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isUpdater&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Updater&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;patcher&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isPatcher&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Patcher&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;watcher&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isWatcher&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Watcher&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;connecter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isConnecter&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Connecter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;storageMeta&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;isMetadata&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StorageMetadata&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;顺着 &lt;code&gt;registerResourceHandlers&lt;/code&gt;函数的逻辑往下看我们可以知道，无论是 Lister 还是 Watcher，都是通过一个叫做&lt;code&gt;restfulListResource&lt;/code&gt;的方法封装了一下暴露给外部使用的：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/master/pkg/endpoints/installer.go#L610&#34;&gt;apiserver/installer.go at master · kubernetes/apiserver · GitHub&lt;/a&gt;。而通过进一步观察这个函数的&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/master/pkg/endpoints/installer.go#L1022&#34;&gt;内部逻辑&lt;/a&gt;我们也可以看到，watcher 和 lister 最终在名为&lt;code&gt;ListResource&lt;/code&gt;的方法内执行其内部真正的逻辑。具体当一个 GET 请求过来调用的是 Watch 还是 List 接口，是通过请求当中的一个参数来确定的：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/endpoints/handlers/get.go#L234&#34;&gt;apiserver/get.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;假设目前的 HTTP 请求是 Watch。那么在&lt;code&gt;ListResource&lt;/code&gt; 的逻辑中就会走到&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/endpoints/handlers/get.go#L249&#34;&gt;apiserver/get.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub&lt;/a&gt; 这一步。它调用 Watcher 的 Watch 方法，创建了一个&lt;code&gt;Watch-Interface&lt;/code&gt;类型的对象。然后将其传递至 &lt;code&gt;serveWatch&lt;/code&gt;方法：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/8a1312795085bced3bc5d4553b97c450a79fc420/pkg/endpoints/handlers/watch.go#L66&#34;&gt;apiserver/watch.go at 8a1312795085bced3bc5d4553b97c450a79fc420 · kubernetes/apiserver · GitHub&lt;/a&gt;。通过观察 &lt;code&gt;serveWatch&lt;/code&gt;方法的内部逻辑可知，之前创建的&lt;code&gt;Watch-Interface&lt;/code&gt;的对象被塞入了 ServeHTTP中，然后利用这个对象内部一个用于传递「资源对象信息的 channel」中的消息来对外部的「Watch」 请求提供服务：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/8a1312795085bced3bc5d4553b97c450a79fc420/pkg/endpoints/handlers/watch.go#L195&#34;&gt;apiserver/watch.go at 8a1312795085bced3bc5d4553b97c450a79fc420 · kubernetes/apiserver · GitHub&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;到目前为止，通过对 API Server 关于&lt;code&gt;List-Watch&lt;/code&gt; 机制的源码梳理，我们基本可以确定，API Server 获取资源对象信息的逻辑主要是实现于&lt;code&gt;Watch-Interface&lt;/code&gt;类型的对象以及向其内部的channel 传递消息的发送端。而在上面的描述中，我们还可以梳理出一条&lt;code&gt;Watch-Interface&lt;/code&gt;类型的对象的创建链路：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/s2&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;既然 Watcher 对象是通过 Storage 对象进行转换而来的，那么就说明&lt;code&gt;watch.Interface&lt;/code&gt;中的方法大概率也是在 Storage 类型的对象中实现的。在&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/store.go#L1159&#34;&gt;apiserver/store.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub&lt;/a&gt; 文件中，我们看到了 Storage类型实现了List 和 Watch 方法，继续递归的跟进下面的逻辑发现，最终，在名为&lt;code&gt;WatchPredicate&lt;/code&gt;的函数中，调用了名为 Storage 成员（与上面说的 Storage 类型的对象不是一个，它只是 struct 中其中一个 filed）的 Watch 方法，返回了类型为&lt;code&gt;watch.Interface&lt;/code&gt; 的对象：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/store.go#L1182&#34;&gt;apiserver/store.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub&lt;/a&gt;。而这个名为 Storage 成员的类型为&lt;code&gt;DryRunnableStorage&lt;/code&gt;。通过查看 &lt;code&gt;DryRunnableStorage&lt;/code&gt;这个类型的定义可知，其内部包含了一个类型为&lt;code&gt;storage.Interface&lt;/code&gt;的对象，该 Interface 内部涵盖了 Watch 和 List 方法，这两个方法应该会被具体的某个资源实现，如 Pod， Deployment 等。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;WARNING: 读者阅读到这里想必有点头晕，因为逻辑嵌套的层数太多，并且很多方法和成员的名字都是相同的。所以这里建议大家根据我贴出的源码的链接，按照 blog 中叙述的顺序画一个流程图，会看的更清楚。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;全局搜索一下创建&lt;code&gt;Store&lt;/code&gt;类型对象的地方可知，几乎存在于每一个资源的目录下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/s1&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;我们挑选 Deployment 资源对象的创建&lt;code&gt;Store&lt;/code&gt;类型对象的逻辑：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;c1&#34;&gt;// NewREST returns a RESTStorage object that will work against deployments.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;NewREST&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;optsGetter&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;generic&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RESTOptionsGetter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;REST&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StatusREST&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RollbackREST&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;store&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;genericregistry&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Store&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;NewFunc&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;                  &lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;runtime&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Object&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;extensions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Deployment&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{}&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;NewListFunc&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;              &lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;runtime&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Object&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;extensions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;DeploymentList&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{}&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;DefaultQualifiedResource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;extensions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Resource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;deployments&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt;
+
+		&lt;span class=&#34;nx&#34;&gt;CreateStrategy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;deployment&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Strategy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;UpdateStrategy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;deployment&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Strategy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;DeleteStrategy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;deployment&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Strategy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+
+		&lt;span class=&#34;nx&#34;&gt;TableConvertor&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;printerstorage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;TableConvertor&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;TablePrinter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;printers&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;NewTablePrinter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;().&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;With&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;printersinternal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;AddHandlers&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)},&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;options&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;generic&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StoreOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RESTOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;optsGetter&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;store&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;CompleteWithOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;);&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nb&#34;&gt;panic&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// TODO: Propagate error up
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+	&lt;span class=&#34;nx&#34;&gt;statusStore&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;store&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;statusStore&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;UpdateStrategy&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;deployment&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StatusStrategy&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;REST&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;store&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;all&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}},&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StatusREST&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;store&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;statusStore&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RollbackREST&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;store&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;store&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;可以看出在构造&lt;code&gt;genericregistry.Store&lt;/code&gt;对象的时候，没有有指定一个名为 Storage 的成员。在执行 return 语句之前仅仅只调用了一个&lt;code&gt;store.CompleteWithOptions&lt;/code&gt;方法。跟进去之后，豁然开朗：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/store.go#L1383&#34;&gt;apiserver/store.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub&lt;/a&gt;。名为 Storage 成员内部包含的类型为&lt;code&gt;storage.Interface&lt;/code&gt;的对象最终是被一个名为&lt;code&gt;Decorator&lt;/code&gt;的方法创建的。而这个方法和&lt;code&gt;opts&lt;/code&gt;这个变量有关。顺着这条线向上查找，我们最终发现，在 Deployment 代码逻辑中有一个名为 NewStorage 的函数：&lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/master/pkg/registry/apps/deployment/storage/storage.go#L56&#34;&gt;kubernetes/storage.go at master · kubernetes/kubernetes · GitHub&lt;/a&gt;。&lt;code&gt;opts&lt;/code&gt; 这个变量的值来自于这个函数的参数&lt;code&gt;optsGetter&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;在向上寻找 opts 参数的过程中我们发现这条链路是比较长的，也是比较绕的，很难清晰的去定位到它第一次被创建的地方。所以，我们换一种思路：因为看到 opts 这个参数的类型为&lt;code&gt;generic.RESTOptionsGetter&lt;/code&gt;，所以我们在全局可以搜一下，哪里有对这个类型变量的赋值操作并且和 Storage 有关的。最后，我们定位到了这里：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/c53cd379d4b8e8acbe23a7a3b40c949687ba9926/pkg/server/options/etcd.go#L186&#34;&gt;apiserver/etcd.go at c53cd379d4b8e8acbe23a7a3b40c949687ba9926 · kubernetes/apiserver · GitHub&lt;/a&gt;。这是一段和 etcd 配置有关的逻辑。这段逻辑在 API Server 启动构造其使用的配置的逻辑中有调用过：&lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/b1a52a38e9e3651680655416cc7afbec5e119854/cmd/kube-apiserver/app/server.go#L424&#34;&gt;kubernetes/server.go at b1a52a38e9e3651680655416cc7afbec5e119854 · kubernetes/kubernetes · GitHub&lt;/a&gt;。&lt;code&gt;buildGenericConfig&lt;/code&gt;函数构造的通用配置，最终赋值给了启动 Master 节点所需要的配置集合：&lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/b1a52a38e9e3651680655416cc7afbec5e119854/cmd/kube-apiserver/app/server.go#L318&#34;&gt;kubernetes/server.go at b1a52a38e9e3651680655416cc7afbec5e119854 · kubernetes/kubernetes · GitHub&lt;/a&gt;。而这部分配置最终被用于创建 API Server： &lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/b1a52a38e9e3651680655416cc7afbec5e119854/cmd/kube-apiserver/app/server.go#L175&#34;&gt;kubernetes/server.go at b1a52a38e9e3651680655416cc7afbec5e119854 · kubernetes/kubernetes · GitHub&lt;/a&gt;。在 &lt;code&gt;CreateKubeAPIServer&lt;/code&gt;函数内，我们可以看到，通过参数传递进来的 master.Config 最终调用了一个名为&lt;code&gt;Complete&lt;/code&gt;的函数处理了一下相关配置，并且通过它的返回值调用了一个 New 函数。而在 New 函数的内部，也通过调用一个名为&lt;code&gt;Install&lt;/code&gt;的函数，将&lt;code&gt;restOptionsGetter&lt;/code&gt;参数传了进去。&lt;/p&gt;
+
+&lt;p&gt;此时，我们再次返回到Deployment 代码逻辑中的 NewStorage 函数被调用的地方：&lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/7f23a743e8c23ac6489340bbb34fa6f1d392db9d/pkg/registry/apps/rest/storage_apps.go#L60&#34;&gt;kubernetes/storage_apps.go at 7f23a743e8c23ac6489340bbb34fa6f1d392db9d · kubernetes/kubernetes · GitHub&lt;/a&gt;，随机选取一个版本的函数&lt;code&gt;v1beta1Storage&lt;/code&gt;，它在当前文件的一个名为&lt;code&gt;NewRestStorage&lt;/code&gt;函数中被调用：&lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/7f23a743e8c23ac6489340bbb34fa6f1d392db9d/pkg/registry/apps/rest/storage_apps.go#L38。随后，我们按照这条调用链路再继续向上寻找`restOptionsGetter`参数被赋值位置。随即定位到了[kubernetes/master.go&#34;&gt;https://github.com/kubernetes/kubernetes/blob/7f23a743e8c23ac6489340bbb34fa6f1d392db9d/pkg/registry/apps/rest/storage_apps.go#L38。随后，我们按照这条调用链路再继续向上寻找`restOptionsGetter`参数被赋值位置。随即定位到了[kubernetes/master.go&lt;/a&gt; at ec2e767e59395376fa191d7c56a74f53936b7653 · kubernetes/kubernetes · GitHub](&lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/ec2e767e59395376fa191d7c56a74f53936b7653/pkg/master/master.go#L401)中的&#34;&gt;https://github.com/kubernetes/kubernetes/blob/ec2e767e59395376fa191d7c56a74f53936b7653/pkg/master/master.go#L401)中的&lt;/a&gt; &lt;code&gt;InstallAPIs&lt;/code&gt;函数。&lt;/p&gt;
+
+&lt;p&gt;Bingo，此时我们可以将调用&lt;code&gt;InstallAPIs&lt;/code&gt;函数的逻辑作为桥梁，将我们上面整个的查找流程链接起来。所以，当前我们已经可以确认的是，我们之前说的&lt;code&gt;opts&lt;/code&gt;变量已经找到了出处。但实际上，在创建 Deployment storage 对象时，名为 Storage 成员内部包含的类型为&lt;code&gt;storage.Interface&lt;/code&gt;的对象最终是被一个名为&lt;code&gt;Decorator&lt;/code&gt;的方法创建的，这个&lt;code&gt;Decorator&lt;/code&gt;方法来自于&lt;code&gt;opts&lt;/code&gt;变量。再次查看&lt;code&gt;Decorator&lt;/code&gt;方法的定义可知，它被包含在一个 Interface 内部的函数的返回值中，而这个函数正是创建&lt;code&gt;opts&lt;/code&gt;这个变量所在的类必须要实现的：&lt;code&gt;GetRESTOptions&lt;/code&gt;。所以，我们需要再次回到和 etcd 配置有关的逻辑：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;32
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;33
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;34
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;35
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;36
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;37
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;38
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;39
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;40
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;41
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;EtcdOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;ApplyWithStorageFactoryTo&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;factory&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;serverstorage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StorageFactory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;server&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Config&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;error&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;addEtcdHealthEndpoint&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;);&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RESTOptionsGetter&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StorageFactoryRestOptionsFactory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;StorageFactory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;factory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;StorageFactoryRestOptionsFactory&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;Options&lt;/span&gt;        &lt;span class=&#34;nx&#34;&gt;EtcdOptions&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;StorageFactory&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;serverstorage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StorageFactory&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StorageFactoryRestOptionsFactory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;GetRESTOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;schema&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;GroupResource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;generic&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RESTOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;error&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;storageConfig&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StorageFactory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;NewConfig&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;resource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;generic&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RESTOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{},&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Errorf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;unable to find storage destination for %v, due to %v&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;resource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Error&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;())&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+	&lt;span class=&#34;nx&#34;&gt;ret&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;generic&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RESTOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;StorageConfig&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;           &lt;span class=&#34;nx&#34;&gt;storageConfig&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;Decorator&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;               &lt;span class=&#34;nx&#34;&gt;generic&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;UndecoratedStorage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;DeleteCollectionWorkers&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;DeleteCollectionWorkers&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;EnableGarbageCollection&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;EnableGarbageCollection&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;ResourcePrefix&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;          &lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StorageFactory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;ResourcePrefix&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;resource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;CountMetricPollPeriod&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;   &lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;StorageConfig&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;CountMetricPollPeriod&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;EnableWatchCache&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;sizes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;ParseWatchCacheSizes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;WatchCacheSizes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+			&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;generic&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;RESTOptions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{},&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;
+		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;cacheSize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ok&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;sizes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;resource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;!&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;ok&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+			&lt;span class=&#34;nx&#34;&gt;cacheSize&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Options&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;DefaultWatchCacheSize&lt;/span&gt;
+		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;ret&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Decorator&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;genericregistry&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;StorageWithCacher&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;cacheSize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+	&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ret&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;可以看到&lt;code&gt;GetRESTOptions&lt;/code&gt;最终被&lt;code&gt;StorageFactoryRestOptionsFactory&lt;/code&gt;类实现。查看&lt;code&gt;genericregistry.StorageWithCacher&lt;/code&gt;的定义，一路跟下去，就会发现，我们最终是创建了一个名为&lt;code&gt;cacher&lt;/code&gt;类型为&lt;code&gt;storage.Interface&lt;/code&gt;的变量，它将作为 Decorator 的值：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/storage_factory.go#L65&#34;&gt;apiserver/storage_factory.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub&lt;/a&gt;。如果再深入至&lt;code&gt;cacher&lt;/code&gt;创建的逻辑，可以看到，它是实现了&lt;code&gt;storage.Interface&lt;/code&gt;的全部接口的：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L160&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;还记得我们当时在阅读API Server中关于&lt;code&gt;ListResource&lt;/code&gt;方法的时候，发现最终通过 ServeHTTP 函数对外提供服务的是一个&lt;code&gt;storage.Interface&lt;/code&gt;类型对象调用了其 Watch 接口的返回值，即一个&lt;code&gt;Watch-Interface&lt;/code&gt;类型的对象。在&lt;code&gt;cacher&lt;/code&gt;的实现部分，我们同样可以找到一个这样的函数：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L292&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;，其内部将会为我们创建一个类型为&lt;code&gt;cacheWatcher&lt;/code&gt;的对象&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L794&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。这个对象内部有一个非常重要的成员：&lt;code&gt;result:    make(chan watch.Event, chanSize)&lt;/code&gt;，它是被一个名为&lt;code&gt;ResultChan&lt;/code&gt;的函数暴露给外部使用的：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;c1&#34;&gt;// Implements watch.Interface.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;cacheWatcher&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;ResultChan&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;chan&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;watch&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Event&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;result&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;这个函数相信你看到后会非常非常的熟悉，因为我们在ServeHTTP 函数中看到过它曾经被&lt;code&gt;watcher.Watch()&lt;/code&gt;的返回值调用：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/8a1312795085bced3bc5d4553b97c450a79fc420/pkg/endpoints/handlers/watch.go#L195&#34;&gt;apiserver/watch.go at 8a1312795085bced3bc5d4553b97c450a79fc420 · kubernetes/apiserver · GitHub&lt;/a&gt;。&lt;code&gt;newCacheWatcher&lt;/code&gt;除了返回一个&lt;code&gt;cacheWatcher&lt;/code&gt;类型的对象之外，还会启动一个goroutine, 执行一个名为&lt;code&gt;process&lt;/code&gt;的函数：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L923&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。当它从一个名为&lt;code&gt;input&lt;/code&gt;的 channel 中监听到有资源对象的信息发送过来的时候，就会通过&lt;code&gt;sendWatchCacheEvent&lt;/code&gt;函数，将最新的 event 通过刚才提到的 Result Channel 发送给客户端。并且由于客户端和 API Server 之间是一个长连接，所以这个循环会一直执行。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;如果读者阅读过前一篇过于 List-Watch 机制原理性的文章就可以知道，List-Watch 机制会通过 ResourceVersion 来保证发送报文的顺序性。而这部分逻辑就是在 &lt;code&gt;process&lt;/code&gt;内实现的。如果当前客户端对 API Server 的 Watch 请求带来的 ResourceVersion 为1，那么 process 函数内的逻辑保证会返回给客户端一个序号大于1的报文。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;但是，截止到目前为止，我们只是看到了&lt;code&gt;cacheWatcher&lt;/code&gt;为每一个请求启动一个 goroutine 不断的监听资源对象信息的变化，如果有新的消息过来就返回给客户端。那么这个变化的消息是谁向&lt;code&gt;input&lt;/code&gt;channel 传递过来的呢？回头看下 cacher 的数据结构：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L141&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;，我们发现有如下几个成员是值得注意的：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;	&lt;span class=&#34;c1&#34;&gt;// Underlying storage.Interface.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;storage&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Interface&lt;/span&gt;
+	&lt;span class=&#34;c1&#34;&gt;// &amp;#34;sliding window&amp;#34; of recent changes of objects and the current state.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;watchCache&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;watchCache&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;reflector&lt;/span&gt;  &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;cache&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Reflector&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h3 id=&#34;storage-storage-interface-资源对象数据真正的来源&#34;&gt;storage storage.Interface（资源对象数据真正的来源）&lt;/h3&gt;
+
+&lt;p&gt;storage 成员是在创建 Cacher 的时候就被传递进来了。根据这个顺序向回查找，查看&lt;code&gt;genericregistry.StorageWithCacher&lt;/code&gt;的定义&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/storage_factory.go#L44&#34;&gt;apiserver/storage_factory.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub&lt;/a&gt;，可知 storage 是通过 &lt;code&gt;NewRawStorage&lt;/code&gt;创建的。一路跟下去后。我们最后到了创建 etcdStorage 的函数里：&lt;a href=&#34;https://github.com/kubernetes/kubernetes/blob/release-1.12/staging/src/k8s.io/apiserver/pkg/storage/etcd/etcd_helper.go#L65&#34;&gt;kubernetes/etcd_helper.go at release-1.12 · kubernetes/kubernetes · GitHub&lt;/a&gt;。此时，你可以看下 &lt;code&gt;NewEtcdStorage&lt;/code&gt;的返回值还有&lt;code&gt;etcdHelper&lt;/code&gt;类实现的的 List 和 Watch 方法，就可以明白，整个 ListWatch 机制中，API Server 从 etcd 获取资源对象信息所使用的 Watch 和 List 方法就是在这里真正的被实现。而这也符合我们之前看的 Kubernetes 的架构图中的一个细节：API Server 对外提供的一切信息都是从 etcd 而来的。如果你进入 etcd 实现的 Watch 方法中，稍微扫一眼就可以看到，它核心的逻辑就是启动一个死循环，不断的等待从 etcd 而来的有关资源对象的信息。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;	&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;resp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;watcher&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Next&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;w&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;ctx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+			&lt;span class=&#34;nx&#34;&gt;w&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;etcdError&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;
+			&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt;
+		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;w&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;etcdIncoming&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;resp&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;除此之外，&lt;code&gt;etcdHelper&lt;/code&gt;类还实现了很多和 etcd 相关的方法。那么我们姑且可以认为，storage 成员是操作 etcd 的一个封装。&lt;/p&gt;
+
+&lt;h3 id=&#34;watchcache-watchcache-资源对象信息的缓存&#34;&gt;watchCache *watchCache（资源对象信息的缓存）&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b080aefffce393d0aa75a2d3c62442b5515c8963/pkg/storage/cacher/watch_cache.go#L147&#34;&gt;apiserver/watch_cache.go at b080aefffce393d0aa75a2d3c62442b5515c8963 · kubernetes/apiserver · GitHub&lt;/a&gt; 通过观察 watchCache 和数据结构以及它实现的方法，我猜测它应该是实现了一个资源对象信息的缓存。将通过和 etcd 通信而获取到的资源对象的信息缓存在内存中。当资源对象长时间未发生变化的时候，如果再有 List 或者 Watch 请求该资源对象的信息，可以直接返回给它缓存中的内容，而不再去和 etcd 通信。&lt;/p&gt;
+
+&lt;h3 id=&#34;reflector-cache-reflector&#34;&gt;reflector  *cache.Reflector&lt;/h3&gt;
+
+&lt;p&gt;reflector 的创建一共需要两个重要的对象作为参数：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;listerWatcher&lt;/li&gt;
+&lt;li&gt;watchCache&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其中 watchCache 我们上面已经提到过，那 listerWatcher 是什么呢？在 cacher.go 文件中可以找到创建这个对象的方法的定义：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L719&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。浏览一下它实现的方法集合可知，它其实就是对上面我们说到的 storage 对象的一个封装。实际上调用的还是 storage 内实现的一些方法。&lt;/p&gt;
+
+&lt;p&gt;通过观察 Cacher 数据结构中几个比较重要的成员的逻辑，我们现在确定了资源对象真正的数据来源，也了解了catchWatcher 启动了一个goroutine 运行死循环等待着从&lt;code&gt;input&lt;/code&gt;channel 发来的资源对象的信息。目前唯一缺少的就是数据生产者是如何将数据传递到&lt;code&gt;input&lt;/code&gt;这个 channel 中的。&lt;/p&gt;
+
+&lt;p&gt;在创建了 Cacher 对象时候，我们紧接着运行了一个名为&lt;code&gt;StartCaching&lt;/code&gt; 的方法：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L248&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。在它的逻辑内部，我们调用了 reflector 的 ListWatch 方法&lt;a href=&#34;https://github.com/kubernetes/client-go/blob/ee7a1ba5cdf1292b67a1fdf1fa28f90d2a7b0084/tools/cache/reflector.go#L168&#34;&gt;client-go/reflector.go at ee7a1ba5cdf1292b67a1fdf1fa28f90d2a7b0084 · kubernetes/client-go · GitHub&lt;/a&gt;。在这个方法中，它先通过 listerWatcher 封装的 List 方法全量的获取了一下 Kubernetes 集群中的资源，然后起了一个死循环，调用了 ListerWatcher 封装的 Watch 方法，然后在 watchHandler 方法中，通过访问一个阻塞的 channel，等待资源对象信息从 etcd 发过来。如果此时确实接收到了一个资源对象的信息，它会调用 watchCache.Add 方法，将其塞入缓存中：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b080aefffce393d0aa75a2d3c62442b5515c8963/pkg/storage/cacher/watch_cache.go#L170&#34;&gt;apiserver/watch_cache.go at b080aefffce393d0aa75a2d3c62442b5515c8963 · kubernetes/apiserver · GitHub&lt;/a&gt;。在 Add 的函数的逻辑中，会继续调用 &lt;code&gt;processEvent&lt;/code&gt;函数，在其内部我们发现，除了正常的更新 watchCache 的缓存之外，还执行了行逻辑：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/b080aefffce393d0aa75a2d3c62442b5515c8963/pkg/storage/cacher/watch_cache.go#L257&#34;&gt;apiserver/watch_cache.go at b080aefffce393d0aa75a2d3c62442b5515c8963 · kubernetes/apiserver · GitHub&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;那么这个 onEvent 函数究竟是什么呢？返回 watchCache 被创建的逻辑的位置会发现，watchCache.onEvent 是被cacher.processEvent 赋值的。cacher.processEvent 函数的定义如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Cacher&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;processEvent&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;event&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;watchCacheEvent&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;curLen&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;int64&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;len&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;incoming&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;));&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;incomingHWM&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Update&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;curLen&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;c1&#34;&gt;// Monitor if this gets backed up, and how much.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;		&lt;span class=&#34;nx&#34;&gt;glog&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;V&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;).&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Infof&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;cacher (%v): %v objects queued in incoming channel.&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;objectType&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;String&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(),&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;curLen&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;c&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;incoming&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;event&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;再结合对比一下 watchCache.Add 函数的逻辑可知，从 etcd 发来的 event 将会通过 processEvent 函数传递至&lt;code&gt;incoming&lt;/code&gt; 这个 channel。而 &lt;code&gt;incoming&lt;/code&gt; 这个 channel 是在 cacher 对象的dispatchEvents 函数内被读取的：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L603&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。跟着这个数据流动的逻辑继续向下，我们发现这个 event 最终作为参数传递到了之前我们创建的&lt;code&gt;watcher&lt;/code&gt;的 Add 方法内：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L624&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。进入这个 Add 函数的内部，你会发现一下子豁然开朗，因为这个 event 事件经过漫长的流程终于传递到了&lt;code&gt;input&lt;/code&gt;channel: &lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L854&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。而上面这些 watcher 是怎么被收集进来的呢？通过 cacher 中 Watch 方法的逻辑可以发现，它来自于对 Watch 方法的调用：&lt;a href=&#34;https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L343&#34;&gt;apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub&lt;/a&gt;。而这个方法，正是在我们前面说到的，API Server 在响应 Watch/List 相关的 HTTP 请求的时候，生成类型为&lt;code&gt;watch.Interface&lt;/code&gt;且名为&lt;code&gt;catcherWatcher&lt;/code&gt;对象时调用的。&lt;/p&gt;
+
+&lt;p&gt;至此，整个&lt;code&gt;List-Watch&lt;/code&gt;机制中，资源对象的数据从 etcd 到 API Server HTTP API 时间的数据流动过程就都走通了。&lt;/p&gt;
+</description>
+      
+    </item>
     
     <item>
       <title>Say Love to Pouch</title>

@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Detect the Source Code of List Watch Between API Server and Etcd - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="写在前面 在上一篇文章中，我们通过 Kubernetes 的架构图以及一个 Deployment 资源对象创建的过程大致了解了List-Watch机制在一个 Kubernetes 集群中所起的作用以及它所面临" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2018/11/21/detect-the-source-code-of-list-watch-between-api-server-and-etcd/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="Detect the Source Code of List Watch Between API Server and Etcd" />
+<meta property="og:description" content="写在前面 在上一篇文章中，我们通过 Kubernetes 的架构图以及一个 Deployment 资源对象创建的过程大致了解了List-Watch机制在一个 Kubernetes 集群中所起的作用以及它所面临" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2018/11/21/detect-the-source-code-of-list-watch-between-api-server-and-etcd/" /><meta property="article:published_time" content="2018-11-21T13:13:45&#43;08:00"/>
+<meta property="article:modified_time" content="2018-11-21T13:13:45&#43;08:00"/>
+
+<meta itemprop="name" content="Detect the Source Code of List Watch Between API Server and Etcd">
+<meta itemprop="description" content="写在前面 在上一篇文章中，我们通过 Kubernetes 的架构图以及一个 Deployment 资源对象创建的过程大致了解了List-Watch机制在一个 Kubernetes 集群中所起的作用以及它所面临">
+
+
+<meta itemprop="datePublished" content="2018-11-21T13:13:45&#43;08:00" />
+<meta itemprop="dateModified" content="2018-11-21T13:13:45&#43;08:00" />
+<meta itemprop="wordCount" content="6800">
+
+
+
+<meta itemprop="keywords" content="Kubernetes," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Detect the Source Code of List Watch Between API Server and Etcd"/>
+<meta name="twitter:description" content="写在前面 在上一篇文章中，我们通过 Kubernetes 的架构图以及一个 Deployment 资源对象创建的过程大致了解了List-Watch机制在一个 Kubernetes 集群中所起的作用以及它所面临"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Detect the Source Code of List Watch Between API Server and Etcd</h1>
+      
+      <div class="post-meta">
+        <time datetime="2018-11-21" class="post-time">
+          2018-11-21
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#写在前面">写在前面</a></li>
+<li><a href="#list-watch-机制时序图">List-Watch 机制时序图</a></li>
+<li><a href="#api-server">API Server</a>
+<ul>
+<li><a href="#storage-storage-interface-资源对象数据真正的来源">storage storage.Interface（资源对象数据真正的来源）</a></li>
+<li><a href="#watchcache-watchcache-资源对象信息的缓存">watchCache *watchCache（资源对象信息的缓存）</a></li>
+<li><a href="#reflector-cache-reflector">reflector  *cache.Reflector</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="写在前面">写在前面</h2>
+
+<p>在上一篇文章中，我们通过 Kubernetes 的架构图以及一个 Deployment 资源对象创建的过程大致了解了<code>List-Watch</code>机制在一个 Kubernetes 集群中所起的作用以及它所面临的问题。本文我们将继续深入<code>List-Watch</code>机制的实现原理，从源码的角度再次探索它其中的奥秘。</p>
+
+<h2 id="list-watch-机制时序图">List-Watch 机制时序图</h2>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/list1" alt="" /></p>
+
+<p>在之前讨论 Deployment 资源创建过程的时候，我们了解到Deployment 和 ReplicaSet 使用<code>List-Watch</code>机制的方式是一样的。所以在本文我们省略掉对Deployment 资源对象的创建过程的分析，直接以 ReplicaSet 资源对象的创建作为分析的入口。</p>
+
+<h2 id="api-server">API Server</h2>
+
+<p>一个资源创建的起点是从 API Server 提供的 HTTP API 开始的。这里之所以没有提到时序图中的 kubelet 是因为，除了使用 kubelet，我们还可以通过 client-go 或者直接发送 HTTP 请求的方式给 API Server 来创建资源。既然<code>List-Watch</code>机制中消息的发送端为 API Server，那么它肯定就提供了相应的 List 和 Watch 的 HTTP。API。通过观察 API Server 中注册 HTTP API 的代码逻辑：<a href="https://github.com/kubernetes/apiserver/blob/master/pkg/endpoints/installer.go#L166">apiserver/installer.go at master · kubernetes/apiserver · GitHub</a>， 我们可以发现它通过「类型转换」构造了一个 Lister 对象还有一个 Watcher 对象：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go">	<span class="c1">// what verbs are supported by the storage, used to know what verbs we support per path
+</span><span class="c1"></span>	<span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+	<span class="nx">namedCreater</span><span class="p">,</span> <span class="nx">isNamedCreater</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">NamedCreater</span><span class="p">)</span>
+	<span class="nx">lister</span><span class="p">,</span> <span class="nx">isLister</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Lister</span><span class="p">)</span>
+	<span class="nx">getter</span><span class="p">,</span> <span class="nx">isGetter</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Getter</span><span class="p">)</span>
+	<span class="nx">getterWithOptions</span><span class="p">,</span> <span class="nx">isGetterWithOptions</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">GetterWithOptions</span><span class="p">)</span>
+	<span class="nx">gracefulDeleter</span><span class="p">,</span> <span class="nx">isGracefulDeleter</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">GracefulDeleter</span><span class="p">)</span>
+	<span class="nx">collectionDeleter</span><span class="p">,</span> <span class="nx">isCollectionDeleter</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">CollectionDeleter</span><span class="p">)</span>
+	<span class="nx">updater</span><span class="p">,</span> <span class="nx">isUpdater</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Updater</span><span class="p">)</span>
+	<span class="nx">patcher</span><span class="p">,</span> <span class="nx">isPatcher</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Patcher</span><span class="p">)</span>
+	<span class="nx">watcher</span><span class="p">,</span> <span class="nx">isWatcher</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Watcher</span><span class="p">)</span>
+	<span class="nx">connecter</span><span class="p">,</span> <span class="nx">isConnecter</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Connecter</span><span class="p">)</span>
+	<span class="nx">storageMeta</span><span class="p">,</span> <span class="nx">isMetadata</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">StorageMetadata</span><span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>顺着 <code>registerResourceHandlers</code>函数的逻辑往下看我们可以知道，无论是 Lister 还是 Watcher，都是通过一个叫做<code>restfulListResource</code>的方法封装了一下暴露给外部使用的：<a href="https://github.com/kubernetes/apiserver/blob/master/pkg/endpoints/installer.go#L610">apiserver/installer.go at master · kubernetes/apiserver · GitHub</a>。而通过进一步观察这个函数的<a href="https://github.com/kubernetes/apiserver/blob/master/pkg/endpoints/installer.go#L1022">内部逻辑</a>我们也可以看到，watcher 和 lister 最终在名为<code>ListResource</code>的方法内执行其内部真正的逻辑。具体当一个 GET 请求过来调用的是 Watch 还是 List 接口，是通过请求当中的一个参数来确定的：<a href="https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/endpoints/handlers/get.go#L234">apiserver/get.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub</a>。</p>
+
+<p>假设目前的 HTTP 请求是 Watch。那么在<code>ListResource</code> 的逻辑中就会走到<a href="https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/endpoints/handlers/get.go#L249">apiserver/get.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub</a> 这一步。它调用 Watcher 的 Watch 方法，创建了一个<code>Watch-Interface</code>类型的对象。然后将其传递至 <code>serveWatch</code>方法：<a href="https://github.com/kubernetes/apiserver/blob/8a1312795085bced3bc5d4553b97c450a79fc420/pkg/endpoints/handlers/watch.go#L66">apiserver/watch.go at 8a1312795085bced3bc5d4553b97c450a79fc420 · kubernetes/apiserver · GitHub</a>。通过观察 <code>serveWatch</code>方法的内部逻辑可知，之前创建的<code>Watch-Interface</code>的对象被塞入了 ServeHTTP中，然后利用这个对象内部一个用于传递「资源对象信息的 channel」中的消息来对外部的「Watch」 请求提供服务：<a href="https://github.com/kubernetes/apiserver/blob/8a1312795085bced3bc5d4553b97c450a79fc420/pkg/endpoints/handlers/watch.go#L195">apiserver/watch.go at 8a1312795085bced3bc5d4553b97c450a79fc420 · kubernetes/apiserver · GitHub</a></p>
+
+<p>到目前为止，通过对 API Server 关于<code>List-Watch</code> 机制的源码梳理，我们基本可以确定，API Server 获取资源对象信息的逻辑主要是实现于<code>Watch-Interface</code>类型的对象以及向其内部的channel 传递消息的发送端。而在上面的描述中，我们还可以梳理出一条<code>Watch-Interface</code>类型的对象的创建链路：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/s2" alt="" /></p>
+
+<p>既然 Watcher 对象是通过 Storage 对象进行转换而来的，那么就说明<code>watch.Interface</code>中的方法大概率也是在 Storage 类型的对象中实现的。在<a href="https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/store.go#L1159">apiserver/store.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub</a> 文件中，我们看到了 Storage类型实现了List 和 Watch 方法，继续递归的跟进下面的逻辑发现，最终，在名为<code>WatchPredicate</code>的函数中，调用了名为 Storage 成员（与上面说的 Storage 类型的对象不是一个，它只是 struct 中其中一个 filed）的 Watch 方法，返回了类型为<code>watch.Interface</code> 的对象：<a href="https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/store.go#L1182">apiserver/store.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub</a>。而这个名为 Storage 成员的类型为<code>DryRunnableStorage</code>。通过查看 <code>DryRunnableStorage</code>这个类型的定义可知，其内部包含了一个类型为<code>storage.Interface</code>的对象，该 Interface 内部涵盖了 Watch 和 List 方法，这两个方法应该会被具体的某个资源实现，如 Pod， Deployment 等。</p>
+
+<blockquote>
+<p>WARNING: 读者阅读到这里想必有点头晕，因为逻辑嵌套的层数太多，并且很多方法和成员的名字都是相同的。所以这里建议大家根据我贴出的源码的链接，按照 blog 中叙述的顺序画一个流程图，会看的更清楚。</p>
+</blockquote>
+
+<p>全局搜索一下创建<code>Store</code>类型对象的地方可知，几乎存在于每一个资源的目录下：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/s1" alt="" /></p>
+
+<p>我们挑选 Deployment 资源对象的创建<code>Store</code>类型对象的逻辑：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// NewREST returns a RESTStorage object that will work against deployments.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">NewREST</span><span class="p">(</span><span class="nx">optsGetter</span> <span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptionsGetter</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">REST</span><span class="p">,</span> <span class="o">*</span><span class="nx">StatusREST</span><span class="p">,</span> <span class="o">*</span><span class="nx">RollbackREST</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">store</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">genericregistry</span><span class="p">.</span><span class="nx">Store</span><span class="p">{</span>
+		<span class="nx">NewFunc</span><span class="p">:</span>                  <span class="kd">func</span><span class="p">()</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span> <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="nx">extensions</span><span class="p">.</span><span class="nx">Deployment</span><span class="p">{}</span> <span class="p">},</span>
+		<span class="nx">NewListFunc</span><span class="p">:</span>              <span class="kd">func</span><span class="p">()</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span> <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="nx">extensions</span><span class="p">.</span><span class="nx">DeploymentList</span><span class="p">{}</span> <span class="p">},</span>
+		<span class="nx">DefaultQualifiedResource</span><span class="p">:</span> <span class="nx">extensions</span><span class="p">.</span><span class="nf">Resource</span><span class="p">(</span><span class="s">&#34;deployments&#34;</span><span class="p">),</span>
+
+		<span class="nx">CreateStrategy</span><span class="p">:</span> <span class="nx">deployment</span><span class="p">.</span><span class="nx">Strategy</span><span class="p">,</span>
+		<span class="nx">UpdateStrategy</span><span class="p">:</span> <span class="nx">deployment</span><span class="p">.</span><span class="nx">Strategy</span><span class="p">,</span>
+		<span class="nx">DeleteStrategy</span><span class="p">:</span> <span class="nx">deployment</span><span class="p">.</span><span class="nx">Strategy</span><span class="p">,</span>
+
+		<span class="nx">TableConvertor</span><span class="p">:</span> <span class="nx">printerstorage</span><span class="p">.</span><span class="nx">TableConvertor</span><span class="p">{</span><span class="nx">TablePrinter</span><span class="p">:</span> <span class="nx">printers</span><span class="p">.</span><span class="nf">NewTablePrinter</span><span class="p">().</span><span class="nf">With</span><span class="p">(</span><span class="nx">printersinternal</span><span class="p">.</span><span class="nx">AddHandlers</span><span class="p">)},</span>
+	<span class="p">}</span>
+	<span class="nx">options</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">generic</span><span class="p">.</span><span class="nx">StoreOptions</span><span class="p">{</span><span class="nx">RESTOptions</span><span class="p">:</span> <span class="nx">optsGetter</span><span class="p">}</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">store</span><span class="p">.</span><span class="nf">CompleteWithOptions</span><span class="p">(</span><span class="nx">options</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="c1">// TODO: Propagate error up
+</span><span class="c1"></span>	<span class="p">}</span>
+
+	<span class="nx">statusStore</span> <span class="o">:=</span> <span class="o">*</span><span class="nx">store</span>
+	<span class="nx">statusStore</span><span class="p">.</span><span class="nx">UpdateStrategy</span> <span class="p">=</span> <span class="nx">deployment</span><span class="p">.</span><span class="nx">StatusStrategy</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">REST</span><span class="p">{</span><span class="nx">store</span><span class="p">,</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;all&#34;</span><span class="p">}},</span> <span class="o">&amp;</span><span class="nx">StatusREST</span><span class="p">{</span><span class="nx">store</span><span class="p">:</span> <span class="o">&amp;</span><span class="nx">statusStore</span><span class="p">},</span> <span class="o">&amp;</span><span class="nx">RollbackREST</span><span class="p">{</span><span class="nx">store</span><span class="p">:</span> <span class="nx">store</span><span class="p">}</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>可以看出在构造<code>genericregistry.Store</code>对象的时候，没有有指定一个名为 Storage 的成员。在执行 return 语句之前仅仅只调用了一个<code>store.CompleteWithOptions</code>方法。跟进去之后，豁然开朗：<a href="https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/store.go#L1383">apiserver/store.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub</a>。名为 Storage 成员内部包含的类型为<code>storage.Interface</code>的对象最终是被一个名为<code>Decorator</code>的方法创建的。而这个方法和<code>opts</code>这个变量有关。顺着这条线向上查找，我们最终发现，在 Deployment 代码逻辑中有一个名为 NewStorage 的函数：<a href="https://github.com/kubernetes/kubernetes/blob/master/pkg/registry/apps/deployment/storage/storage.go#L56">kubernetes/storage.go at master · kubernetes/kubernetes · GitHub</a>。<code>opts</code> 这个变量的值来自于这个函数的参数<code>optsGetter</code>。</p>
+
+<p>在向上寻找 opts 参数的过程中我们发现这条链路是比较长的，也是比较绕的，很难清晰的去定位到它第一次被创建的地方。所以，我们换一种思路：因为看到 opts 这个参数的类型为<code>generic.RESTOptionsGetter</code>，所以我们在全局可以搜一下，哪里有对这个类型变量的赋值操作并且和 Storage 有关的。最后，我们定位到了这里：<a href="https://github.com/kubernetes/apiserver/blob/c53cd379d4b8e8acbe23a7a3b40c949687ba9926/pkg/server/options/etcd.go#L186">apiserver/etcd.go at c53cd379d4b8e8acbe23a7a3b40c949687ba9926 · kubernetes/apiserver · GitHub</a>。这是一段和 etcd 配置有关的逻辑。这段逻辑在 API Server 启动构造其使用的配置的逻辑中有调用过：<a href="https://github.com/kubernetes/kubernetes/blob/b1a52a38e9e3651680655416cc7afbec5e119854/cmd/kube-apiserver/app/server.go#L424">kubernetes/server.go at b1a52a38e9e3651680655416cc7afbec5e119854 · kubernetes/kubernetes · GitHub</a>。<code>buildGenericConfig</code>函数构造的通用配置，最终赋值给了启动 Master 节点所需要的配置集合：<a href="https://github.com/kubernetes/kubernetes/blob/b1a52a38e9e3651680655416cc7afbec5e119854/cmd/kube-apiserver/app/server.go#L318">kubernetes/server.go at b1a52a38e9e3651680655416cc7afbec5e119854 · kubernetes/kubernetes · GitHub</a>。而这部分配置最终被用于创建 API Server： <a href="https://github.com/kubernetes/kubernetes/blob/b1a52a38e9e3651680655416cc7afbec5e119854/cmd/kube-apiserver/app/server.go#L175">kubernetes/server.go at b1a52a38e9e3651680655416cc7afbec5e119854 · kubernetes/kubernetes · GitHub</a>。在 <code>CreateKubeAPIServer</code>函数内，我们可以看到，通过参数传递进来的 master.Config 最终调用了一个名为<code>Complete</code>的函数处理了一下相关配置，并且通过它的返回值调用了一个 New 函数。而在 New 函数的内部，也通过调用一个名为<code>Install</code>的函数，将<code>restOptionsGetter</code>参数传了进去。</p>
+
+<p>此时，我们再次返回到Deployment 代码逻辑中的 NewStorage 函数被调用的地方：<a href="https://github.com/kubernetes/kubernetes/blob/7f23a743e8c23ac6489340bbb34fa6f1d392db9d/pkg/registry/apps/rest/storage_apps.go#L60">kubernetes/storage_apps.go at 7f23a743e8c23ac6489340bbb34fa6f1d392db9d · kubernetes/kubernetes · GitHub</a>，随机选取一个版本的函数<code>v1beta1Storage</code>，它在当前文件的一个名为<code>NewRestStorage</code>函数中被调用：<a href="https://github.com/kubernetes/kubernetes/blob/7f23a743e8c23ac6489340bbb34fa6f1d392db9d/pkg/registry/apps/rest/storage_apps.go#L38。随后，我们按照这条调用链路再继续向上寻找`restOptionsGetter`参数被赋值位置。随即定位到了[kubernetes/master.go">https://github.com/kubernetes/kubernetes/blob/7f23a743e8c23ac6489340bbb34fa6f1d392db9d/pkg/registry/apps/rest/storage_apps.go#L38。随后，我们按照这条调用链路再继续向上寻找`restOptionsGetter`参数被赋值位置。随即定位到了[kubernetes/master.go</a> at ec2e767e59395376fa191d7c56a74f53936b7653 · kubernetes/kubernetes · GitHub](<a href="https://github.com/kubernetes/kubernetes/blob/ec2e767e59395376fa191d7c56a74f53936b7653/pkg/master/master.go#L401)中的">https://github.com/kubernetes/kubernetes/blob/ec2e767e59395376fa191d7c56a74f53936b7653/pkg/master/master.go#L401)中的</a> <code>InstallAPIs</code>函数。</p>
+
+<p>Bingo，此时我们可以将调用<code>InstallAPIs</code>函数的逻辑作为桥梁，将我们上面整个的查找流程链接起来。所以，当前我们已经可以确认的是，我们之前说的<code>opts</code>变量已经找到了出处。但实际上，在创建 Deployment storage 对象时，名为 Storage 成员内部包含的类型为<code>storage.Interface</code>的对象最终是被一个名为<code>Decorator</code>的方法创建的，这个<code>Decorator</code>方法来自于<code>opts</code>变量。再次查看<code>Decorator</code>方法的定义可知，它被包含在一个 Interface 内部的函数的返回值中，而这个函数正是创建<code>opts</code>这个变量所在的类必须要实现的：<code>GetRESTOptions</code>。所以，我们需要再次回到和 etcd 配置有关的逻辑：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">EtcdOptions</span><span class="p">)</span> <span class="nf">ApplyWithStorageFactoryTo</span><span class="p">(</span><span class="nx">factory</span> <span class="nx">serverstorage</span><span class="p">.</span><span class="nx">StorageFactory</span><span class="p">,</span> <span class="nx">c</span> <span class="o">*</span><span class="nx">server</span><span class="p">.</span><span class="nx">Config</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">addEtcdHealthEndpoint</span><span class="p">(</span><span class="nx">c</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">err</span>
+	<span class="p">}</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">RESTOptionsGetter</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">StorageFactoryRestOptionsFactory</span><span class="p">{</span><span class="nx">Options</span><span class="p">:</span> <span class="o">*</span><span class="nx">s</span><span class="p">,</span> <span class="nx">StorageFactory</span><span class="p">:</span> <span class="nx">factory</span><span class="p">}</span>
+	<span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span>
+
+<span class="kd">type</span> <span class="nx">StorageFactoryRestOptionsFactory</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">Options</span>        <span class="nx">EtcdOptions</span>
+	<span class="nx">StorageFactory</span> <span class="nx">serverstorage</span><span class="p">.</span><span class="nx">StorageFactory</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="o">*</span><span class="nx">StorageFactoryRestOptionsFactory</span><span class="p">)</span> <span class="nf">GetRESTOptions</span><span class="p">(</span><span class="nx">resource</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">GroupResource</span><span class="p">)</span> <span class="p">(</span><span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptions</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">storageConfig</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">f</span><span class="p">.</span><span class="nx">StorageFactory</span><span class="p">.</span><span class="nf">NewConfig</span><span class="p">(</span><span class="nx">resource</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptions</span><span class="p">{},</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;unable to find storage destination for %v, due to %v&#34;</span><span class="p">,</span> <span class="nx">resource</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">())</span>
+	<span class="p">}</span>
+
+	<span class="nx">ret</span> <span class="o">:=</span> <span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptions</span><span class="p">{</span>
+		<span class="nx">StorageConfig</span><span class="p">:</span>           <span class="nx">storageConfig</span><span class="p">,</span>
+		<span class="nx">Decorator</span><span class="p">:</span>               <span class="nx">generic</span><span class="p">.</span><span class="nx">UndecoratedStorage</span><span class="p">,</span>
+		<span class="nx">DeleteCollectionWorkers</span><span class="p">:</span> <span class="nx">f</span><span class="p">.</span><span class="nx">Options</span><span class="p">.</span><span class="nx">DeleteCollectionWorkers</span><span class="p">,</span>
+		<span class="nx">EnableGarbageCollection</span><span class="p">:</span> <span class="nx">f</span><span class="p">.</span><span class="nx">Options</span><span class="p">.</span><span class="nx">EnableGarbageCollection</span><span class="p">,</span>
+		<span class="nx">ResourcePrefix</span><span class="p">:</span>          <span class="nx">f</span><span class="p">.</span><span class="nx">StorageFactory</span><span class="p">.</span><span class="nf">ResourcePrefix</span><span class="p">(</span><span class="nx">resource</span><span class="p">),</span>
+		<span class="nx">CountMetricPollPeriod</span><span class="p">:</span>   <span class="nx">f</span><span class="p">.</span><span class="nx">Options</span><span class="p">.</span><span class="nx">StorageConfig</span><span class="p">.</span><span class="nx">CountMetricPollPeriod</span><span class="p">,</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="nx">f</span><span class="p">.</span><span class="nx">Options</span><span class="p">.</span><span class="nx">EnableWatchCache</span> <span class="p">{</span>
+		<span class="nx">sizes</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">ParseWatchCacheSizes</span><span class="p">(</span><span class="nx">f</span><span class="p">.</span><span class="nx">Options</span><span class="p">.</span><span class="nx">WatchCacheSizes</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptions</span><span class="p">{},</span> <span class="nx">err</span>
+		<span class="p">}</span>
+		<span class="nx">cacheSize</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">sizes</span><span class="p">[</span><span class="nx">resource</span><span class="p">]</span>
+		<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+			<span class="nx">cacheSize</span> <span class="p">=</span> <span class="nx">f</span><span class="p">.</span><span class="nx">Options</span><span class="p">.</span><span class="nx">DefaultWatchCacheSize</span>
+		<span class="p">}</span>
+		<span class="nx">ret</span><span class="p">.</span><span class="nx">Decorator</span> <span class="p">=</span> <span class="nx">genericregistry</span><span class="p">.</span><span class="nf">StorageWithCacher</span><span class="p">(</span><span class="nx">cacheSize</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="k">return</span> <span class="nx">ret</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>可以看到<code>GetRESTOptions</code>最终被<code>StorageFactoryRestOptionsFactory</code>类实现。查看<code>genericregistry.StorageWithCacher</code>的定义，一路跟下去，就会发现，我们最终是创建了一个名为<code>cacher</code>类型为<code>storage.Interface</code>的变量，它将作为 Decorator 的值：<a href="https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/storage_factory.go#L65">apiserver/storage_factory.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub</a>。如果再深入至<code>cacher</code>创建的逻辑，可以看到，它是实现了<code>storage.Interface</code>的全部接口的：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L160">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。</p>
+
+<p>还记得我们当时在阅读API Server中关于<code>ListResource</code>方法的时候，发现最终通过 ServeHTTP 函数对外提供服务的是一个<code>storage.Interface</code>类型对象调用了其 Watch 接口的返回值，即一个<code>Watch-Interface</code>类型的对象。在<code>cacher</code>的实现部分，我们同样可以找到一个这样的函数：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L292">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>，其内部将会为我们创建一个类型为<code>cacheWatcher</code>的对象<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L794">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。这个对象内部有一个非常重要的成员：<code>result:    make(chan watch.Event, chanSize)</code>，它是被一个名为<code>ResultChan</code>的函数暴露给外部使用的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Implements watch.Interface.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">cacheWatcher</span><span class="p">)</span> <span class="nf">ResultChan</span><span class="p">()</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="nx">watch</span><span class="p">.</span><span class="nx">Event</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nx">result</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这个函数相信你看到后会非常非常的熟悉，因为我们在ServeHTTP 函数中看到过它曾经被<code>watcher.Watch()</code>的返回值调用：<a href="https://github.com/kubernetes/apiserver/blob/8a1312795085bced3bc5d4553b97c450a79fc420/pkg/endpoints/handlers/watch.go#L195">apiserver/watch.go at 8a1312795085bced3bc5d4553b97c450a79fc420 · kubernetes/apiserver · GitHub</a>。<code>newCacheWatcher</code>除了返回一个<code>cacheWatcher</code>类型的对象之外，还会启动一个goroutine, 执行一个名为<code>process</code>的函数：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L923">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。当它从一个名为<code>input</code>的 channel 中监听到有资源对象的信息发送过来的时候，就会通过<code>sendWatchCacheEvent</code>函数，将最新的 event 通过刚才提到的 Result Channel 发送给客户端。并且由于客户端和 API Server 之间是一个长连接，所以这个循环会一直执行。</p>
+
+<blockquote>
+<p>如果读者阅读过前一篇过于 List-Watch 机制原理性的文章就可以知道，List-Watch 机制会通过 ResourceVersion 来保证发送报文的顺序性。而这部分逻辑就是在 <code>process</code>内实现的。如果当前客户端对 API Server 的 Watch 请求带来的 ResourceVersion 为1，那么 process 函数内的逻辑保证会返回给客户端一个序号大于1的报文。</p>
+</blockquote>
+
+<p>但是，截止到目前为止，我们只是看到了<code>cacheWatcher</code>为每一个请求启动一个 goroutine 不断的监听资源对象信息的变化，如果有新的消息过来就返回给客户端。那么这个变化的消息是谁向<code>input</code>channel 传递过来的呢？回头看下 cacher 的数据结构：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L141">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>，我们发现有如下几个成员是值得注意的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go">	<span class="c1">// Underlying storage.Interface.
+</span><span class="c1"></span>	<span class="nx">storage</span> <span class="nx">storage</span><span class="p">.</span><span class="nx">Interface</span>
+	<span class="c1">// &#34;sliding window&#34; of recent changes of objects and the current state.
+</span><span class="c1"></span>	<span class="nx">watchCache</span> <span class="o">*</span><span class="nx">watchCache</span>
+	<span class="nx">reflector</span>  <span class="o">*</span><span class="nx">cache</span><span class="p">.</span><span class="nx">Reflector</span></code></pre></td></tr></table>
+</div>
+</div>
+<h3 id="storage-storage-interface-资源对象数据真正的来源">storage storage.Interface（资源对象数据真正的来源）</h3>
+
+<p>storage 成员是在创建 Cacher 的时候就被传递进来了。根据这个顺序向回查找，查看<code>genericregistry.StorageWithCacher</code>的定义<a href="https://github.com/kubernetes/apiserver/blob/b8915a5609e4d7553d92f0d431ba04ecf9b52777/pkg/registry/generic/registry/storage_factory.go#L44">apiserver/storage_factory.go at b8915a5609e4d7553d92f0d431ba04ecf9b52777 · kubernetes/apiserver · GitHub</a>，可知 storage 是通过 <code>NewRawStorage</code>创建的。一路跟下去后。我们最后到了创建 etcdStorage 的函数里：<a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/staging/src/k8s.io/apiserver/pkg/storage/etcd/etcd_helper.go#L65">kubernetes/etcd_helper.go at release-1.12 · kubernetes/kubernetes · GitHub</a>。此时，你可以看下 <code>NewEtcdStorage</code>的返回值还有<code>etcdHelper</code>类实现的的 List 和 Watch 方法，就可以明白，整个 ListWatch 机制中，API Server 从 etcd 获取资源对象信息所使用的 Watch 和 List 方法就是在这里真正的被实现。而这也符合我们之前看的 Kubernetes 的架构图中的一个细节：API Server 对外提供的一切信息都是从 etcd 而来的。如果你进入 etcd 实现的 Watch 方法中，稍微扫一眼就可以看到，它核心的逻辑就是启动一个死循环，不断的等待从 etcd 而来的有关资源对象的信息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go">	<span class="k">for</span> <span class="p">{</span>
+		<span class="nx">resp</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">watcher</span><span class="p">.</span><span class="nf">Next</span><span class="p">(</span><span class="nx">w</span><span class="p">.</span><span class="nx">ctx</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">w</span><span class="p">.</span><span class="nx">etcdError</span> <span class="o">&lt;-</span> <span class="nx">err</span>
+			<span class="k">return</span>
+		<span class="p">}</span>
+		<span class="nx">w</span><span class="p">.</span><span class="nx">etcdIncoming</span> <span class="o">&lt;-</span> <span class="nx">resp</span>
+	<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>除此之外，<code>etcdHelper</code>类还实现了很多和 etcd 相关的方法。那么我们姑且可以认为，storage 成员是操作 etcd 的一个封装。</p>
+
+<h3 id="watchcache-watchcache-资源对象信息的缓存">watchCache *watchCache（资源对象信息的缓存）</h3>
+
+<p><a href="https://github.com/kubernetes/apiserver/blob/b080aefffce393d0aa75a2d3c62442b5515c8963/pkg/storage/cacher/watch_cache.go#L147">apiserver/watch_cache.go at b080aefffce393d0aa75a2d3c62442b5515c8963 · kubernetes/apiserver · GitHub</a> 通过观察 watchCache 和数据结构以及它实现的方法，我猜测它应该是实现了一个资源对象信息的缓存。将通过和 etcd 通信而获取到的资源对象的信息缓存在内存中。当资源对象长时间未发生变化的时候，如果再有 List 或者 Watch 请求该资源对象的信息，可以直接返回给它缓存中的内容，而不再去和 etcd 通信。</p>
+
+<h3 id="reflector-cache-reflector">reflector  *cache.Reflector</h3>
+
+<p>reflector 的创建一共需要两个重要的对象作为参数：</p>
+
+<ol>
+<li>listerWatcher</li>
+<li>watchCache</li>
+</ol>
+
+<p>其中 watchCache 我们上面已经提到过，那 listerWatcher 是什么呢？在 cacher.go 文件中可以找到创建这个对象的方法的定义：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L719">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。浏览一下它实现的方法集合可知，它其实就是对上面我们说到的 storage 对象的一个封装。实际上调用的还是 storage 内实现的一些方法。</p>
+
+<p>通过观察 Cacher 数据结构中几个比较重要的成员的逻辑，我们现在确定了资源对象真正的数据来源，也了解了catchWatcher 启动了一个goroutine 运行死循环等待着从<code>input</code>channel 发来的资源对象的信息。目前唯一缺少的就是数据生产者是如何将数据传递到<code>input</code>这个 channel 中的。</p>
+
+<p>在创建了 Cacher 对象时候，我们紧接着运行了一个名为<code>StartCaching</code> 的方法：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L248">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。在它的逻辑内部，我们调用了 reflector 的 ListWatch 方法<a href="https://github.com/kubernetes/client-go/blob/ee7a1ba5cdf1292b67a1fdf1fa28f90d2a7b0084/tools/cache/reflector.go#L168">client-go/reflector.go at ee7a1ba5cdf1292b67a1fdf1fa28f90d2a7b0084 · kubernetes/client-go · GitHub</a>。在这个方法中，它先通过 listerWatcher 封装的 List 方法全量的获取了一下 Kubernetes 集群中的资源，然后起了一个死循环，调用了 ListerWatcher 封装的 Watch 方法，然后在 watchHandler 方法中，通过访问一个阻塞的 channel，等待资源对象信息从 etcd 发过来。如果此时确实接收到了一个资源对象的信息，它会调用 watchCache.Add 方法，将其塞入缓存中：<a href="https://github.com/kubernetes/apiserver/blob/b080aefffce393d0aa75a2d3c62442b5515c8963/pkg/storage/cacher/watch_cache.go#L170">apiserver/watch_cache.go at b080aefffce393d0aa75a2d3c62442b5515c8963 · kubernetes/apiserver · GitHub</a>。在 Add 的函数的逻辑中，会继续调用 <code>processEvent</code>函数，在其内部我们发现，除了正常的更新 watchCache 的缓存之外，还执行了行逻辑：<a href="https://github.com/kubernetes/apiserver/blob/b080aefffce393d0aa75a2d3c62442b5515c8963/pkg/storage/cacher/watch_cache.go#L257">apiserver/watch_cache.go at b080aefffce393d0aa75a2d3c62442b5515c8963 · kubernetes/apiserver · GitHub</a>。</p>
+
+<p>那么这个 onEvent 函数究竟是什么呢？返回 watchCache 被创建的逻辑的位置会发现，watchCache.onEvent 是被cacher.processEvent 赋值的。cacher.processEvent 函数的定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Cacher</span><span class="p">)</span> <span class="nf">processEvent</span><span class="p">(</span><span class="nx">event</span> <span class="o">*</span><span class="nx">watchCacheEvent</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">curLen</span> <span class="o">:=</span> <span class="nb">int64</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">incoming</span><span class="p">));</span> <span class="nx">c</span><span class="p">.</span><span class="nx">incomingHWM</span><span class="p">.</span><span class="nf">Update</span><span class="p">(</span><span class="nx">curLen</span><span class="p">)</span> <span class="p">{</span>
+		<span class="c1">// Monitor if this gets backed up, and how much.
+</span><span class="c1"></span>		<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;cacher (%v): %v objects queued in incoming channel.&#34;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">objectType</span><span class="p">.</span><span class="nf">String</span><span class="p">(),</span> <span class="nx">curLen</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">incoming</span> <span class="o">&lt;-</span> <span class="o">*</span><span class="nx">event</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>再结合对比一下 watchCache.Add 函数的逻辑可知，从 etcd 发来的 event 将会通过 processEvent 函数传递至<code>incoming</code> 这个 channel。而 <code>incoming</code> 这个 channel 是在 cacher 对象的dispatchEvents 函数内被读取的：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L603">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。跟着这个数据流动的逻辑继续向下，我们发现这个 event 最终作为参数传递到了之前我们创建的<code>watcher</code>的 Add 方法内：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L624">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。进入这个 Add 函数的内部，你会发现一下子豁然开朗，因为这个 event 事件经过漫长的流程终于传递到了<code>input</code>channel: <a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L854">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。而上面这些 watcher 是怎么被收集进来的呢？通过 cacher 中 Watch 方法的逻辑可以发现，它来自于对 Watch 方法的调用：<a href="https://github.com/kubernetes/apiserver/blob/cf5eff4f5e8f6019796cb18c69918b9f2f09e6db/pkg/storage/cacher/cacher.go#L343">apiserver/cacher.go at cf5eff4f5e8f6019796cb18c69918b9f2f09e6db · kubernetes/apiserver · GitHub</a>。而这个方法，正是在我们前面说到的，API Server 在响应 Watch/List 相关的 HTTP 请求的时候，生成类型为<code>watch.Interface</code>且名为<code>catcherWatcher</code>对象时调用的。</p>
+
+<p>至此，整个<code>List-Watch</code>机制中，资源对象的数据从 etcd 到 API Server HTTP API 时间的数据流动过程就都走通了。</p>
+
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/kubernetes/">Kubernetes</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/2018/11/21/say-love-to-pouch/">
+            <span class="next-text nav-default">Say Love to Pouch</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2018/11/21/detect-the-source-code-of-list-watch-between-api-server-and-etcd/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>
