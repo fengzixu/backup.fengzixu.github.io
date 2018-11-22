@@ -60,7 +60,7 @@
 <meta property="og:description" content="A simple, minimal blog for those who love text." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://littledriver.net/" />
-<meta property="og:updated_time" content="2018-11-16T15:41:12&#43;08:00"/>
+<meta property="og:updated_time" content="2018-11-17T17:17:44&#43;08:00"/>
 
 <meta itemprop="name" content="Home">
 <meta itemprop="description" content="A simple, minimal blog for those who love text.">
@@ -189,6 +189,37 @@
     
       <article class="post bg-white">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/2018/11/17/head-first-cgroup/">Head First CGroup</a></h1>
+    
+    <div class="post-meta">
+      <time datetime="2018-11-17" class="post-time">
+        2018-11-17
+      </time>
+      <div class="post-category">
+          <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+          
+        </div>
+      
+      
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      Docker 的资源隔离机制——CGroup 为什么需要 CGroup Linux Namespace 为容器（进程）提供了环境上的隔离，它的行为类似 chroot 这个命令，将某个用户jail 到一个特定的环境
+    </div>
+    <div class="read-more">
+      <a href="/post/2018/11/17/head-first-cgroup/" class="read-more-link">Read more</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/post/2018/11/16/detect-redis-config-file/">Detect Redis Config File</a></h1>
     
     <div class="post-meta">
@@ -311,37 +342,6 @@
 </article>
 
     
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/2018/10/21/deep-into-the-process-and-thread-2/">Deep into the process and thread 2</a></h1>
-    
-    <div class="post-meta">
-      <time datetime="2018-10-21" class="post-time">
-        2018-10-21
-      </time>
-      <div class="post-category">
-          <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      Q： 为什么都说「进程切换」是个比较昂贵的操作，它昂贵在哪呢？ A: 首先，就是由用户态向内核态的切换。因为我们需要保存旧的进程的状态。其次，我们可
-    </div>
-    <div class="read-more">
-      <a href="/post/2018/10/21/deep-into-the-process-and-thread-2/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
-
-    
   </section>
 
   
@@ -364,65 +364,475 @@
 
   
   
-  <nav class="pagination">
-    <ul>
-      
-      <li >
-        <a href="/">1</a>
-      </li>
-      
-      <li  class="active" >
-        <a href="/page/2/">2</a>
-      </li>
-      
-      <li >
-        <a href="/page/3/">3</a>
-      </li>
-      
-      <li >
-        <a href="/page/4/">4</a>
-      </li>
-      
-      <li >
-        <a href="/page/5/">5</a>
-      </li>
-      
-      <li >
-        <a href="/page/6/">6</a>
-      </li>
-      
-      <li >
-        <a href="/page/7/">7</a>
-      </li>
-      
-      <li >
-        <a href="/page/8/">8</a>
-      </li>
-      
-      <li >
-        <a href="/page/9/">9</a>
-      </li>
-      
-      <li >
-        <a href="/page/10/">10</a>
-      </li>
-      
-      <li >
-        <a href="/page/11/">11</a>
-      </li>
-      
-      <li >
-        <a href="/page/12/">12</a>
-      </li>
-      
-      <li >
-        <a href="/page/13/">13</a>
-      </li>
-      
-    </ul>
-  </nav>
 
-  
+    <nav class="pagination">
+      <ul>
+
+      
+      
+      <li><a href="/">««</a></li>
+      
+
+      
+      
+      <li><a href="/">«</a></li>
+      
+
+      
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/">
+              1
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="active">
+            <a href="/page/2/">
+              2
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/3/">
+              3
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/4/">
+              4
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/5/">
+              5
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/6/">
+              6
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/7/">
+              7
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/8/">
+              8
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/9/">
+              9
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/10/">
+              10
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/11/">
+              11
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/12/">
+              12
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+              
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+          <li class="">
+            <a href="/page/13/">
+              13
+            </a>
+          </li>
+        
+
+      
+
+        
+
+        
+        
+
+          
+          
+          
+
+            
+            
+
+          
+          
+          
+
+        
+        
+
+        
+        
+
+      
+
+      
+      
+      <li><a href="/page/3/">»</a></li>
+      
+
+      
+      
+      <li><a href="/page/14/">»»</a></li>
+      
+
+      </ul>
+    </nav>
   
 
 

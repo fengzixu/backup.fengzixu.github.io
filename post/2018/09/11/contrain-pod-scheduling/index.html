@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-09-11T16:52:58&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-11T16:52:58&#43;08:00" />
-<meta itemprop="wordCount" content="3771">
+<meta itemprop="wordCount" content="3822">
 
 
 
@@ -393,7 +393,7 @@ spec:
 <p>The rules are of the form “this pod should (or, in the case of anti-affinity, should not) run in an X if that X is already running one or more pods that meet rule Y”</p>
 </blockquote>
 
-<p>其中 Y 可以被认为是 PodSelector， 即去筛选特定的一类 Pod。X 在这里也不仅仅代表某一个 Node，而是代表了一组 Node。Nodes 以一个特殊的字段作为标准进行分组：<code>topologyKey</code>（其实 topologyKey 就是 NodeLabel 中的一个 Key， 可以认为我们把带有 Label 为 topologyKey 的 Node 划分成了一组）。所以，对于 pod 的 affinity/anti-affinity 来说，我们首先要找到一组候选的 Node，然后再根据这些 Node 上面运行的 Pod 的 Label 来决定该 Pod 是否应该调度（or 不应该调度）到相应的节点上。</p>
+<p>其中 Y 可以被认为是 PodSelector， 即去筛选特定的一类 Pod。X 在这里也不仅仅代表某一个 Node，而是代表了一组 Node。Nodes 以一个特殊的字段作为标准进行分组：<code>topologyKey</code>（其实 topologyKey 就是 NodeLabel 中的一个 Key， 可以认为我们把带有 Label 为 topologyKey 且值相同的 Node 划分成了一组）。所以，对于 pod 的 affinity/anti-affinity 来说，我们首先要找到一组候选的 Node，然后再根据这些 Node 上面运行的 Pod 的 Label 来决定该 Pod 是否应该调度（or 不应该调度）到相应的节点上。</p>
 
 <p>为了更加直观的了解，我们可以看一个具体的例子：</p>
 <div class="highlight"><div class="chroma">
@@ -470,7 +470,7 @@ spec:
 <blockquote>
 <p>首先要找到一组 Node 带有 label 为 failure-domain.beta.kubernetes.io/zone 且 Node 上需要运行 label key 为 security， value 为 S1 的 Pod。否则，调度失败。</p>
 
-<p>若 podAffinity 条件成立，则在已经筛选出来的 Node 中继续寻找带有 label 为 kubernetes.io/hostname 的 Node 且 Node 上有运行 label key 为 security ， value 为 S2 的 Pod。若找到符合 podAffinity 条件的 Node 则更好，即使找不到也无所谓，可以继续进行调度。</p>
+<p>若 podAffinity 条件成立，则在已经筛选出来的 Node 中继续寻找带有 label 为 kubernetes.io/hostname 的 Node 且 Node 上有运行 label key 为 security ， value 为 S2 的 Pod。若找到符合 pod anti-Affinity 条件的 Node 则不会将 Pod 调度到这些机器上。不过 pod anti-Affinity 指定的是一个「软性」条件，如果此时两个筛选条件找出的 Node 是重合的，Scheduler 将不会管 pod anti-Affinity 的策略。</p>
 </blockquote>
 
 <p>除了上面我们谈到的几点之外，pod affinity/anti-affinity 还有一个比较特殊的地方，就是 <code>namespace</code>。因为 Pod 是处于某个 namespace 下面的。所以在通过 pod 的 labelSelector 筛选符合条件的 Node 的时候，必须要带上 namespace。默认情况下，如果不指定 namespace，可以认为它就是 定义了 pod affinity/anti-affinity 的 pod 所在的 namespace（被调度的 Pod 所在的 namespace）。</p>
