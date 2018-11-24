@@ -352,7 +352,7 @@
   
   <span class="nx">oldValue</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">memory</span><span class="p">[</span><span class="nx">n</span><span class="p">]</span>
   <span class="k">if</span> <span class="nx">ok</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="nx">value</span>
+	<span class="k">return</span> <span class="nx">oldValue</span>
   <span class="p">}</span>
   
   <span class="nx">newValue</span> <span class="o">:=</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
