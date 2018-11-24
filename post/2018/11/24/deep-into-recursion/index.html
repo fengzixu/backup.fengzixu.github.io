@@ -301,10 +301,10 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">Fibonacci</span><span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">int</span> <span class="p">{</span>
-	<span class="k">if</span> <span class="p">(</span> <span class="nx">n</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">)</span> <span class="k">return</span> <span class="mi">1</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="nx">n</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">)</span> <span class="k">return</span> <span class="mi">1</span>
   <span class="k">if</span> <span class="p">(</span> <span class="nx">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">)</span> <span class="k">return</span> <span class="mi">0</span>
   
-	<span class="k">return</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+  <span class="k">return</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
 <span class="p">}</span></code></pre></td></tr></table>
 </div>
 </div>
@@ -347,7 +347,7 @@
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">memory</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">int</span><span class="p">]</span><span class="kt">int</span><span class="p">)</span>
 <span class="kd">func</span> <span class="nf">Fibonacci</span><span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">int</span> <span class="p">{</span>
-	<span class="k">if</span> <span class="p">(</span> <span class="nx">n</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">)</span> <span class="k">return</span> <span class="mi">1</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="nx">n</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">)</span> <span class="k">return</span> <span class="mi">1</span>
   <span class="k">if</span> <span class="p">(</span> <span class="nx">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">)</span> <span class="k">return</span> <span class="mi">0</span>
   
   <span class="nx">oldValue</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">memory</span><span class="p">[</span><span class="nx">n</span><span class="p">]</span>
@@ -355,7 +355,7 @@
 		<span class="k">return</span> <span class="nx">value</span>
   <span class="p">}</span>
   
-	<span class="nx">newValue</span> <span class="o">:=</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+  <span class="nx">newValue</span> <span class="o">:=</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="nf">f</span><span class="p">(</span><span class="nx">n</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
   <span class="nx">memory</span><span class="p">[</span><span class="nx">n</span><span class="p">]</span> <span class="p">=</span> <span class="nx">newValue</span>
   <span class="k">return</span> <span class="nx">newValue</span>
 <span class="p">}</span></code></pre></td></tr></table>
@@ -381,7 +381,7 @@
    <span class="nx">prepre</span><span class="p">,</span> <span class="nx">pre</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
    <span class="kd">var</span> <span class="nx">result</span> <span class="kt">int</span>
    <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">2</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="nx">n</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
-		<span class="nx">result</span> <span class="p">=</span> <span class="nx">pre</span> <span class="o">+</span> <span class="nx">prepre</span>
+	   <span class="nx">result</span> <span class="p">=</span> <span class="nx">pre</span> <span class="o">+</span> <span class="nx">prepre</span>
       <span class="nx">prepre</span> <span class="p">=</span> <span class="nx">pre</span>
       <span class="nx">pre</span> <span class="p">=</span> <span class="nx">result</span>
 	 <span class="p">}</span>
