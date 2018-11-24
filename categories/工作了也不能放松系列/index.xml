@@ -17,7 +17,7 @@
       <pubDate>Sat, 24 Nov 2018 19:25:22 +0800</pubDate>
       
       <guid>http://littledriver.net/post/2018/11/24/deep-into-array-and-linklist/</guid>
-      <description>再谈两种线性数据结构—链表和数组 数组 数组是线性数据结构的一种实现方式。当提到数组的时候，我可能会想到以下几个点： 顺序存储 连续的内存空间 O（1</description>
+      <description>数组 数组是线性数据结构的一种实现方式。当提到数组的时候，我可能会想到以下几个点： 顺序存储 连续的内存空间 O（1）时间复杂度快速访问元素，O（N</description>
     </item>
     
     <item>
@@ -26,7 +26,7 @@
       <pubDate>Sat, 24 Nov 2018 19:25:10 +0800</pubDate>
       
       <guid>http://littledriver.net/post/2018/11/24/deep-into-stack-and-queue/</guid>
-      <description>有限制的线性数据结构—栈和队列 写在前面 栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元</description>
+      <description>写在前面 栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元素。它们底层都可以分别用数组和</description>
     </item>
     
     <item>
@@ -35,7 +35,7 @@
       <pubDate>Sat, 24 Nov 2018 19:25:00 +0800</pubDate>
       
       <guid>http://littledriver.net/post/2018/11/24/deep-into-recursion/</guid>
-      <description>递归思想 浅显的理解 递归是一个在数据结构中非常基本的思想，也是一个非常重要的编程技巧。很多复杂的数据结构的操作其核心思想都是递归。递归的特点之</description>
+      <description>浅显的理解 递归是一个在数据结构中非常基本的思想，也是一个非常重要的编程技巧。很多复杂的数据结构的操作其核心思想都是递归。递归的特点之一就是简</description>
     </item>
     
     <item>
