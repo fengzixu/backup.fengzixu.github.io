@@ -6,10 +6,37 @@
     <description>Recent content in 工作了也不能放松系列 on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 23 Nov 2018 00:28:01 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 24 Nov 2018 19:25:22 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Deep Into Array and Linklist</title>
+      <link>http://littledriver.net/post/2018/11/24/deep-into-array-and-linklist/</link>
+      <pubDate>Sat, 24 Nov 2018 19:25:22 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/24/deep-into-array-and-linklist/</guid>
+      <description>再谈两种线性数据结构—链表和数组 数组 数组是线性数据结构的一种实现方式。当提到数组的时候，我可能会想到以下几个点： 顺序存储 连续的内存空间 O（1</description>
+    </item>
+    
+    <item>
+      <title>Deep Into Stack and Queue</title>
+      <link>http://littledriver.net/post/2018/11/24/deep-into-stack-and-queue/</link>
+      <pubDate>Sat, 24 Nov 2018 19:25:10 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/24/deep-into-stack-and-queue/</guid>
+      <description>有限制的线性数据结构—栈和队列 写在前面 栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元</description>
+    </item>
+    
+    <item>
+      <title>Deep Into Recursion</title>
+      <link>http://littledriver.net/post/2018/11/24/deep-into-recursion/</link>
+      <pubDate>Sat, 24 Nov 2018 19:25:00 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/24/deep-into-recursion/</guid>
+      <description>递归思想 浅显的理解 递归是一个在数据结构中非常基本的思想，也是一个非常重要的编程技巧。很多复杂的数据结构的操作其核心思想都是递归。递归的特点之</description>
+    </item>
     
     <item>
       <title>Detect the Mechanism of Scheduling in Kubernetes</title>

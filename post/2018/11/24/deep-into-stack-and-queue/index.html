@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Detect the Mechanism of Scheduling in Kubernetes - LittleDriver</title>
+  <title>Deep Into Stack and Queue - LittleDriver</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="xuran" />
-  <meta name="description" content="什么是 Kubernetes scheduling？ Kubernetes scheduling是 Kubernetes 集群中的调度机制，它负责将集群内部的资源按照一定的策略将其调度到不同的 Node 上运行。更准" />
+  <meta name="description" content="有限制的线性数据结构—栈和队列 写在前面 栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元" />
 
 
 
@@ -34,7 +34,7 @@
 <meta name="generator" content="Hugo 0.51" />
 
 
-<link rel="canonical" href="http://littledriver.net/post/2018/11/23/detect-the-mechanism-of-scheduling-in-kubernetes/" />
+<link rel="canonical" href="http://littledriver.net/post/2018/11/24/deep-into-stack-and-queue/" />
 
 
 
@@ -56,26 +56,26 @@
 
 
 
-<meta property="og:title" content="Detect the Mechanism of Scheduling in Kubernetes" />
-<meta property="og:description" content="什么是 Kubernetes scheduling？ Kubernetes scheduling是 Kubernetes 集群中的调度机制，它负责将集群内部的资源按照一定的策略将其调度到不同的 Node 上运行。更准" />
+<meta property="og:title" content="Deep Into Stack and Queue" />
+<meta property="og:description" content="有限制的线性数据结构—栈和队列 写在前面 栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://littledriver.net/post/2018/11/23/detect-the-mechanism-of-scheduling-in-kubernetes/" /><meta property="article:published_time" content="2018-11-23T00:28:01&#43;08:00"/>
-<meta property="article:modified_time" content="2018-11-23T00:28:01&#43;08:00"/>
+<meta property="og:url" content="http://littledriver.net/post/2018/11/24/deep-into-stack-and-queue/" /><meta property="article:published_time" content="2018-11-24T19:25:10&#43;08:00"/>
+<meta property="article:modified_time" content="2018-11-24T19:25:10&#43;08:00"/>
 
-<meta itemprop="name" content="Detect the Mechanism of Scheduling in Kubernetes">
-<meta itemprop="description" content="什么是 Kubernetes scheduling？ Kubernetes scheduling是 Kubernetes 集群中的调度机制，它负责将集群内部的资源按照一定的策略将其调度到不同的 Node 上运行。更准">
-
-
-<meta itemprop="datePublished" content="2018-11-23T00:28:01&#43;08:00" />
-<meta itemprop="dateModified" content="2018-11-23T00:28:01&#43;08:00" />
-<meta itemprop="wordCount" content="1976">
+<meta itemprop="name" content="Deep Into Stack and Queue">
+<meta itemprop="description" content="有限制的线性数据结构—栈和队列 写在前面 栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元">
 
 
+<meta itemprop="datePublished" content="2018-11-24T19:25:10&#43;08:00" />
+<meta itemprop="dateModified" content="2018-11-24T19:25:10&#43;08:00" />
+<meta itemprop="wordCount" content="2097">
 
-<meta itemprop="keywords" content="Kubernetes," />
+
+
+<meta itemprop="keywords" content="DataStructure," />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Detect the Mechanism of Scheduling in Kubernetes"/>
-<meta name="twitter:description" content="什么是 Kubernetes scheduling？ Kubernetes scheduling是 Kubernetes 集群中的调度机制，它负责将集群内部的资源按照一定的策略将其调度到不同的 Node 上运行。更准"/>
+<meta name="twitter:title" content="Deep Into Stack and Queue"/>
+<meta name="twitter:description" content="有限制的线性数据结构—栈和队列 写在前面 栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -193,11 +193,11 @@
           <article class="post bg-white">
     
     <header class="post-header">
-      <h1 class="post-title">Detect the Mechanism of Scheduling in Kubernetes</h1>
+      <h1 class="post-title">Deep Into Stack and Queue</h1>
       
       <div class="post-meta">
-        <time datetime="2018-11-23" class="post-time">
-          2018-11-23
+        <time datetime="2018-11-24" class="post-time">
+          2018-11-24
         </time>
         <div class="post-category">
             <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
@@ -220,18 +220,22 @@
   <div class="post-toc-content">
     <nav id="TableOfContents">
 <ul>
-<li>
+<li><a href="#有限制的线性数据结构-栈和队列">有限制的线性数据结构—栈和队列</a>
 <ul>
-<li><a href="#什么是-kubernetes-scheduling">什么是 Kubernetes scheduling？</a></li>
-<li><a href="#如何实现-kubernetes-scheduling">如何实现 Kubernetes scheduling？</a></li>
-<li><a href="#快速了解-kubernetes-scheduling-运行机制">快速了解 Kubernetes scheduling 运行机制</a>
+<li><a href="#写在前面">写在前面</a></li>
+<li><a href="#栈和-栈">栈和「栈」</a></li>
+<li><a href="#扩容栈">扩容栈</a></li>
+<li><a href="#栈的应用方式">栈的应用方式</a></li>
+<li><a href="#队列">队列</a>
 <ul>
-<li><a href="#扩展一下">扩展一下</a></li>
+<li><a href="#队列满">队列满</a>
+<ul>
+<li><a href="#真满">真满</a></li>
+<li><a href="#假满">假满</a></li>
 </ul></li>
-<li><a href="#聊聊调度策略-从用户可控的角度">聊聊调度策略（从用户可控的角度）</a>
-<ul>
-<li><a href="#对于替换-scheduler-的一点思考">对于替换 Scheduler 的一点思考</a></li>
+<li><a href="#队列空">队列空</a></li>
 </ul></li>
+<li><a href="#循环队列">循环队列</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -242,94 +246,130 @@
     <div class="post-content">
       
 
-<h2 id="什么是-kubernetes-scheduling">什么是 Kubernetes scheduling？</h2>
+<h1 id="有限制的线性数据结构-栈和队列">有限制的线性数据结构—栈和队列</h1>
 
-<p><code>Kubernetes scheduling</code>是 Kubernetes 集群中的调度机制，它负责将集群内部的资源按照一定的策略将其调度到不同的 Node 上运行。更准确一点，「集群内部的资源」说的其实就是 Pod&mdash;-Kubernetes 中最小的工作实体和可调度实体。</p>
+<h2 id="写在前面">写在前面</h2>
 
-<h2 id="如何实现-kubernetes-scheduling">如何实现 Kubernetes scheduling？</h2>
+<p>栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元素。它们底层都可以分别用数组和链表来实现，主要的操作有 push 和 pop 两个。尤其是对于队列来说，它在基础形式上有很多的变形，如循环队列，阻塞队列，优先级队列等。之所以在数组和链表上实现者这两种数据结构，是因为它们的操作都符合一些特定的场景，也符合人类思考事物的一些思维。当我们使用它来描述一些较为复杂问题的时候，有很大的帮助，如操作系统中的生产者和消费者模型，从计算机的角度看待如何求不定式的值以及如何判断括号是匹配的。</p>
 
-<p><code>Kubernetes scheduling</code>一共由四个组件配合完成：</p>
+<h2 id="栈和-栈">栈和「栈」</h2>
+
+<p>提起栈，我们想到的可能不光是一种数据结构。在操作系统的内存中也存在着「栈」，它是一段真实的物理存储区。主要用来存储函数调用时的一些局部变量。栈的内存地址是从高向低扩展的，原因就是它借助了数据结构中栈的思想：后进先出。与「栈」相对的另外两种类型的存储区是堆和静态存储区。前者可由用户通过一些库函数在堆内存中分配一定的空间来进行使用，典型的就是 malloc 和 new。后者则用来存储一些全局变量，静态变量，常量等。</p>
+
+<p>之所以使用栈来存储函数调用的局部变量，是因为函数的调用存在着「递归」关系，这个递归的层数可大可小。多层嵌套且后面的层先计算出结果的特点是非常符合栈这种数据结构的特点的：后进先出。而且，栈的操作：入栈，出栈也非常的方便。即使是想清空栈，也直接调整一下栈顶指针即可。</p>
+
+<h2 id="扩容栈">扩容栈</h2>
+
+<p>我们无法在使用一个数据结构之前就能够预判它之后所需要的空间。所以说，我们需要实现一定的扩容机制。对于链表的实现来说，直接在队尾插入新节点即可。
+但是对于数组来说，可能涉及到要移动元素。因为数组的内存空间在定义时就已经确定了。不过由于移动元素的操作并不是每一次入栈和出栈都会发生，所以通过「摊还时间分析法」可以简单的分析出，即使是有扩容操作，入栈和出栈的时间复杂度仍然为 O（1）。</p>
+
+<p>无论使用链表实现栈还是数组，都需要考虑以下几个问题：</p>
 
 <ol>
-<li>API Server： 负责给出调度过程中需要的资源对象的信息</li>
-<li>kube-scheduler：Kubernetes 内置的一个 Controller，核心的调度逻辑在这个组件内实现</li>
-<li>Kubelet：Kubelet 存在于每一个 Node 上。它会根据 Pod.Spec 中的信息为其创建相应的容器，并负责维护这些容器的生命周期</li>
-<li>ControllerManager：虽然<code>Kubernetes scheduling</code>主要是对于 Pod 而言的。但是除了你直接创建一个 Pod 之外，大多数情况下我们还是通过创建一个具体的资源，如 Deployment，Statefulset 等，然后这些资源的控制器（Controller） 将会为我们调用 API Server 的 API 创建相应的 Pod。所以，和调度相关的工作一定有 ControllerManager 的参与</li>
+<li>空间复杂度：主要是针对链表而言，因为它需要额外存一个指针</li>
+<li>内存溢出：无限制的扩张，最终可能导致存储空间被占用光</li>
+<li>内存泄漏：不适用的空间没有及时回收，导致内存泄漏</li>
 </ol>
 
-<p>有了上述的四个组件，就可以实现一个完备的<code>Kubernetes scheduling</code>了。但是这里有一个小的细节需要读者考虑一下：各个组件看起来是通过「资源对象的信息」即 Event 来驱动整个调度过程运行的。那这些 Event 是如何在各个组件内进行传递的呢？答案是<code>List-Watch</code> 机制。</p>
+<p>其中对第一点来说，如果我们对空间复杂度要求比较高，那么我们应该选择数组来实现。而对 2，3点来说，就得在实现中具体做一些限制，防止这种情况的发生。</p>
 
-<h2 id="快速了解-kubernetes-scheduling-运行机制">快速了解 Kubernetes scheduling 运行机制</h2>
+<h2 id="栈的应用方式">栈的应用方式</h2>
+
+<p>对于栈的应用来说，一般是通过两种形式：</p>
+
+<ol>
+<li>两个栈配合：实现队列，浏览器页面的回退功能，表达式求值，括号匹配</li>
+<li>单个栈：逆序输出一个单项序列</li>
+</ol>
+
+<h2 id="队列">队列</h2>
+
+<p>对于队列来说，唯一比栈复杂的地方就是它需要维护两个游标：一个指向队列头部，一个指向队列尾部。随着出队和入队操作的执行，这两个游标的位置要随之改变。更为复杂的是如何判断两个临界的条件：</p>
+
+<ol>
+<li>队列满
+
+<ol>
+<li>真满</li>
+<li>假满</li>
+</ol></li>
+<li>队列空</li>
+</ol>
+
+<p>我们将指向队列头部的游标命名为 head, 指向队列尾部待插入元素位置的游标为 tail。</p>
+
+<h3 id="队列满">队列满</h3>
+
+<h4 id="真满">真满</h4>
+
+<p>一个真正将申请的空间全都填满的队列有如下特点：</p>
+
+<ol>
+<li>tail 已经到了之前申请空间的尾部了，无法再继续向后移动</li>
+<li>head 仍然指向整个数据结构中的首地址的位置</li>
+</ol>
+
+<p>之所以这么判断，是和 tail，head 的操作有关的。入队操作会引起 tail 向后移动，出队操作会引起 head 向后移动。转换到代码层面上，可以如下表示：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="k">for</span> <span class="p">{</span>
-    <span class="nx">pod</span> <span class="o">:=</span> <span class="nf">getNextPod</span><span class="p">()</span>
-    <span class="nx">node</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">findFitNode</span><span class="p">(</span><span class="nx">pod</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
-        <span class="nx">pod</span><span class="p">.</span><span class="nx">Spec</span><span class="p">.</span><span class="nx">nodeName</span> <span class="p">=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">Name</span>
-        <span class="nf">updatePod</span><span class="p">(</span><span class="nx">pod</span><span class="p">)</span>
-    <span class="p">}</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">head</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">tail</span> <span class="o">==</span> <span class="n">n</span> <span class="o">//</span> <span class="err">队列满</span></code></pre></td></tr></table>
 </div>
 </div>
-<p>上面一个较为简单的实例可以大致描述一个 Pod 被调度的过程：</p>
+<h4 id="假满">假满</h4>
 
-<ol>
-<li>从 Queue 中取出一个待调度的 Pod</li>
-<li>按照一定的策略，为其找到合适的 Node</li>
-<li>将 Pod 调度至相应的 Node</li>
-</ol>
+<p>一个假满的队列，是在有限的内存空间中，tail 已经移动到尾部了，但是 head 没有在首地址的位置。因为入队操作一直以来操作的都是 tail，当发现 tail == n 的时候，就认为队列满了，但是其实由于有出队操作的执行，还是有空余空间的。所以，这种就是假满的情况。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">head</span> <span class="o">!=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">tail</span> <span class="o">==</span> <span class="n">n</span> <span class="o">//</span> <span class="err">队列假满</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>假满的状态一般都要伴随着「数据迁移」。就如同之前我们聊数据这种数据结构的时候，为了保证它的顺序存储和连续存储的特性，我们时不时的要「整理碎片」。</p>
 
-<p>其中第三步是依靠更新 Pod 的信息来做到的。因为此时 Kubelet 会通过<code>List-Watch</code>机制监听 Pod 的相关Event。当它发现有预备调度的 Pod 时，就可以在相应的 Node 上按照 pod.Spec 上描述的信息为其创建 Containers。</p>
+<h3 id="队列空">队列空</h3>
 
-<h3 id="扩展一下">扩展一下</h3>
+<p>在创建队列且未被使用的初始状态，head 和 tail 通常都赋值为数据结构的首地址。这证明在首尾指针之间没有任何的元素。所以，这也是判定队列为空的条件。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">head</span> <span class="o">==</span> <span class="n">tail</span> <span class="o">//</span> <span class="err">队列空</span></code></pre></td></tr></table>
+</div>
+</div>
+<h2 id="循环队列">循环队列</h2>
 
-<p>真正的调度过程，要远比我们上面给出的那个例子要复杂的多。本节我们将在此基础之上继续了解调度过程内部的一些更细节的地方。</p>
+<p>循环队列的出现，解决了一个很重要的问题：如何在不进行「数据移动」操作的前提下最大限度的利用队列的内存空间。下面我们通过数组实现循环队列的例子来举例。</p>
 
-<p><img src="http://o6sfmikvw.bkt.clouddn.com/02951F95-3558-4101-B0A8-320EFDDE654C.png" alt="" /></p>
+<p>通过上面对普通队列的描述，我们可以知道，实现队列最关键也是最容易出错的地方就是两个临界条件：队满和队空。其中对空这个临界条件在循环队列中仍然可以按照之前的标准进行判断。但是队满就不一样了。</p>
 
-<p>上图主要描述了<code>findFitNode</code>方法内部的一些细节。我们可以看到，它会根据一定的策略和优先级来为 Pod 挑选 Node，如果没有挑选到合适的呢？那只能将这个 Pod 继续塞回队尾，等待下一次处理。如果已经找到符合条件的，那自然就可以进行后面的调度操作了。</p>
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/65A234E3-50D5-4A4C-9D97-AACA24D603F1.png" alt="" /></p>
 
-<p><img src="http://o6sfmikvw.bkt.clouddn.com/16030308-E70C-4AAC-A602-B90283CAEE68.png" alt="" /></p>
+<p>上述图片是一个循环队列队满的状态。细心的你一定会发现，这命名还有一个空余空间没有用，为什么说他已经满了？此时，你可以结合对空的临界条件，就可以知道，如果我们不预留这个一个元素空间的话，有一个地方是矛盾的：判断队满和对空的条件重合了： head == tail。而且，由于在这种环形的数据结构中，tail 可以无限制的移动，所以之前的队满临界条件就不生效了。</p>
 
-<p>有些 Pod 在创建的时候，可能需要挂载一定量的存储资源，所以不可避免的需要和 PVC 和 PV 打交道。上图中给出的实例是针对「静态 PVC」 场景的，即 PV 和相应的物理资源已经处理好了，若此时有符合条件的 PVC 出现，那么直接将 PVC 和 PV 绑定即可。与之相反的是「动态 PVC」 场景，即集群内部没有与 PVC 匹配的 PV 资源，此时 PV Controller 将会通过<code>List-Watch</code>机制监听到 PVC 相关的信息，为其动态的创建一个符合要求的 PV 和相应的物理资源。</p>
-
-<p>可能有的读者比较迷惑，为什么在完成了 Bind PVC 的工作之后又将 Pod 送回到了 Queue 中呢？这是因为 Scheduler 虽然已经了解了 Pod 对于 Node 的要求，并且也已经确认能够满足它。但是它想再将目前的场景送入「策略系统」，看是否能将 Pod 调度到里物理资源更近的机器上（也可能是有其他可以优化的地方）。</p>
-
-<blockquote>
-<p>说到这里就不得不提及一下 Scheduler 这个组件的本质。无论是在 Kubernetes 中还是在 Mesos 中，Scheduler 组件的一个重要的职责就是通过一定的调度策略充分利用集群的资源，并且让使用者更高效的利用集群内的资源。当你对 Scheduler 这个组件有了这样一个认识之后，上面它所做的操作相信理解起来也不难了。</p>
-</blockquote>
-
-<h2 id="聊聊调度策略-从用户可控的角度">聊聊调度策略（从用户可控的角度）</h2>
-
-<p>Kubernetes 一个非常值得称赞的特性就是，它为用户在很多方面都提供了高度的扩展性，如 CRD，自定义 Controller，CNI，CRI 等。所以，对于「调度策略」这么贴近业务的一个功能也一定会有所支持。</p>
-
-<p>在 Kubernetes 中，通过以下几种方式为用户提供稍微灵活一些的调度策略</p>
-
-<ol>
-<li>NodeSelector</li>
-<li>Anti-Affinity/Affinity</li>
-<li>Tolerations/Taints</li>
-</ol>
-
-<p>它们有一个共同的特点：都是通过 Kubernetes 的 Label 和 LabelSelector 机制来实现的。更详细的描述可以通过这篇文章深入了解一下：<a href="http://littledriver.net/post/2018/09/11/contrain-pod-scheduling/">Contrain Pod Scheduling - LittleDriver</a></p>
-
-<p>除了上面我们说到的 Kubernetes 内置的可以影响调度策略的方式，还有一个更高阶的玩法：自己实现一个 Scheduler，替换掉 Kubernetes 中默认的。</p>
-
-<h3 id="对于替换-scheduler-的一点思考">对于替换 Scheduler 的一点思考</h3>
-
-<p>不得不说，Kubernetes 中可以替换 Scheduler 这种重要组件的行为着实让我吃了一惊。但是仔细回味一下我前几天看过的<code>List-Watch</code>机制原理以及它在调度过程中的应用，我一下子明白了 Kubernetes 设计者的良苦用心：由于 Kubernetes 集群内部各个组件基本都是依靠<code>List-Watch</code>这种机制来进行消息传递的，且 Kubernetes 本身各个核心组件也都是依靠 Event 驱动机制来执行一些操作，所以 Scheduler 组件并没有和集群内其他任何组件产生过度的耦合。他们之间的交互要么依赖 Event，要么依赖一些 HTTP 或者 gRPC 的接口。那么，如果我们自己将 Scheduler 的框架实现一下，然后在其中填充和自己业务紧密相关的逻辑，完全可以无缝替换掉默认的 Scheduler。</p>
-
+<p>既然上面的图描述的就是队满的情况，那么如何将它固化成一个临界条件呢：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="n">tail</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">head</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>看起来这样的就大功告成了。但是我们还漏掉了一点，就是 tail 如果一直+1的移动，可能会超出数组的边界。那么如何让他在到达边界的地方回到首部位置呢？答案是取余数。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-c" data-lang="c"><span class="p">(</span><span class="n">tail</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">n</span> <span class="o">==</span> <span class="n">head</span></code></pre></td></tr></table>
+</div>
+</div>
     </div>
 
     
@@ -340,14 +380,14 @@
 
     <footer class="post-footer">
       <div class="post-tags">
-          <a href="http://littledriver.net/tags/kubernetes/">Kubernetes</a>
+          <a href="http://littledriver.net/tags/datastructure/">DataStructure</a>
           
         </div>
 
       
       <nav class="post-nav">
         
-          <a class="prev" href="/post/2018/11/24/deep-into-recursion/">
+          <a class="prev" href="/post/2018/11/24/deep-into-array-and-linklist/">
             
             <i class="iconfont">
               <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -357,12 +397,12 @@
 </svg>
 
             </i>
-            <span class="prev-text nav-default">Deep Into Recursion</span>
+            <span class="prev-text nav-default">Deep Into Array and Linklist</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
         
-          <a class="next" href="/post/2018/11/22/detect-the-source-code-of-list-watch-between-api-server-and-controller/">
-            <span class="next-text nav-default">Detect the Source Code of List Watch Between API Server and Controller</span>
+          <a class="next" href="/post/2018/11/24/deep-into-recursion/">
+            <span class="next-text nav-default">Deep Into Recursion</span>
             <span class="prev-text nav-mobile">Next</span>
             
             <i class="iconfont">
@@ -395,7 +435,7 @@
   <div id="disqus_thread"></div>
   <script type="text/javascript">
     var disqus_config = function () {
-      this.page.url = "http://littledriver.net/post/2018/11/23/detect-the-mechanism-of-scheduling-in-kubernetes/";
+      this.page.url = "http://littledriver.net/post/2018/11/24/deep-into-stack-and-queue/";
     };
     function load_disqus() {
       

@@ -6,10 +6,453 @@
     <description>Recent content in Home on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 23 Nov 2018 00:28:01 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 24 Nov 2018 19:25:22 +0800</lastBuildDate>
     
         <atom:link href="http://littledriver.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Deep Into Array and Linklist</title>
+      <link>http://littledriver.net/post/2018/11/24/deep-into-array-and-linklist/</link>
+      <pubDate>Sat, 24 Nov 2018 19:25:22 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/24/deep-into-array-and-linklist/</guid>
+      
+        <description>
+
+&lt;h1 id=&#34;再谈两种线性数据结构-链表和数组&#34;&gt;再谈两种线性数据结构—链表和数组&lt;/h1&gt;
+
+&lt;h2 id=&#34;数组&#34;&gt;数组&lt;/h2&gt;
+
+&lt;p&gt;数组是线性数据结构的一种实现方式。当提到数组的时候，我可能会想到以下几个点：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;顺序存储&lt;/li&gt;
+&lt;li&gt;连续的内存空间&lt;/li&gt;
+&lt;li&gt;O（1）时间复杂度快速访问元素，O（N） 时间复杂度删除元素&lt;/li&gt;
+&lt;li&gt;固定大小&lt;/li&gt;
+&lt;li&gt;能更好的利用 CPU 的高速缓存机制（CPU 加载内存当中的内容至高速缓存会利用「就近原则」）&lt;/li&gt;
+&lt;li&gt;存储数据的类型必须相同&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;如何实现高效的随机访问&#34;&gt;如何实现高效的随机访问&lt;/h3&gt;
+
+&lt;p&gt;其中第三点提到的 O（1）时间复杂度访问元素，是数组这个数据结构特有的一个优势。之所以能达到这个效果，来自于第一点和第六点的两个限制。因为数组的元素说到底都是存储在内存中的，既然在内存中就会有地址来标识数据所处的位置。而数组中又限制只能存储相同数据类型的元素，所以我们很轻松的就可以通过一个公式计算出数组中某个元素的内存地址，进而直接通过这个地址去访问它。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;element_address = base_address + data_type_size * i    计算第 i+1个元素的内存地址&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;在这里需要特别注意一点的是，数组高效的操作是「访问」而不是「查找」。万不可将两个操作混淆。访问包括计算内存地址+取值两个小操作。而查找则是需要通过一定的策略去遍历数组中的元素的。&lt;/p&gt;
+
+&lt;h3 id=&#34;为什么数组的-插入-和-删除-操作是低效的&#34;&gt;为什么数组的「插入」和「删除」操作是低效的？&lt;/h3&gt;
+
+&lt;p&gt;数组的插入操作大致可分为两种：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;尾部&lt;/li&gt;
+&lt;li&gt;非尾部&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其中从尾部插入元素的时间复杂度为 O（1），只需要一个简单的赋值操作即可，本质上来讲是一个「访问」操作的变种。而如果在数组头部和中间部分插入一个元素的话，可能就会涉及到一个非常昂贵的操作：「移动」。假设你要在数组第 k 个元素的位置插入一个新的元素，那边第 k 个元素至第 n（数组大小为 n）个元素就都需要向后移动一位，以便给新的元素让出位置。最坏的情况下，时间复杂度为 O（n）。&lt;/p&gt;
+
+&lt;p&gt;若读者仔细琢磨一下上面说的插入步骤，在结合文章最开始说的数组的第四个特点，我们就可以发现这里面还有一个隐含的风险：数组空间不够了怎么办？&lt;/p&gt;
+
+&lt;p&gt;如果出现了这种问题，肯定是需要从新开辟一块更大的内存空间，然后将所有的元素都 copy 过去。这样一来，时间复杂度妥妥的是 O（N），并且还增加了内存分配上的性能消耗。甚至是对内存空间也有一定的浪费。不过，对于这种昂贵的操作，很多编程语言都对其做了优化，比如设置一个更合适的数组内存空间分配策略，减少内存空间分配回收的次数等。&lt;/p&gt;
+
+&lt;p&gt;数组的删除操作基本上和插入操作面对的问题是一样的。虽然他不需要移动旧的元素给新的元素让出插入的位置，但是它要保证前面说到的数组的第一个特点：连续存储。所以，删除操作需要清除掉元素之间的「间隙」。不同之处在于，删除操作可以使用一些技巧来减少移动元素的次数：&lt;/p&gt;
+
+&lt;p&gt;对一个数组的元素执行了删除操作之后，先不移动元素，而是将此元素做一个标记。当数组的剩余空间已经没有的时候，可以统一对数组中的元素进行一次「整理」。&lt;/p&gt;
+
+&lt;p&gt;但是这个技巧的使用是有一个前提的：使用数组的人不需要数组「连续存储」的特性。&lt;/p&gt;
+
+&lt;h3 id=&#34;优点和缺点&#34;&gt;优点和缺点&lt;/h3&gt;
+
+&lt;h4 id=&#34;优点&#34;&gt;优点&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;通过下标可以对元素进行快速随机访问，时间复杂度为 O（1）&lt;/li&gt;
+&lt;li&gt;可以更好的利用 CPU 的高速缓存&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&#34;缺点&#34;&gt;缺点&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;必须要一段连续的内存空间存储。若内存剩余容量够但是空间不连续，则为数组分配内存会失败&lt;/li&gt;
+&lt;li&gt;昂贵的「插入」和「删除」操作&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;链表&#34;&gt;链表&lt;/h2&gt;
+
+&lt;p&gt;链表是按照一定的顺序通过指针将多个内存块串联起来的一种线性数据结构。当提到链表的时候，我通常会想到以下几个点：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;对内存空间的连续性没有要求&lt;/li&gt;
+&lt;li&gt;变种很多：单链表，双向链表，循环链表，双向循环链表&lt;/li&gt;
+&lt;li&gt;操作复杂，尤其是对头结点，尾节点，甚至是空链表&lt;/li&gt;
+&lt;li&gt;无法做到快速的随机访问，只能从链表头部进行遍历。但是插入和删除操作的时间复杂度为 O（1）&lt;/li&gt;
+&lt;li&gt;没有固定大小，可以轻易的扩缩容&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;为什么链表的插入和删除操作可以达到-o-1-的时间复杂度&#34;&gt;为什么链表的插入和删除操作可以达到 O（1）的时间复杂度？&lt;/h3&gt;
+
+&lt;p&gt;其实，对于数组来说，它的插入和删除操作之所以昂贵，是因为数组的一个特性：连续存储。连续存储带来的好处就是可以通过公式计算出某个元素的内存地址，进而达到「随机访问」的效果。如果要保证这种「连续」的特性，那么是避免不了要频繁移动数组中的元素的。&lt;/p&gt;
+
+&lt;h3 id=&#34;链表都有哪些种类&#34;&gt;链表都有哪些种类？&lt;/h3&gt;
+
+&lt;h4 id=&#34;单链表&#34;&gt;单链表&lt;/h4&gt;
+
+&lt;p&gt;单链表是最简单的链表数据结构。它的每一节点通常由两个 field 构成：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;value：存储该节点的数据值&lt;/li&gt;
+&lt;li&gt;ptr_next：存储下一个节点的内存地址&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;循环链表&#34;&gt;循环链表&lt;/h4&gt;
+
+&lt;p&gt;循环链表和单链表唯一的区别就是在链表尾节点上。单链表尾节点 ptr_next 的值为 NULL，而循环链表为头结点的内存地址。通过将尾节点的 next 指针又指向了头结点，形成了一个环形的数据结构&lt;/p&gt;
+
+&lt;h4 id=&#34;双向链表&#34;&gt;双向链表&lt;/h4&gt;
+
+&lt;p&gt;双向链表相较于单链表来说，其每一个节点不单单有后继指针，还有前驱指针。所以，双向链表可以实现两种相反方向的顺序访问。除了向使用者提供了另外一种访问链表的顺序之外，在特定场景下，他对于链表的删除和插入操作有一定的优化效果。&lt;/p&gt;
+
+&lt;p&gt;以删除来举例。如果我们想删除链表中的一个节点的时候，通常有两种方式可以对待删除节点进行描述：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;删除内存地址为 P 的节点&lt;/li&gt;
+&lt;li&gt;删除值为 X 的节点&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;对于单链表来说，这两种方式没有任何区别。因为我们都需要从链表的头部开始遍历，直到找到待删除节点的前一个节点，再进行相应的操作。而对于双向链表来说，如果待删除节点是以内存地址来描述的话，我们就可以直接通过 p-&amp;gt;ptr_pre 指针保存的内存地址定位到待删除节点的前一个节点。同理，对于插入操作来说也是一样的效果。&lt;/p&gt;
+
+&lt;p&gt;除了删除和插入操作之外，对于一个元素有序的链表而言。双向链表查询操作的效率也要高于单链表。因为双向列表通过记录上一次查找的位置，可以根据大小选择到底是查找前半部分还是后半部分的元素。&lt;/p&gt;
+
+&lt;h4 id=&#34;双向链表和单项链表的区别&#34;&gt;双向链表和单项链表的区别&lt;/h4&gt;
+
+&lt;p&gt;很容易就可以看出，双向链表要比单项链表多出一个「前驱指针」，这意味着双向链表要消耗更多的内存空间。但是，消耗更多空间的同时也为特定场景下链表的插入，删除，查找等操作节省了一定的时间。这是一种典型的「以空间换时间」的思想。相反，在计算机世界中也有很多「以时间换空间」的例子：比如对于一些消耗内存较多的服务，我们可以限制它的内存配额，将部分数据存储在硬盘上。虽然读写硬盘可能会造成一定时间上的延迟，但是，「以时间换空间」的目的却达到了。&lt;/p&gt;
+
+&lt;h3 id=&#34;链表使用的注意事项&#34;&gt;链表使用的注意事项&lt;/h3&gt;
+
+&lt;p&gt;在编写关于链表相关的代码的时候，是非常容易出错的。尤其是在以下几个点上：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;链表为空，是否可以工作&lt;/li&gt;
+&lt;li&gt;链表只有一个节点，是否可以工作&lt;/li&gt;
+&lt;li&gt;链表只有两个节点，是否可以工作&lt;/li&gt;
+&lt;li&gt;处理头结点和尾节点，是否可以工作&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;链表的常用操作&#34;&gt;链表的常用操作&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;单链表反转&lt;/li&gt;
+&lt;li&gt;链表成环检测&lt;/li&gt;
+&lt;li&gt;有序链表合并&lt;/li&gt;
+&lt;li&gt;删除链表倒数第 N 个节点&lt;/li&gt;
+&lt;li&gt;求链表的中间节点&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      
+    </item>
+    
+    <item>
+      <title>Deep Into Stack and Queue</title>
+      <link>http://littledriver.net/post/2018/11/24/deep-into-stack-and-queue/</link>
+      <pubDate>Sat, 24 Nov 2018 19:25:10 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/24/deep-into-stack-and-queue/</guid>
+      
+        <description>
+
+&lt;h1 id=&#34;有限制的线性数据结构-栈和队列&#34;&gt;有限制的线性数据结构—栈和队列&lt;/h1&gt;
+
+&lt;h2 id=&#34;写在前面&#34;&gt;写在前面&lt;/h2&gt;
+
+&lt;p&gt;栈和队列是两种首先的线性数据结构。前者只能从一段插入和弹出元素，后者只能从一端插入元素，另外一端弹出元素。它们底层都可以分别用数组和链表来实现，主要的操作有 push 和 pop 两个。尤其是对于队列来说，它在基础形式上有很多的变形，如循环队列，阻塞队列，优先级队列等。之所以在数组和链表上实现者这两种数据结构，是因为它们的操作都符合一些特定的场景，也符合人类思考事物的一些思维。当我们使用它来描述一些较为复杂问题的时候，有很大的帮助，如操作系统中的生产者和消费者模型，从计算机的角度看待如何求不定式的值以及如何判断括号是匹配的。&lt;/p&gt;
+
+&lt;h2 id=&#34;栈和-栈&#34;&gt;栈和「栈」&lt;/h2&gt;
+
+&lt;p&gt;提起栈，我们想到的可能不光是一种数据结构。在操作系统的内存中也存在着「栈」，它是一段真实的物理存储区。主要用来存储函数调用时的一些局部变量。栈的内存地址是从高向低扩展的，原因就是它借助了数据结构中栈的思想：后进先出。与「栈」相对的另外两种类型的存储区是堆和静态存储区。前者可由用户通过一些库函数在堆内存中分配一定的空间来进行使用，典型的就是 malloc 和 new。后者则用来存储一些全局变量，静态变量，常量等。&lt;/p&gt;
+
+&lt;p&gt;之所以使用栈来存储函数调用的局部变量，是因为函数的调用存在着「递归」关系，这个递归的层数可大可小。多层嵌套且后面的层先计算出结果的特点是非常符合栈这种数据结构的特点的：后进先出。而且，栈的操作：入栈，出栈也非常的方便。即使是想清空栈，也直接调整一下栈顶指针即可。&lt;/p&gt;
+
+&lt;h2 id=&#34;扩容栈&#34;&gt;扩容栈&lt;/h2&gt;
+
+&lt;p&gt;我们无法在使用一个数据结构之前就能够预判它之后所需要的空间。所以说，我们需要实现一定的扩容机制。对于链表的实现来说，直接在队尾插入新节点即可。
+但是对于数组来说，可能涉及到要移动元素。因为数组的内存空间在定义时就已经确定了。不过由于移动元素的操作并不是每一次入栈和出栈都会发生，所以通过「摊还时间分析法」可以简单的分析出，即使是有扩容操作，入栈和出栈的时间复杂度仍然为 O（1）。&lt;/p&gt;
+
+&lt;p&gt;无论使用链表实现栈还是数组，都需要考虑以下几个问题：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;空间复杂度：主要是针对链表而言，因为它需要额外存一个指针&lt;/li&gt;
+&lt;li&gt;内存溢出：无限制的扩张，最终可能导致存储空间被占用光&lt;/li&gt;
+&lt;li&gt;内存泄漏：不适用的空间没有及时回收，导致内存泄漏&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其中对第一点来说，如果我们对空间复杂度要求比较高，那么我们应该选择数组来实现。而对 2，3点来说，就得在实现中具体做一些限制，防止这种情况的发生。&lt;/p&gt;
+
+&lt;h2 id=&#34;栈的应用方式&#34;&gt;栈的应用方式&lt;/h2&gt;
+
+&lt;p&gt;对于栈的应用来说，一般是通过两种形式：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;两个栈配合：实现队列，浏览器页面的回退功能，表达式求值，括号匹配&lt;/li&gt;
+&lt;li&gt;单个栈：逆序输出一个单项序列&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;队列&#34;&gt;队列&lt;/h2&gt;
+
+&lt;p&gt;对于队列来说，唯一比栈复杂的地方就是它需要维护两个游标：一个指向队列头部，一个指向队列尾部。随着出队和入队操作的执行，这两个游标的位置要随之改变。更为复杂的是如何判断两个临界的条件：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;队列满
+
+&lt;ol&gt;
+&lt;li&gt;真满&lt;/li&gt;
+&lt;li&gt;假满&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;队列空&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;我们将指向队列头部的游标命名为 head, 指向队列尾部待插入元素位置的游标为 tail。&lt;/p&gt;
+
+&lt;h3 id=&#34;队列满&#34;&gt;队列满&lt;/h3&gt;
+
+&lt;h4 id=&#34;真满&#34;&gt;真满&lt;/h4&gt;
+
+&lt;p&gt;一个真正将申请的空间全都填满的队列有如下特点：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;tail 已经到了之前申请空间的尾部了，无法再继续向后移动&lt;/li&gt;
+&lt;li&gt;head 仍然指向整个数据结构中的首地址的位置&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;之所以这么判断，是和 tail，head 的操作有关的。入队操作会引起 tail 向后移动，出队操作会引起 head 向后移动。转换到代码层面上，可以如下表示：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;n&#34;&gt;head&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;tail&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;//&lt;/span&gt; &lt;span class=&#34;err&#34;&gt;队列满&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h4 id=&#34;假满&#34;&gt;假满&lt;/h4&gt;
+
+&lt;p&gt;一个假满的队列，是在有限的内存空间中，tail 已经移动到尾部了，但是 head 没有在首地址的位置。因为入队操作一直以来操作的都是 tail，当发现 tail == n 的时候，就认为队列满了，但是其实由于有出队操作的执行，还是有空余空间的。所以，这种就是假满的情况。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;n&#34;&gt;head&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;tail&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;//&lt;/span&gt; &lt;span class=&#34;err&#34;&gt;队列假满&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;假满的状态一般都要伴随着「数据迁移」。就如同之前我们聊数据这种数据结构的时候，为了保证它的顺序存储和连续存储的特性，我们时不时的要「整理碎片」。&lt;/p&gt;
+
+&lt;h3 id=&#34;队列空&#34;&gt;队列空&lt;/h3&gt;
+
+&lt;p&gt;在创建队列且未被使用的初始状态，head 和 tail 通常都赋值为数据结构的首地址。这证明在首尾指针之间没有任何的元素。所以，这也是判定队列为空的条件。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;n&#34;&gt;head&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;tail&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;//&lt;/span&gt; &lt;span class=&#34;err&#34;&gt;队列空&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 id=&#34;循环队列&#34;&gt;循环队列&lt;/h2&gt;
+
+&lt;p&gt;循环队列的出现，解决了一个很重要的问题：如何在不进行「数据移动」操作的前提下最大限度的利用队列的内存空间。下面我们通过数组实现循环队列的例子来举例。&lt;/p&gt;
+
+&lt;p&gt;通过上面对普通队列的描述，我们可以知道，实现队列最关键也是最容易出错的地方就是两个临界条件：队满和队空。其中对空这个临界条件在循环队列中仍然可以按照之前的标准进行判断。但是队满就不一样了。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/65A234E3-50D5-4A4C-9D97-AACA24D603F1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;上述图片是一个循环队列队满的状态。细心的你一定会发现，这命名还有一个空余空间没有用，为什么说他已经满了？此时，你可以结合对空的临界条件，就可以知道，如果我们不预留这个一个元素空间的话，有一个地方是矛盾的：判断队满和对空的条件重合了： head == tail。而且，由于在这种环形的数据结构中，tail 可以无限制的移动，所以之前的队满临界条件就不生效了。&lt;/p&gt;
+
+&lt;p&gt;既然上面的图描述的就是队满的情况，那么如何将它固化成一个临界条件呢：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;n&#34;&gt;tail&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;head&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;看起来这样的就大功告成了。但是我们还漏掉了一点，就是 tail 如果一直+1的移动，可能会超出数组的边界。那么如何让他在到达边界的地方回到首部位置呢？答案是取余数。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tail&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;%&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;head&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>Deep Into Recursion</title>
+      <link>http://littledriver.net/post/2018/11/24/deep-into-recursion/</link>
+      <pubDate>Sat, 24 Nov 2018 19:25:00 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/24/deep-into-recursion/</guid>
+      
+        <description>
+
+&lt;h1 id=&#34;递归思想&#34;&gt;递归思想&lt;/h1&gt;
+
+&lt;h2 id=&#34;浅显的理解&#34;&gt;浅显的理解&lt;/h2&gt;
+
+&lt;p&gt;递归是一个在数据结构中非常基本的思想，也是一个非常重要的编程技巧。很多复杂的数据结构的操作其核心思想都是递归。递归的特点之一就是简洁，看起来非常的清晰。另外一个特点就是「绕」，因为它在一直的进行「嵌套」。&lt;/p&gt;
+
+&lt;h3 id=&#34;递归与递推&#34;&gt;递归与递推&lt;/h3&gt;
+
+&lt;p&gt;和递归思想相对应的就是递推。这么对比着来思考这两个东西是非常有趣的。递归贯彻的是一种「先切割，后合并」的思想，而递推更强调「积少成多」。两种思想是截然相反的，它们是彼此的「逆过程」。所以，很多时候，递归和递归的代码是可以相互转化的。&lt;/p&gt;
+
+&lt;h2 id=&#34;递归的特点&#34;&gt;递归的特点&lt;/h2&gt;
+
+&lt;p&gt;通过上面和递推的思想进行对比，我们可以知道，递归有两个要素：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;待求解的问题可以被分割为多个小问题&lt;/li&gt;
+&lt;li&gt;多个小问题的结果经过合并就是带求解问题的结果&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;在了解了上述两个要素之外，这里还有一个隐含的因素：待求解问题必须是可分割的，而且是有边界的，不能一直分割下去。所以，递归的三个特点也就呼之欲出了：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;待求解问题可分为个数量有限的子问题&lt;/li&gt;
+&lt;li&gt;多个子问题的求解思路一致，可重复&lt;/li&gt;
+&lt;li&gt;递归过程一定要有一个终止条件，即最小子问题&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;如何编写递归代码&#34;&gt;如何编写递归代码&lt;/h2&gt;
+
+&lt;p&gt;无论是递归，还是动态规划，都隐含了「由小见大」的思想。所以，对这类问题，重中之重就是推导出求解公式。除此之外，就是写出一个可靠的边界条件，以便在有限的步骤内求出问题的解。最后才是代码上面的实现。&lt;/p&gt;
+
+&lt;p&gt;以斐波那契数列为例：&lt;/p&gt;
+
+&lt;h3 id=&#34;公式&#34;&gt;公式&lt;/h3&gt;
+
+&lt;p&gt;Fn=Fn-1+Fn-2（n&amp;gt;=2，n∈N*）&lt;/p&gt;
+
+&lt;h3 id=&#34;边界条件&#34;&gt;边界条件&lt;/h3&gt;
+
+&lt;p&gt;F0=0，F1=1&lt;/p&gt;
+
+&lt;h3 id=&#34;代码&#34;&gt;代码&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;Fibonacci&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;
+  
+	&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 id=&#34;递归的风险&#34;&gt;递归的风险&lt;/h2&gt;
+
+&lt;p&gt;虽然我们可以通过「认真」来规避递归由于代码编写上带来的问题。但是，有些问题，可能是递归与生俱来的。&lt;/p&gt;
+
+&lt;h3 id=&#34;爆栈&#34;&gt;爆栈&lt;/h3&gt;
+
+&lt;p&gt;在使用递归的时候，一般都是通过函数嵌套调用的形式。函数的嵌套调用，根据之前我们对堆栈的了解，每一次调用都会分配一定空间的函数栈，以便能够存储一些临时变量。如果此时嵌套层数过多，那么就可能会引起堆栈溢出的情况。&lt;/p&gt;
+
+&lt;h3 id=&#34;重复计算&#34;&gt;重复计算&lt;/h3&gt;
+
+&lt;p&gt;编写递归逻辑非常容易出错，甚至有的时候效率会出奇的低。因为在递归计算的过程中，我们的计算步骤有的时候可能会重合。以上面说到的斐波那契数列为例：假设现在 n = 4。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;F(4)= F(3) + F(2)&lt;/li&gt;
+&lt;li&gt;F(3) = F(2) + F(1)&lt;/li&gt;
+&lt;li&gt;…&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;我们发现F(2)其实是被重复计算了，这其实是没必要的。但是如果你将整个递归过程写完，就可以发现 F(1) F(0) 虽然也被重复用到，但是他们仅仅只是一个赋值操作，不会有额外的消耗。借鉴这种思想，我们应该将已经计算出来的结构保存起来，如果之前计算过，那么就用之前的结果。我习惯把这种技巧叫做「记忆化搜索」&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;nx&#34;&gt;memory&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;make&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;map&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;Fibonacci&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;
+  
+  &lt;span class=&#34;nx&#34;&gt;oldValue&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ok&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;memory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ok&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;value&lt;/span&gt;
+  &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+  
+	&lt;span class=&#34;nx&#34;&gt;newValue&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;nx&#34;&gt;memory&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;newValue&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;newValue&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 id=&#34;由递归至递推&#34;&gt;由递归至递推&lt;/h2&gt;
+
+&lt;p&gt;上面已经说到了递归和递推的区别，并且已经知道它们的逻辑可以相互转换。还是以斐波那契数列为例：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;Fibonacci&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+   &lt;span class=&#34;nx&#34;&gt;prepre&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;pre&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;
+   &lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;result&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+   &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;result&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;pre&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;prepre&lt;/span&gt;
+      &lt;span class=&#34;nx&#34;&gt;prepre&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;pre&lt;/span&gt;
+      &lt;span class=&#34;nx&#34;&gt;pre&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;result&lt;/span&gt;
+	 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;对边上面递归的过程就可以知道，递归是「由大到小」，递推是「由小到大」&lt;/p&gt;
+
+&lt;h2 id=&#34;重中之重-递归的思想&#34;&gt;重中之重—递归的思想&lt;/h2&gt;
+
+&lt;p&gt;其实，在之前学习递归的过程中，我有一个很大的误区，就是喜欢手推递归的过程，尤其是那种很冗长的，比如汉诺塔。因为我觉得只有我了解了它每一个步骤，我才真正理解了递归的过程。但其实，这是一个非常大的思维误区。打个比方吧：乔布斯好不容易把IPhone 做的那么轻薄，你偏要给它带个厚重的手机壳。递归之所以看起来简洁，执行起来复杂，是因为人的大脑是不适合一直重复的做一个动作的，如果硬是要这样，几次就会把你绕晕。所以我们才将这种工作交由计算机来处理。递归本身是帮助我们减轻思维负担的，结果因为一些「程序员思维」的坏处，反而没有享受到这种好处。&lt;/p&gt;
+
+&lt;p&gt;想要更有效的使用递归，你必须建立一种思想：在求解一个大问题的时候，想象它分割成的小问题已经解决了。在其小问题已经解决情况下，大问题能不能解决才是我们需要考虑的。如果能够解决，那直接按照上面的步骤，写出递归逻辑即可，而不用再给自己找麻烦了。&lt;/p&gt;
+
+&lt;p&gt;这种思维看起来是在自己骗自己，但其实是一种更高阶的抽象思维。站在全局的角度看问题，而不是死磕一个细节，可能也正是大部分程序员需要改正的地方吧。&lt;/p&gt;
+</description>
+      
+    </item>
     
     <item>
       <title>Detect the Mechanism of Scheduling in Kubernetes</title>
