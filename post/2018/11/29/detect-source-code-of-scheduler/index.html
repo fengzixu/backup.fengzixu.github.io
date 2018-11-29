@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Detect Source Code of Scheduler - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="Detect the source code of Scheduler 本文基于 Kubernetes 1.12 版本 写在前面 在上一篇关于 Scheduler 的文章中，我们主要从宏观的层面上了解了 Kubernetes 中调度的大概流程。本篇 blog，我将从源码级别分析" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2018/11/29/detect-source-code-of-scheduler/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="Detect Source Code of Scheduler" />
+<meta property="og:description" content="Detect the source code of Scheduler 本文基于 Kubernetes 1.12 版本 写在前面 在上一篇关于 Scheduler 的文章中，我们主要从宏观的层面上了解了 Kubernetes 中调度的大概流程。本篇 blog，我将从源码级别分析" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2018/11/29/detect-source-code-of-scheduler/" /><meta property="article:published_time" content="2018-11-29T14:36:58&#43;08:00"/>
+<meta property="article:modified_time" content="2018-11-29T14:36:58&#43;08:00"/>
+
+<meta itemprop="name" content="Detect Source Code of Scheduler">
+<meta itemprop="description" content="Detect the source code of Scheduler 本文基于 Kubernetes 1.12 版本 写在前面 在上一篇关于 Scheduler 的文章中，我们主要从宏观的层面上了解了 Kubernetes 中调度的大概流程。本篇 blog，我将从源码级别分析">
+
+
+<meta itemprop="datePublished" content="2018-11-29T14:36:58&#43;08:00" />
+<meta itemprop="dateModified" content="2018-11-29T14:36:58&#43;08:00" />
+<meta itemprop="wordCount" content="10514">
+
+
+
+<meta itemprop="keywords" content="Kubernetes," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Detect Source Code of Scheduler"/>
+<meta name="twitter:description" content="Detect the source code of Scheduler 本文基于 Kubernetes 1.12 版本 写在前面 在上一篇关于 Scheduler 的文章中，我们主要从宏观的层面上了解了 Kubernetes 中调度的大概流程。本篇 blog，我将从源码级别分析"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Detect Source Code of Scheduler</h1>
+      
+      <div class="post-meta">
+        <time datetime="2018-11-29" class="post-time">
+          2018-11-29
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+
+    
+    <div class="post-content">
+      
+
+<h1 id="detect-the-source-code-of-scheduler">Detect the source code of Scheduler</h1>
+
+<blockquote>
+<p>本文基于 Kubernetes 1.12 版本</p>
+</blockquote>
+
+<h2 id="写在前面">写在前面</h2>
+
+<p>在上一篇关于 Scheduler 的文章中，我们主要从宏观的层面上了解了 Kubernetes 中调度的大概流程。本篇 blog，我将从源码级别分析一下 Scheduler 组件对 Pod 进行调度的过程。</p>
+
+<h2 id="调度过程">调度过程</h2>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/scheduler3.png" alt="" /></p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/D45B3B4E-C746-42B9-A259-D9101AFF887D.png" alt="" /></p>
+
+<p>通过上面的两个图示我们可以看出，Scheduler 的核心逻辑就是<code>Predicates 和 Priorities</code>两个过程。其中 Predicate 先进行，Priority 后进行。在执行完这两个步骤之后，Scheduler 将在候选 Node 中选取一个「分数最高的」，作为 Pod 的调度 Node。</p>
+
+<h2 id="scheduler-的启动和创建">Scheduler 的启动和创建</h2>
+
+<p>在 Kubernetes 主项目的<code>cmd/kube-scheduler/app/server.go</code>文件下，我们不难找到 Scheduler 的创建和运行逻辑：<a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/cmd/kube-scheduler/app/server.go#L126">kubernetes/server.go at release-1.12 · kubernetes/kubernetes · GitHub</a></p>
+
+<h3 id="创建">创建</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Run runs the Scheduler.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">Run</span><span class="p">(</span><span class="nx">c</span> <span class="nx">schedulerserverconfig</span><span class="p">.</span><span class="nx">CompletedConfig</span><span class="p">,</span> <span class="nx">stopCh</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{})</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="c1">// To help debugging, immediately log version
+</span><span class="c1"></span>	<span class="nx">glog</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="err">“</span><span class="nx">Version</span><span class="p">:</span> <span class="o">%+</span><span class="nx">v</span><span class="err">”</span><span class="p">,</span> <span class="nx">version</span><span class="p">.</span><span class="nf">Get</span><span class="p">())</span>
+
+	<span class="c1">// Apply algorithms based on feature gates.
+</span><span class="c1"></span>	<span class="c1">// TODO: make configurable?
+</span><span class="c1"></span>	<span class="nx">algorithmprovider</span><span class="p">.</span><span class="nf">ApplyFeatureGates</span><span class="p">()</span>
+
+	<span class="c1">// Configz registration.
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">cz</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">configz</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="err">“</span><span class="nx">componentconfig</span><span class="err">”</span><span class="p">);</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">cz</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">)</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="err">“</span><span class="nx">unable</span> <span class="nx">to</span> <span class="nx">register</span> <span class="nx">configz</span><span class="p">:</span> <span class="o">%</span><span class="nx">s</span><span class="err">”</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="c1">// Build a scheduler config from the provided algorithm source.
+</span><span class="c1"></span>	<span class="nx">schedulerConfig</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">NewSchedulerConfig</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">err</span>
+	<span class="p">}</span>
+
+	<span class="c1">// Create the scheduler.
+</span><span class="c1"></span>	<span class="nx">sched</span> <span class="o">:=</span> <span class="nx">scheduler</span><span class="p">.</span><span class="nf">NewFromConfig</span><span class="p">(</span><span class="nx">schedulerConfig</span><span class="p">)</span>
+<span class="o">...</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>在 server.go 文件的内部，我们可以看到，二进制文件 scheduler 启动之后会调用一个<code>Run</code> 函数，在<code>Run</code> 函数的内部会调用<code>NewSchedulerConfig</code>来构造一份配置，并且通过这份配置调用<code>scheduler.NewFromConfig</code>创建一个 scheduler 的实例。</p>
+
+<p>在创建了scheduler 实例之后，我们继续向下，看到了一段非常关键的逻辑:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Start all informers.
+</span><span class="c1"></span><span class="k">go</span> <span class="nx">c</span><span class="p">.</span><span class="nx">PodInformer</span><span class="p">.</span><span class="nf">Informer</span><span class="p">().</span><span class="nf">Run</span><span class="p">(</span><span class="nx">stopCh</span><span class="p">)</span>
+<span class="nx">c</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="nx">stopCh</span><span class="p">)</span>
+
+<span class="c1">// Wait for all caches to sync before scheduling.
+</span><span class="c1"></span><span class="nx">c</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">WaitForCacheSync</span><span class="p">(</span><span class="nx">stopCh</span><span class="p">)</span>
+<span class="nx">controller</span><span class="p">.</span><span class="nf">WaitForCacheSync</span><span class="p">(</span><span class="err">“</span><span class="nx">scheduler</span><span class="err">”</span><span class="p">,</span> <span class="nx">stopCh</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">PodInformer</span><span class="p">.</span><span class="nf">Informer</span><span class="p">().</span><span class="nx">HasSynced</span><span class="p">)</span>
+
+<span class="c1">// Prepare a reusable run function.
+</span><span class="c1"></span><span class="nx">run</span> <span class="o">:=</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">sched</span><span class="p">.</span><span class="nf">Run</span><span class="p">()</span>
+	<span class="o">&lt;-</span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>在这段逻辑中，有我们非常熟悉的 Informer。并且在之前介绍 <code>List-Watch</code> 原理的时候，我们也提到过，scheduler 主要是依靠 PodInformer 来监听 Pod 的相关事件的。当它发现有一些待调度的 Pod 的时候，就会执行后面的调度逻辑。可以说，这里就是 scheduler 输入数据的源头。最终，我们将调用<code>sched.Run</code> 函数，执行 scheduler 内的调度逻辑。</p>
+
+<p>那么，上面的 Informer 是在哪里生成的呢？顺着<code>c</code>这个对象向上寻找，我们先找到了<code>NewSchedulerConfig</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// NewSchedulerConfig creates the scheduler configuration. This is exposed for use by tests.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">NewSchedulerConfig</span><span class="p">(</span><span class="nx">s</span> <span class="nx">schedulerserverconfig</span><span class="p">.</span><span class="nx">CompletedConfig</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">scheduler</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">storageClassInformer</span> <span class="nx">storageinformers</span><span class="p">.</span><span class="nx">StorageClassInformer</span>
+	<span class="k">if</span> <span class="nx">utilfeature</span><span class="p">.</span><span class="nx">DefaultFeatureGate</span><span class="p">.</span><span class="nf">Enabled</span><span class="p">(</span><span class="nx">features</span><span class="p">.</span><span class="nx">VolumeScheduling</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">storageClassInformer</span> <span class="p">=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Storage</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">StorageClasses</span><span class="p">()</span>
+	<span class="p">}</span>
+
+	<span class="c1">// Set up the configurator which can create schedulers from configs.
+</span><span class="c1"></span>	<span class="nx">configurator</span> <span class="o">:=</span> <span class="nx">factory</span><span class="p">.</span><span class="nf">NewConfigFactory</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">factory</span><span class="p">.</span><span class="nx">ConfigFactoryArgs</span><span class="p">{</span>
+		<span class="nx">SchedulerName</span><span class="p">:</span>                  <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">SchedulerName</span><span class="p">,</span>
+		<span class="nx">Client</span><span class="p">:</span>                         <span class="nx">s</span><span class="p">.</span><span class="nx">Client</span><span class="p">,</span>
+		<span class="nx">NodeInformer</span><span class="p">:</span>                   <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">Nodes</span><span class="p">(),</span>
+		<span class="nx">PodInformer</span><span class="p">:</span>                    <span class="nx">s</span><span class="p">.</span><span class="nx">PodInformer</span><span class="p">,</span>
+		<span class="nx">PvInformer</span><span class="p">:</span>                     <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">PersistentVolumes</span><span class="p">(),</span>
+		<span class="nx">PvcInformer</span><span class="p">:</span>                    <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">PersistentVolumeClaims</span><span class="p">(),</span>
+		<span class="nx">ReplicationControllerInformer</span><span class="p">:</span>  <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">ReplicationControllers</span><span class="p">(),</span>
+		<span class="nx">ReplicaSetInformer</span><span class="p">:</span>             <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Apps</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">ReplicaSets</span><span class="p">(),</span>
+		<span class="nx">StatefulSetInformer</span><span class="p">:</span>            <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Apps</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">StatefulSets</span><span class="p">(),</span>
+		<span class="nx">ServiceInformer</span><span class="p">:</span>                <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">Services</span><span class="p">(),</span>
+		<span class="nx">PdbInformer</span><span class="p">:</span>                    <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Policy</span><span class="p">().</span><span class="nf">V1beta1</span><span class="p">().</span><span class="nf">PodDisruptionBudgets</span><span class="p">(),</span>
+		<span class="nx">StorageClassInformer</span><span class="p">:</span>           <span class="nx">storageClassInformer</span><span class="p">,</span>
+		<span class="nx">HardPodAffinitySymmetricWeight</span><span class="p">:</span> <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">HardPodAffinitySymmetricWeight</span><span class="p">,</span>
+		<span class="nx">EnableEquivalenceClassCache</span><span class="p">:</span>    <span class="nx">utilfeature</span><span class="p">.</span><span class="nx">DefaultFeatureGate</span><span class="p">.</span><span class="nf">Enabled</span><span class="p">(</span><span class="nx">features</span><span class="p">.</span><span class="nx">EnableEquivalenceClassCache</span><span class="p">),</span>
+		<span class="nx">DisablePreemption</span><span class="p">:</span>              <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">DisablePreemption</span><span class="p">,</span>
+		<span class="nx">PercentageOfNodesToScore</span><span class="p">:</span>       <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">PercentageOfNodesToScore</span><span class="p">,</span>
+		<span class="nx">BindTimeoutSeconds</span><span class="p">:</span>             <span class="o">*</span><span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">BindTimeoutSeconds</span><span class="p">,</span>
+	<span class="p">})</span>
+	<span class="o">...</span><span class="p">.</span>
+	<span class="c1">// Additional tweaks to the config produced by the configurator.
+</span><span class="c1"></span>	<span class="nx">config</span><span class="p">.</span><span class="nx">Recorder</span> <span class="p">=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">Recorder</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这个函数内部不单单有 PodInformer，还有 PvInformer 等。这些 Informer 的类型基本都是和 Pod 创建可能需要操作的资源对象有关。在函数的末尾，还有一个名为<code>Recorder</code> 的参数。通过查看它的定义可知，这个参数其实也是一个缓存形式的成员，它负责临时存储一些 Watch 到的，但是还没来得及处理的资源对象的事件：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Recorder is the EventRecorder to use
+</span><span class="c1"></span><span class="nx">Recorder</span> <span class="nx">record</span><span class="p">.</span><span class="nx">EventRecorder</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>不难发现，PodInformer，Recorder，InformerFactory 三个对象并不在这个函数内部赋值，而是来源于参数：<code>schedulerserverconfig.CompletedConfig</code>。顺着该参数传递的顺序向上继续查找，我们发现，它来自于 Scheduler 二进制文件启动的时候调用的函数<code>NewSchedulerCommand</code>。此函数内部和我们上面说到的和 Config 有关的参数的逻辑如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">c</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">opts</span><span class="p">.</span><span class="nf">Config</span><span class="p">()</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Fprintf</span><span class="p">(</span><span class="nx">os</span><span class="p">.</span><span class="nx">Stderr</span><span class="p">,</span> <span class="s">&#34;%v\n&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="nx">os</span><span class="p">.</span><span class="nf">Exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">stopCh</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{})</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">Run</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nf">Complete</span><span class="p">(),</span> <span class="nx">stopCh</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Fprintf</span><span class="p">(</span><span class="nx">os</span><span class="p">.</span><span class="nx">Stderr</span><span class="p">,</span> <span class="s">&#34;%v\n&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="nx">os</span><span class="p">.</span><span class="nf">Exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>跟进 Complete 函数内并没有看到什么特别的逻辑，所以，上面三个成员基本上就是在<code>opts.Config()</code>函数中被创建和赋值的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">c</span><span class="p">.</span><span class="nx">Client</span> <span class="p">=</span> <span class="nx">client</span>
+<span class="nx">c</span><span class="p">.</span><span class="nx">InformerFactory</span> <span class="p">=</span> <span class="nx">informers</span><span class="p">.</span><span class="nf">NewSharedInformerFactory</span><span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="nx">c</span><span class="p">.</span><span class="nx">PodInformer</span> <span class="p">=</span> <span class="nx">factory</span><span class="p">.</span><span class="nf">NewPodInformer</span><span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="nx">c</span><span class="p">.</span><span class="nx">EventClient</span> <span class="p">=</span> <span class="nx">eventClient</span>
+<span class="nx">c</span><span class="p">.</span><span class="nx">Recorder</span> <span class="p">=</span> <span class="nx">recorder</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>还是熟悉的味道，我们找到了<code>InformerFactory</code>和<code>c.PodInformer</code>被创建的位置。如果你想了解上述的 Informer 是如何被注册到<code>InformerFactory</code>的话，那么可以找这些 Informer 的同名函数 Informer 被调用的位置。其中，PodInformer 在 server.go 文件中的 Run 函数内被调用，而其余的 Informer 在<code>NewSchedulerConfig</code> 函数内的<code>factory.NewConfigFactory</code>中被调用。并且将处理相应资源对象的 Handler 函数也一起注册了进去。</p>
+
+<h3 id="加载调度策略">加载调度策略</h3>
+
+<p>在阅读<code>NewSchedulerConfig</code>函数逻辑的时候，我们知道这是一个负责为 Scheduler 构造配置文件的函数。最终返回的配置信息，看起来是需要分情况处理的。一种是 Provider 不为 nil，另外一种是 Policy 不为 nil。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">source</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">AlgorithmSource</span>
+<span class="kd">var</span> <span class="nx">config</span> <span class="o">*</span><span class="nx">scheduler</span><span class="p">.</span><span class="nx">Config</span>
+<span class="k">switch</span> <span class="p">{</span>
+<span class="k">case</span> <span class="nx">source</span><span class="p">.</span><span class="nx">Provider</span> <span class="o">!=</span> <span class="kc">nil</span><span class="p">:</span>
+	<span class="c1">// Create the config from a named algorithm provider.
+</span><span class="c1"></span>	<span class="nx">sc</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">configurator</span><span class="p">.</span><span class="nf">CreateFromProvider</span><span class="p">(</span><span class="o">*</span><span class="nx">source</span><span class="p">.</span><span class="nx">Provider</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;couldn&#39;t create scheduler using provider %q: %v&#34;</span><span class="p">,</span> <span class="o">*</span><span class="nx">source</span><span class="p">.</span><span class="nx">Provider</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">config</span> <span class="p">=</span> <span class="nx">sc</span>
+<span class="k">case</span> <span class="nx">source</span><span class="p">.</span><span class="nx">Policy</span> <span class="o">!=</span> <span class="kc">nil</span><span class="p">:</span>
+	<span class="c1">// Create the config from a user specified policy source.
+</span><span class="c1"></span>	<span class="nx">policy</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">schedulerapi</span><span class="p">.</span><span class="nx">Policy</span><span class="p">{}</span>
+	<span class="k">switch</span> <span class="p">{</span>
+	<span class="k">case</span> <span class="nx">source</span><span class="p">.</span><span class="nx">Policy</span><span class="p">.</span><span class="nx">File</span> <span class="o">!=</span> <span class="kc">nil</span><span class="p">:</span>
+		<span class="c1">// Use a policy serialized in a file.
+</span><span class="c1"></span>		<span class="o">...</span>
+	<span class="k">case</span> <span class="nx">source</span><span class="p">.</span><span class="nx">Policy</span><span class="p">.</span><span class="nx">ConfigMap</span> <span class="o">!=</span> <span class="kc">nil</span><span class="p">:</span>
+		<span class="c1">// Use a policy serialized in a config map value.
+</span><span class="c1"></span>		<span class="nx">policyRef</span> <span class="o">:=</span> <span class="nx">source</span><span class="p">.</span><span class="nx">Policy</span><span class="p">.</span><span class="nx">ConfigMap</span>
+		<span class="o">...</span>
+	<span class="p">}</span>
+	<span class="nx">sc</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">configurator</span><span class="p">.</span><span class="nf">CreateFromConfig</span><span class="p">(</span><span class="o">*</span><span class="nx">policy</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;couldn&#39;t create scheduler from policy: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">config</span> <span class="p">=</span> <span class="nx">sc</span>
+<span class="k">default</span><span class="p">:</span>
+	<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;unsupported algorithm source: %v&#34;</span><span class="p">,</span> <span class="nx">source</span><span class="p">)</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>分别查看 Provider 和 Policy 成员的定义：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// SchedulerAlgorithmSource is the source of a scheduler algorithm. One source
+// field must be specified, and source fields are mutually exclusive.
+type SchedulerAlgorithmSource struct {
+	// Policy is a policy based algorithm source.
+	Policy *SchedulerPolicySource
+	// Provider is the name of a scheduling algorithm provider to use.
+	Provider *string
+}</pre></td></tr></table>
+</div>
+</div>
+<p>通过注释和类型的定义可以发现，这两个成员来源于同一个 Struct，并且它们的作用是为 Scheduler 提供调度策略。两个成员必须指定其中一个。其中<code>Policy</code>内部包含一个 Path 和一个 ConfigMap 成员，前者可以通过指定一个按照特定格式书写的调度策略文件，后者可以直接将一些调度策略用到的信息存储在 ConfigMap 中。而 Provider 可以指定一个调度策略提供者的名称，scheduler 会自动从某个位置加载特定的调度策略集合。</p>
+
+<p>无论是在 Provider 分支调用的 <code>CreateFromProvider(providerName string) (*Config, error)</code>函数还是在 Policy 分支调用的: <code>CreateFromConfig(policy schedulerapi.Policy) (*Config, error)</code> 函数，他们最后其实在内部都执行了同一个函数：<code>CreateFromKeys</code>。截取其中的部分逻辑如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">predicateFuncs</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetPredicates</span><span class="p">(</span><span class="nx">predicateKeys</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="nx">priorityConfigs</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetPriorityFunctionConfigs</span><span class="p">(</span><span class="nx">priorityKeys</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="nx">priorityMetaProducer</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetPriorityMetadataProducer</span><span class="p">()</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="nx">predicateMetaProducer</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetPredicateMetadataProducer</span><span class="p">()</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="c1">// Init equivalence class cache
+</span><span class="c1"></span><span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">enableEquivalenceClassCache</span> <span class="p">{</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">equivalencePodCache</span> <span class="p">=</span> <span class="nx">equivalence</span><span class="p">.</span><span class="nf">NewCache</span><span class="p">()</span>
+	<span class="nx">glog</span><span class="p">.</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;Created equivalence class cache&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">algo</span> <span class="o">:=</span> <span class="nx">core</span><span class="p">.</span><span class="nf">NewGenericScheduler</span><span class="p">(</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">schedulerCache</span><span class="p">,</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">equivalencePodCache</span><span class="p">,</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">podQueue</span><span class="p">,</span>
+	<span class="nx">predicateFuncs</span><span class="p">,</span>
+	<span class="nx">predicateMetaProducer</span><span class="p">,</span>
+	<span class="nx">priorityConfigs</span><span class="p">,</span>
+	<span class="nx">priorityMetaProducer</span><span class="p">,</span>
+	<span class="nx">extenders</span><span class="p">,</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">volumeBinder</span><span class="p">,</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">pVCLister</span><span class="p">,</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">alwaysCheckAllPredicates</span><span class="p">,</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">disablePreemption</span><span class="p">,</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">percentageOfNodesToScore</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">return</span> <span class="o">&amp;</span><span class="nx">scheduler</span><span class="p">.</span><span class="nx">Config</span><span class="p">{</span>
+	<span class="nx">SchedulerCache</span><span class="p">:</span> <span class="nx">c</span><span class="p">.</span><span class="nx">schedulerCache</span><span class="p">,</span>
+	<span class="nx">Ecache</span><span class="p">:</span>         <span class="nx">c</span><span class="p">.</span><span class="nx">equivalencePodCache</span><span class="p">,</span>
+	<span class="c1">// The scheduler only needs to consider schedulable nodes.
+</span><span class="c1"></span>	<span class="nx">NodeLister</span><span class="p">:</span>          <span class="o">&amp;</span><span class="nx">nodeLister</span><span class="p">{</span><span class="nx">c</span><span class="p">.</span><span class="nx">nodeLister</span><span class="p">},</span>
+	<span class="nx">Algorithm</span><span class="p">:</span>           <span class="nx">algo</span><span class="p">,</span>
+	<span class="nx">GetBinder</span><span class="p">:</span>           <span class="nx">c</span><span class="p">.</span><span class="nf">getBinderFunc</span><span class="p">(</span><span class="nx">extenders</span><span class="p">),</span>
+	<span class="nx">PodConditionUpdater</span><span class="p">:</span> <span class="o">&amp;</span><span class="nx">podConditionUpdater</span><span class="p">{</span><span class="nx">c</span><span class="p">.</span><span class="nx">client</span><span class="p">},</span>
+	<span class="nx">PodPreemptor</span><span class="p">:</span>        <span class="o">&amp;</span><span class="nx">podPreemptor</span><span class="p">{</span><span class="nx">c</span><span class="p">.</span><span class="nx">client</span><span class="p">},</span>
+	<span class="nx">WaitForCacheSync</span><span class="p">:</span> <span class="kd">func</span><span class="p">()</span> <span class="kt">bool</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">cache</span><span class="p">.</span><span class="nf">WaitForCacheSync</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">StopEverything</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">scheduledPodsHasSynced</span><span class="p">)</span>
+	<span class="p">},</span>
+	<span class="nx">NextPod</span><span class="p">:</span> <span class="kd">func</span><span class="p">()</span> <span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nf">getNextPod</span><span class="p">()</span>
+	<span class="p">},</span>
+	<span class="nx">Error</span><span class="p">:</span>          <span class="nx">c</span><span class="p">.</span><span class="nf">MakeDefaultErrorFunc</span><span class="p">(</span><span class="nx">podBackoff</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">podQueue</span><span class="p">),</span>
+	<span class="nx">StopEverything</span><span class="p">:</span> <span class="nx">c</span><span class="p">.</span><span class="nx">StopEverything</span><span class="p">,</span>
+	<span class="nx">VolumeBinder</span><span class="p">:</span>   <span class="nx">c</span><span class="p">.</span><span class="nx">volumeBinder</span><span class="p">,</span>
+<span class="p">},</span> <span class="kc">nil</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>对比在文章开头中我们给出的关于调度过程的流程图，不难发现，调度策略中包含的 predicate 和 predicate 在此函数都有涉及，它们被封装在一起，作为调度算法，赋值给 Config. Algorithm 成员。</p>
+
+<p>除此之外，还有几个 Config 内的成员，看起来也和调度有关：</p>
+
+<ul>
+<li>NextPod： 不断的从缓存中取出待调度的 Pod</li>
+<li>Error：调度失败的 Pod 会按照一定的策略放入 Queue 中等待重试</li>
+<li>SchedulerCache：正在调度中的 Pod 信息的缓存</li>
+<li>GetBinder：将 Pod 调度的结果写回至 etcd</li>
+</ul>
+
+<h2 id="运行">运行</h2>
+
+<p>进入 Scheduler 的 Run 函数，可以看到，它的运行逻辑非常简单：启动一个 goroutine，不断的运行<code>sched.scheduleOne</code>函数进行调度，直到 StopEverything 这个 channel 接收到一个让其退出的消息：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Run begins watching and scheduling. It waits for cache to be synced, then starts a goroutine and returns immediately.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">sched</span> <span class="o">*</span><span class="nx">Scheduler</span><span class="p">)</span> <span class="nf">Run</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">!</span><span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nf">WaitForCacheSync</span><span class="p">()</span> <span class="p">{</span>
+		<span class="k">return</span>
+	<span class="p">}</span>
+
+	<span class="k">go</span> <span class="nx">wait</span><span class="p">.</span><span class="nf">Until</span><span class="p">(</span><span class="nx">sched</span><span class="p">.</span><span class="nx">scheduleOne</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">StopEverything</span><span class="p">)</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<h3 id="对号入座">对号入座</h3>
+
+<p>当我们进入<code>sched.scheduleOne</code>函数的时候，会看到很多在生成 Scheduler Config 时候创建的对象。整个 scheduleOne 的过程都可以用这些对象来进行描述：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">sched</span> <span class="o">*</span><span class="nx">Scheduler</span><span class="p">)</span> <span class="nf">scheduleOne</span><span class="p">()</span> <span class="p">{</span>
+	<span class="c1">// 1. Get pod from the podQueue
+</span><span class="c1"></span>  <span class="nx">pod</span> <span class="o">:=</span> <span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nf">NextPod</span><span class="p">()</span>
+	
+  <span class="c1">// 2. Schedule the pod 
+</span><span class="c1"></span>  <span class="nx">suggestedHost</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sched</span><span class="p">.</span><span class="nf">schedule</span><span class="p">(</span><span class="nx">pod</span><span class="p">)</span>
+
+	<span class="c1">// 3. Assume the pod to node
+</span><span class="c1"></span>  <span class="nx">err</span> <span class="p">=</span> <span class="nx">sched</span><span class="p">.</span><span class="nf">assume</span><span class="p">(</span><span class="nx">assumedPod</span><span class="p">,</span> <span class="nx">suggestedHost</span><span class="p">)</span>
+	
+ 	<span class="c1">// 4. Bind pod to the suggesstion Node
+</span><span class="c1"></span>  <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sched</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="nx">assumedPod</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Binding</span><span class="p">{</span>
+	<span class="nx">ObjectMeta</span><span class="p">:</span> <span class="nx">metav1</span><span class="p">.</span><span class="nx">ObjectMeta</span><span class="p">{</span><span class="nx">Namespace</span><span class="p">:</span> <span class="nx">assumedPod</span><span class="p">.</span><span class="nx">Namespace</span><span class="p">,</span> <span class="nx">Name</span><span class="p">:</span> <span class="nx">assumedPod</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">UID</span><span class="p">:</span> <span class="nx">assumedPod</span><span class="p">.</span><span class="nx">UID</span><span class="p">},</span>
+	<span class="nx">Target</span><span class="p">:</span> <span class="nx">v1</span><span class="p">.</span><span class="nx">ObjectReference</span><span class="p">{</span>
+		<span class="nx">Kind</span><span class="p">:</span> <span class="s">&#34;Node&#34;</span><span class="p">,</span>
+		<span class="nx">Name</span><span class="p">:</span> <span class="nx">suggestedHost</span><span class="p">,</span>
+	<span class="p">},</span>
+<span class="p">})</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<h4 id="nextpod">NextPod()</h4>
+
+<p>首先，我们将从 podQueue 中取出一个待调度的 Pod。它使用了在创建 Scheduler Config 的时候，调用的<code>factory.NewConfigFactory</code>函数内部生成的 Queue：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">c</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">configFactory</span><span class="p">{</span>
+	<span class="nx">client</span><span class="p">:</span>                         <span class="nx">args</span><span class="p">.</span><span class="nx">Client</span><span class="p">,</span>
+	<span class="nx">podLister</span><span class="p">:</span>                      <span class="nx">schedulerCache</span><span class="p">,</span>
+	<span class="nx">podQueue</span><span class="p">:</span>                       <span class="nx">core</span><span class="p">.</span><span class="nf">NewSchedulingQueue</span><span class="p">(),</span>
+<span class="o">...</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>既然从队列中取出 Pod 信息的位置我们找到了，那么相应的我们需要找到在哪里向内部塞入 Pod。通过观察<code>factor.NewConfigFactory</code> 函数的内部逻辑，我们可以知道，它在 PodInformer 的 AddFunc 成员上注册了一个名为<code>addPodToCache</code>的函数，而这个函数内部会将 Watch 到的 Pod 信息塞入到队列中，并且会将其缓存起来，塞入 schedulerCache。</p>
+
+<h4 id="schedule-pod">schedule(pod)</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// schedule implements the scheduling algorithm and returns the suggested host.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">sched</span> <span class="o">*</span><span class="nx">Scheduler</span><span class="p">)</span> <span class="nf">schedule</span><span class="p">(</span><span class="nx">pod</span> <span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span><span class="p">)</span> <span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">host</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">Algorithm</span><span class="p">.</span><span class="nf">Schedule</span><span class="p">(</span><span class="nx">pod</span><span class="p">,</span> <span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">NodeLister</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">pod</span> <span class="p">=</span> <span class="nx">pod</span><span class="p">.</span><span class="nf">DeepCopy</span><span class="p">()</span>
+		<span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">pod</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+		<span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">Recorder</span><span class="p">.</span><span class="nf">Eventf</span><span class="p">(</span><span class="nx">pod</span><span class="p">,</span> <span class="nx">v1</span><span class="p">.</span><span class="nx">EventTypeWarning</span><span class="p">,</span> <span class="err">“</span><span class="nx">FailedScheduling</span><span class="err">”</span><span class="p">,</span> <span class="err">“</span><span class="o">%</span><span class="nx">v</span><span class="err">”</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+		<span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">PodConditionUpdater</span><span class="p">.</span><span class="nf">Update</span><span class="p">(</span><span class="nx">pod</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">v1</span><span class="p">.</span><span class="nx">PodCondition</span><span class="p">{</span>
+			<span class="nx">Type</span><span class="p">:</span>    <span class="nx">v1</span><span class="p">.</span><span class="nx">PodScheduled</span><span class="p">,</span>
+			<span class="nx">Status</span><span class="p">:</span>  <span class="nx">v1</span><span class="p">.</span><span class="nx">ConditionFalse</span><span class="p">,</span>
+			<span class="nx">Reason</span><span class="p">:</span>  <span class="nx">v1</span><span class="p">.</span><span class="nx">PodReasonUnschedulable</span><span class="p">,</span>
+			<span class="nx">Message</span><span class="p">:</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">(),</span>
+		<span class="p">})</span>
+		<span class="k">return</span> <span class="err">“”</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">host</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>Schedule 函数的逻辑看起来也非常的清晰：</p>
+
+<ol>
+<li>根据您我们之前已经生成好的调度策略对 Pod 进行调度</li>
+<li>如果调度失败，调用之前在生成配置的时候创建的 Error 对象，它将根据一定策略将该调度失败的 Pod 塞入到队列中重试</li>
+<li>将 Pod 调度失败的信息包装成一个 Event 对象先缓存到 Recorder 中</li>
+<li>将本次 Pod 调度失败的信息通过 Update 函数更新至 etcd 中</li>
+</ol>
+
+<h4 id="assume">assume()</h4>
+
+<p>assume 函数内仅是调用了一个名为<code>AssumePod</code>的函数。它会在其内部尝试将该 Pod 的信息插入到 SchedulerCache 维护的缓存中。若插入操作成功，那就证明这个 Pod 还没有被其他的调度过程占用，是可以被调度的，并且假设这个 Pod 的调度会成功。若插入失败，要么是这个 Pod 的信息根本无法被找到，要么就是这个 Pod 的信息已经存在于缓存中了，并且可能正在进行调度，不能立刻进行新的调度操作。所以，会将判定为调度失败的 Pod 重新加入到队列中等待重试。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">SchedulerCache</span><span class="p">.</span><span class="nf">AssumePod</span><span class="p">(</span><span class="nx">assumed</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="nx">glog</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;scheduler cache AssumePod failed: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+
+	<span class="c1">// This is most probably result of a BUG in retrying logic.
+</span><span class="c1"></span>	<span class="c1">// We report an error here so that pod scheduling can be retried.
+</span><span class="c1"></span>	<span class="c1">// This relies on the fact that Error will check if the pod has been bound
+</span><span class="c1"></span>	<span class="c1">// to a node and if so will not add it back to the unscheduled pods queue
+</span><span class="c1"></span>	<span class="c1">// (otherwise this would cause an infinite loop).
+</span><span class="c1"></span>	<span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">assumed</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">Recorder</span><span class="p">.</span><span class="nf">Eventf</span><span class="p">(</span><span class="nx">assumed</span><span class="p">,</span> <span class="nx">v1</span><span class="p">.</span><span class="nx">EventTypeWarning</span><span class="p">,</span> <span class="s">&#34;FailedScheduling&#34;</span><span class="p">,</span> <span class="s">&#34;AssumePod failed: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="nx">sched</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">PodConditionUpdater</span><span class="p">.</span><span class="nf">Update</span><span class="p">(</span><span class="nx">assumed</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">v1</span><span class="p">.</span><span class="nx">PodCondition</span><span class="p">{</span>
+		<span class="nx">Type</span><span class="p">:</span>    <span class="nx">v1</span><span class="p">.</span><span class="nx">PodScheduled</span><span class="p">,</span>
+		<span class="nx">Status</span><span class="p">:</span>  <span class="nx">v1</span><span class="p">.</span><span class="nx">ConditionFalse</span><span class="p">,</span>
+		<span class="nx">Reason</span><span class="p">:</span>  <span class="s">&#34;SchedulerError&#34;</span><span class="p">,</span>
+		<span class="nx">Message</span><span class="p">:</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">(),</span>
+	<span class="p">})</span>
+	<span class="k">return</span> <span class="nx">err</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<h4 id="bind">bind()</h4>
+
+<p>若 assume 函数执行成功，则 scheduler 接下来会调用 bind 函数。其实 bind 函数和 assume 函数的功能一样，都只是一个异步调度 Pod 至 Node 的操作，它们所做的除了想 etcd 写入 Pod 最新的信息之外，就是将当前 Pod 的状态写入至缓存中。因为最终创建 Pod 相关容器的工作是由 Kubelet 来完成的。所以，如果 Scheduler 部分的逻辑没有发生错误，那我们就姑且认为它是调度成功了。这样的话，即使 kubelet 在执行和该 Pod 相关工作的时候发生了错误，也自己会通过向 API Server 发请求来将调度失败的信息更新至 etcd 中。上述这些基本都是异步的操作，尤其是对于在 assume 函数内操作的缓存，我们将会定期清理其中的和 Pod 有关的信息。</p>
+
+<h3 id="关键步骤-algorithm-schedule">关键步骤—Algorithm.Schedule</h3>
+
+<p>对于一个 Scheduler 来说，整个调度流程当中最重要的就是<code>Algorithm.Schedule</code>函数，即按照一定的调度策略为待调度 Pod 计算出它的目的 Node。根据我们之前所说的「加载调度策略」部分的内容，可以很容易的看出在<code>CreateFromKeys</code> 函数中我们调用<code>core.NewGenericScheduler</code>，将返回值赋值给了配置中的<code>Algorithm</code>成员，<code>Algorithm</code>的数据类型为<code>genericScheduler</code>。</p>
+
+<p>在<code>genericScheduler</code>内部实现了一个叫 Schedule 的方法：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// 1. Get all candidates of Node
+</span><span class="c1"></span><span class="nx">nodes</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">nodeLister</span><span class="p">.</span><span class="nf">List</span><span class="p">()</span>
+<span class="c1">// 2. Update node info
+</span><span class="c1"></span><span class="nx">err</span> <span class="p">=</span> <span class="nx">g</span><span class="p">.</span><span class="nx">cache</span><span class="p">.</span><span class="nf">UpdateNodeNameToInfoMap</span><span class="p">(</span><span class="nx">g</span><span class="p">.</span><span class="nx">cachedNodeInfoMap</span><span class="p">)</span>
+<span class="c1">// 3. Find a fit Node through predicate
+</span><span class="c1"></span><span class="nx">filteredNodes</span><span class="p">,</span> <span class="nx">failedPredicateMap</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nf">findNodesThatFit</span><span class="p">(</span><span class="nx">pod</span><span class="p">,</span> <span class="nx">nodes</span><span class="p">)</span>
+<span class="c1">// 4. Rank the candidates
+</span><span class="c1"></span><span class="nx">priorityList</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">PrioritizeNodes</span><span class="p">(</span><span class="nx">pod</span><span class="p">,</span> <span class="nx">g</span><span class="p">.</span><span class="nx">cachedNodeInfoMap</span><span class="p">,</span> <span class="nx">metaPrioritiesInterface</span><span class="p">,</span> <span class="nx">g</span><span class="p">.</span><span class="nx">prioritizers</span><span class="p">,</span> <span class="nx">filteredNodes</span><span class="p">,</span> <span class="nx">g</span><span class="p">.</span><span class="nx">extenders</span><span class="p">)</span>
+<span class="c1">// 5. Calculate the score and pick the Node
+</span><span class="c1"></span><span class="k">return</span> <span class="nx">g</span><span class="p">.</span><span class="nf">selectHost</span><span class="p">(</span><span class="nx">priorityList</span><span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>首先，我们获取所有可被调度的 Node 集合。然后根据 schedulerCache 中维护的关于 Node 信息的缓存，更新 <code>cachedNodeInfoMap</code>。<code>cachedNodeInfoMap</code>内部也是维护了一个 NodeName-&gt;NodeInfo 的 Map。其中 NodeInfo 类型的对象中包含了很多 Node 的详细情况，如剩余的资源，已经被占用的资源等。这些信息最后会作为筛选调度节点的依据。</p>
+
+<p>随后，我们先根据之前预设的 predicate 策略先将 Nodes 集合分为可调度和不可调度两部分：<code>filteredNodes</code> 和 <code>failedPredicateMap</code>。然后再根据 Priority 策略将筛选出来的节点按照优先级排序。最终，我们将根据这些备选 Node 的信息选出一个「评分最高」的 Node，作为最终调度的 Node。</p>
+
+<h4 id="g-findnodesthatfit-根据-predicate-过滤节点">g.findNodesThatFit （根据 Predicate 过滤节点）</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">g</span> <span class="o">*</span><span class="nx">genericScheduler</span><span class="p">)</span> <span class="nf">findNodesThatFit</span><span class="p">(</span><span class="nx">pod</span> <span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span> <span class="nx">nodes</span> <span class="p">[]</span><span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Node</span><span class="p">)</span> <span class="p">([]</span><span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Node</span><span class="p">,</span> <span class="nx">FailedPredicateMap</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">filtered</span> <span class="p">[]</span><span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Node</span>
+	<span class="nx">failedPredicateMap</span> <span class="o">:=</span> <span class="nx">FailedPredicateMap</span><span class="p">{}</span>
+
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">g</span><span class="p">.</span><span class="nx">predicates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="nx">filtered</span> <span class="p">=</span> <span class="nx">nodes</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="nx">allNodes</span> <span class="o">:=</span> <span class="nb">int32</span><span class="p">(</span><span class="nx">g</span><span class="p">.</span><span class="nx">cache</span><span class="p">.</span><span class="nf">NodeTree</span><span class="p">().</span><span class="nx">NumNodes</span><span class="p">)</span>
+		<span class="nx">numNodesToFind</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nf">numFeasibleNodesToFind</span><span class="p">(</span><span class="nx">allNodes</span><span class="p">)</span>
+
+		<span class="c1">// Create filtered list with enough space to avoid growing it
+</span><span class="c1"></span>		<span class="c1">// and allow assigning.
+</span><span class="c1"></span>		<span class="nx">filtered</span> <span class="p">=</span> <span class="nb">make</span><span class="p">([]</span><span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Node</span><span class="p">,</span> <span class="nx">numNodesToFind</span><span class="p">)</span>
+		<span class="nx">errs</span> <span class="o">:=</span> <span class="nx">errors</span><span class="p">.</span><span class="nx">MessageCountMap</span><span class="p">{}</span>
+		<span class="kd">var</span> <span class="p">(</span>
+			<span class="nx">predicateResultLock</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+			<span class="nx">filteredLen</span>         <span class="kt">int32</span>
+			<span class="nx">equivClass</span>          <span class="o">*</span><span class="nx">equivalence</span><span class="p">.</span><span class="nx">Class</span>
+		<span class="p">)</span>
+
+		<span class="nx">ctx</span><span class="p">,</span> <span class="nx">cancel</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nf">WithCancel</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">Background</span><span class="p">())</span>
+
+		<span class="c1">// We can use the same metadata producer for all nodes.
+</span><span class="c1"></span>		<span class="nx">meta</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nf">predicateMetaProducer</span><span class="p">(</span><span class="nx">pod</span><span class="p">,</span> <span class="nx">g</span><span class="p">.</span><span class="nx">cachedNodeInfoMap</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="nx">g</span><span class="p">.</span><span class="nx">equivalenceCache</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="c1">// getEquivalenceClassInfo will return immediately if no equivalence pod found
+</span><span class="c1"></span>			<span class="nx">equivClass</span> <span class="p">=</span> <span class="nx">equivalence</span><span class="p">.</span><span class="nf">NewClass</span><span class="p">(</span><span class="nx">pod</span><span class="p">)</span>
+		<span class="p">}</span>
+
+		<span class="nx">checkNode</span> <span class="o">:=</span> <span class="kd">func</span><span class="p">(</span><span class="nx">i</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">nodeCache</span> <span class="o">*</span><span class="nx">equivalence</span><span class="p">.</span><span class="nx">NodeCache</span>
+			<span class="nx">nodeName</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nx">cache</span><span class="p">.</span><span class="nf">NodeTree</span><span class="p">().</span><span class="nf">Next</span><span class="p">()</span>
+			<span class="k">if</span> <span class="nx">g</span><span class="p">.</span><span class="nx">equivalenceCache</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+				<span class="nx">nodeCache</span><span class="p">,</span> <span class="nx">_</span> <span class="p">=</span> <span class="nx">g</span><span class="p">.</span><span class="nx">equivalenceCache</span><span class="p">.</span><span class="nf">GetNodeCache</span><span class="p">(</span><span class="nx">nodeName</span><span class="p">)</span>
+			<span class="p">}</span>
+			<span class="nx">fits</span><span class="p">,</span> <span class="nx">failedPredicates</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">podFitsOnNode</span><span class="p">(</span>
+				<span class="nx">pod</span><span class="p">,</span>
+				<span class="nx">meta</span><span class="p">,</span>
+				<span class="nx">g</span><span class="p">.</span><span class="nx">cachedNodeInfoMap</span><span class="p">[</span><span class="nx">nodeName</span><span class="p">],</span>
+				<span class="nx">g</span><span class="p">.</span><span class="nx">predicates</span><span class="p">,</span>
+				<span class="nx">g</span><span class="p">.</span><span class="nx">cache</span><span class="p">,</span>
+				<span class="nx">nodeCache</span><span class="p">,</span>
+				<span class="nx">g</span><span class="p">.</span><span class="nx">schedulingQueue</span><span class="p">,</span>
+				<span class="nx">g</span><span class="p">.</span><span class="nx">alwaysCheckAllPredicates</span><span class="p">,</span>
+				<span class="nx">equivClass</span><span class="p">,</span>
+			<span class="p">)</span>
+			<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+				<span class="nx">predicateResultLock</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+				<span class="nx">errs</span><span class="p">[</span><span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">()]</span><span class="o">++</span>
+				<span class="nx">predicateResultLock</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+				<span class="k">return</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="nx">fits</span> <span class="p">{</span>
+				<span class="nx">length</span> <span class="o">:=</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">filteredLen</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+				<span class="k">if</span> <span class="nx">length</span> <span class="p">&gt;</span> <span class="nx">numNodesToFind</span> <span class="p">{</span>
+					<span class="nf">cancel</span><span class="p">()</span>
+					<span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">filteredLen</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+				<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+					<span class="nx">filtered</span><span class="p">[</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">=</span> <span class="nx">g</span><span class="p">.</span><span class="nx">cachedNodeInfoMap</span><span class="p">[</span><span class="nx">nodeName</span><span class="p">].</span><span class="nf">Node</span><span class="p">()</span>
+				<span class="p">}</span>
+			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+				<span class="nx">predicateResultLock</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+				<span class="nx">failedPredicateMap</span><span class="p">[</span><span class="nx">nodeName</span><span class="p">]</span> <span class="p">=</span> <span class="nx">failedPredicates</span>
+				<span class="nx">predicateResultLock</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="c1">// Stops searching for more nodes once the configured number of feasible nodes
+</span><span class="c1"></span>		<span class="c1">// are found.
+</span><span class="c1"></span>		<span class="nx">workqueue</span><span class="p">.</span><span class="nf">ParallelizeUntil</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nx">allNodes</span><span class="p">),</span> <span class="nx">checkNode</span><span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>筛选 Node 的逻辑虽然比较多，但是整体上看起来还是比较简洁的：</p>
+
+<ol>
+<li>创建一个名为<code>filtered</code>的Slice，用于保存最终被筛选出来的可被调度的 Node</li>
+<li>创建一个名为<code>checkNode</code>的函数，通过函数的名字就可以知道，它会被应用于每一个候选的 Node。真正的筛选 Node 的逻辑就是这一部分</li>
+<li>以 16 个 Worker，并发的对每一个 Node 都运行 <code>checkNode</code>函数。满足条件的 Node 放入<code>filtered</code>内，否则放入<code>failedPredicateMap</code>内</li>
+</ol>
+
+<h5 id="podfitsonnode">podFitsOnNode</h5>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">2</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">predicateKey</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">predicates</span><span class="p">.</span><span class="nf">Ordering</span><span class="p">()</span> <span class="p">{</span>
+	<span class="c1">//TODO (yastij) : compute average predicate restrictiveness to export it as Prometheus metric
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">predicate</span><span class="p">,</span> <span class="nx">exist</span> <span class="o">:=</span> <span class="nx">predicateFuncs</span><span class="p">[</span><span class="nx">predicateKey</span><span class="p">];</span> <span class="nx">exist</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="nx">eCacheAvailable</span> <span class="p">{</span>
+			<span class="nx">fit</span><span class="p">,</span> <span class="nx">reasons</span><span class="p">,</span> <span class="nx">err</span> <span class="p">=</span> <span class="nx">nodeCache</span><span class="p">.</span><span class="nf">RunPredicate</span><span class="p">(</span><span class="nx">predicate</span><span class="p">,</span> <span class="nx">predicateKey</span><span class="p">,</span> <span class="nx">pod</span><span class="p">,</span> <span class="nx">metaToUse</span><span class="p">,</span> <span class="nx">nodeInfoToUse</span><span class="p">,</span> <span class="nx">equivClass</span><span class="p">,</span> <span class="nx">cache</span><span class="p">)</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			<span class="nx">fit</span><span class="p">,</span> <span class="nx">reasons</span><span class="p">,</span> <span class="nx">err</span> <span class="p">=</span> <span class="nf">predicate</span><span class="p">(</span><span class="nx">pod</span><span class="p">,</span> <span class="nx">metaToUse</span><span class="p">,</span> <span class="nx">nodeInfoToUse</span><span class="p">)</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="kc">false</span><span class="p">,</span> <span class="p">[]</span><span class="nx">algorithm</span><span class="p">.</span><span class="nx">PredicateFailureReason</span><span class="p">{},</span> <span class="nx">err</span>
+		<span class="p">}</span>
+
+		<span class="k">if</span> <span class="p">!</span><span class="nx">fit</span> <span class="p">{</span>
+			<span class="c1">// eCache is available and valid, and predicates result is unfit, record the fail reasons
+</span><span class="c1"></span>			<span class="nx">failedPredicates</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">failedPredicates</span><span class="p">,</span> <span class="nx">reasons</span><span class="o">...</span><span class="p">)</span>
+			<span class="c1">// if alwaysCheckAllPredicates is false, short circuit all predicates when one predicate fails.
+</span><span class="c1"></span>			<span class="k">if</span> <span class="p">!</span><span class="nx">alwaysCheckAllPredicates</span> <span class="p">{</span>
+				<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">5</span><span class="p">).</span><span class="nf">Infoln</span><span class="p">(</span><span class="s">&#34;since alwaysCheckAllPredicates has not been set, the predicate &#34;</span> <span class="o">+</span>
+					<span class="s">&#34;evaluation is short circuited and there are chances &#34;</span> <span class="o">+</span>
+					<span class="s">&#34;of other predicates failing as well.&#34;</span><span class="p">)</span>
+				<span class="k">break</span>
+			<span class="p">}</span>
+	<span class="p">}</span>
+
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>在 checkNode 函数中，我们对每一个 Node 都会执行一个名为<code>podFitsOnNode</code>函数，尝试将这个 Pod 调度到此次检测的 Node 上。<code>predicateFuncs</code>这个 map 内存储了一些「筛选函数」，他们的函数签名如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">FitPredicate</span> <span class="kd">func</span><span class="p">(</span><span class="nx">pod</span> <span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span> <span class="nx">meta</span> <span class="nx">PredicateMetadata</span><span class="p">,</span> <span class="nx">nodeInfo</span> <span class="o">*</span><span class="nx">schedulercache</span><span class="p">.</span><span class="nx">NodeInfo</span><span class="p">)</span> <span class="p">(</span><span class="kt">bool</span><span class="p">,</span> <span class="p">[]</span><span class="nx">PredicateFailureReason</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>看起来筛选 Node 的逻辑主要依赖两个参数：pod 和 nodeInfo。</p>
+
+<p>在<code>k8s.io/kubernetes/pkg/scheduler/algorithm/predicates/predicates.go</code>文件中，我们看到了很多被实现的，类型为 <code>FitPredicate</code>的筛选函数。如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// NewPodAffinityPredicate creates a PodAffinityChecker.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">NewPodAffinityPredicate</span><span class="p">(</span><span class="nx">info</span> <span class="nx">NodeInfo</span><span class="p">,</span> <span class="nx">podLister</span> <span class="nx">algorithm</span><span class="p">.</span><span class="nx">PodLister</span><span class="p">)</span> <span class="nx">algorithm</span><span class="p">.</span><span class="nx">FitPredicate</span> <span class="p">{</span>
+	<span class="nx">checker</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">PodAffinityChecker</span><span class="p">{</span>
+		<span class="nx">info</span><span class="p">:</span>      <span class="nx">info</span><span class="p">,</span>
+		<span class="nx">podLister</span><span class="p">:</span> <span class="nx">podLister</span><span class="p">,</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">checker</span><span class="p">.</span><span class="nx">InterPodAffinityMatches</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>我们可以看到，这个函数主要是根据 Pod.Spec 指定的 InerPodAffinity 的属性生成一个筛选函数<code>checker.InterPodAffinityMatches</code>，最后它将被调用且接受 Info 参数传递进来的 Node 信息，对其进行筛选。</p>
+
+<p>再来看一个通过检查 Node 内存负载来判定其是否适合被调度的策略函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">CheckNodeMemoryPressurePredicate</span><span class="p">(</span><span class="nx">pod</span> <span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span> <span class="nx">meta</span> <span class="nx">algorithm</span><span class="p">.</span><span class="nx">PredicateMetadata</span><span class="p">,</span> <span class="nx">nodeInfo</span> <span class="o">*</span><span class="nx">schedulercache</span><span class="p">.</span><span class="nx">NodeInfo</span><span class="p">)</span> <span class="p">(</span><span class="kt">bool</span><span class="p">,</span> <span class="p">[]</span><span class="nx">algorithm</span><span class="p">.</span><span class="nx">PredicateFailureReason</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">podBestEffort</span> <span class="kt">bool</span>
+	<span class="k">if</span> <span class="nx">predicateMeta</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">meta</span><span class="p">.(</span><span class="o">*</span><span class="nx">predicateMetadata</span><span class="p">);</span> <span class="nx">ok</span> <span class="p">{</span>
+		<span class="nx">podBestEffort</span> <span class="p">=</span> <span class="nx">predicateMeta</span><span class="p">.</span><span class="nx">podBestEffort</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="c1">// We couldn&#39;t parse metadata - fallback to computing it.
+</span><span class="c1"></span>		<span class="nx">podBestEffort</span> <span class="p">=</span> <span class="nf">isPodBestEffort</span><span class="p">(</span><span class="nx">pod</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="c1">// pod is not BestEffort pod
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">!</span><span class="nx">podBestEffort</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">nil</span>
+	<span class="p">}</span>
+
+	<span class="c1">// check if node is under memory pressure
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">nodeInfo</span><span class="p">.</span><span class="nf">MemoryPressureCondition</span><span class="p">()</span> <span class="o">==</span> <span class="nx">v1</span><span class="p">.</span><span class="nx">ConditionTrue</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">false</span><span class="p">,</span> <span class="p">[]</span><span class="nx">algorithm</span><span class="p">.</span><span class="nx">PredicateFailureReason</span><span class="p">{</span><span class="nx">ErrNodeUnderMemoryPressure</span><span class="p">},</span> <span class="kc">nil</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>该函数主要是通过检查被筛选的 Node 的内存资源是否已经处于一个压力较大的状态，来判断是否还应该向其调度新的 Pod。但是在这之前，它需要检查被调度的 Pod 是否对 CPU 和 MEM 等资源有硬性的要求。如果对资源要求的策略是「BestEffort」，那么就证明该 Pod 没有对其要使用的资源设置限制。换句话说，它可能用的多，超出此 Node 的剩余资源的量，也有可能用得少，不会超出。所以在这种情况下，不用在理会 Node 上的剩余资源量的问题。</p>
+
+<h4 id="prioritizenodes">PrioritizeNodes</h4>
+
+<p>理论上来说，通过 Predicate 策略的筛选之后，如果有余下的 Node，那么这些 Node 都是可被调度的。否则，将会返回一个错误，代表本次调度是失败的。这么看来，Predicate 策略应该是一种硬性的筛选规则，它会对候选的 Node 集合做减法。</p>
+
+<p>被筛选出来的 Node 在 Kubernetes 中还会再经过一个策略的筛选：Priority。这是一个更为精细化的策略。如果说 Predicate 只是帮助 Pod 选择可以被调度的 Node 的话，那么 Priority 就是在此之上帮助 Kubernetes 集群做好资源的负载平衡，选出一个「最佳」的 Node。它更像是一个优化性质调度策略。</p>
+
+<p><a href="https://github.com/kubernetes/kubernetes/blob/ec2e767e59395376fa191d7c56a74f53936b7653/pkg/scheduler/core/generic_scheduler.go#L621">kubernetes/generic_scheduler.go at ec2e767e59395376fa191d7c56a74f53936b7653 · kubernetes/kubernetes · GitHub</a></p>
+
+<p>Priority 的调度策略可以大致做如下概括：</p>
+
+<ol>
+<li>在 <a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithmprovider/defaults/defaults.go#L38">kubernetes/defaults.go at release-1.12 · kubernetes/kubernetes · GitHub</a> 文件中，我们向 Scheduler 中用于保存调度算法的 AlgorithmFactory 对象注册了一些默认的调度策略函数。值得注意的是，每一个策略函数都有一个权重</li>
+<li>分别使用每一个策略函数对每一个候选节点都计算一个临时的分数</li>
+<li>遍历之前策略函数计算的临时分数，针对每一个临时分数都乘以其对应的策略函数的权重，得到一个节点的最终分数。每个 Node 的 Priority 分数都在0-10之前，0为不适合，10为最适合。一个 Node 在 Priority 策略下的最终分数的计算公式大概是这样：finalScoreNodeA = (weight1 * priorityFunc1) + (weight2 * priorityFunc2)</li>
+</ol>
+
+<p>通过对 PrioritizeNodes 函数的逻辑了解可知，它大致包括以下几个核心的步骤：</p>
+
+<ol>
+<li>循环遍历 <code>priorityConfigs</code> 中的用于计算 Node 优先级的函数，用它计算候选 Node 列表中各 Node 的分数。结果存于一个二维数组中。</li>
+<li>通过 Map-Reduce 的方式对各个 Node 的分数再次进行计算，并且是通过并行的方式进行</li>
+<li>对于每一个 Node 都根据我们上面提到的公式，综合多个策略函数和权重相乘的值计算出它的最终得分。且将他们塞回到一个 Slice 内，返回给调用者</li>
+</ol>
+
+<p>计算最终得分的过程可以用一个表格来展示：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/1414619F-3E97-41BA-8596-48C0673957F7.png" alt="" /></p>
+
+<h5 id="leastrequestedpriority-最小请求资源优先策略">LeastRequestedPriority — 最小请求资源优先策略</h5>
+
+<p>LeastRequestedPriority 是默认的 Priority 策略之一，它主要用来平衡集群中各节点的资源用量情况。通过将一些「资源使用比」较大的 Node 降低优先级，「资源使用比」较小的 Node 提高优先级，来防止新的 Pod 继续调度到那些负载已经过高的 Node 上。它通过一个公式，分别计算一个 Node 的 CPU 和 MEM 的占比并将它们加在一起，来作为这个策略评估 Node 的分数。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">(cpu((capacity-sum(requested))*10/capacity) + memory((capacity-sum(requested))*10/capacity))/2</pre></td></tr></table>
+</div>
+</div>
+<h5 id="balancedresourceallocation-平衡节点资源策略">BalancedResourceAllocation — 平衡节点资源策略</h5>
+
+<p>BalancedResourceAllocation 是默认的 Priority 策略之一，它会根据某个 Node 上面的 CPU 占比和 MEM 占比的差值来给 Node 评一个分数。差值越大的优先级越低，因为这代表在该 Node 上，CPU 和  MEM 资源的消耗差距过大，如果继续向其调度 Pod 的话，很可能导致 CPU 被消耗光了，但是 MEM 还有很多，到最后这个 Node 可能就会被判定为不可调度的节点。该策略会尽量选择资源消耗较为平衡的 Node。</p>
+
+<p>但是，通过该策略在代码中相关的注释我们可以了解到，它不能单独使用，需要和 LeastRequestedPriority 策略一起配合使用。因为两者在解决「维护集群节点资源平衡」的问题上关注的点是不同的：前者更关注 Node 上  CPU 和  MEM 的总剩余量，后者则在剩余量没问题的情况下，关注 Node 上 CPU 和 MEM 的使用比差值。最后为 Pod 挑选出一个「资源剩余量」合适且「资源占比」平衡的 Node。</p>
+
+<h4 id="selecthost">SelectHost</h4>
+
+<p>经过 Priority 策略的筛选，它不会丢掉任何的候选 Node。而是通过 SelectHost 函数，挑选一个分数最高的 Node。如果分数高的 Node 有很多的话，则通过随机策略选取一个作为最终的被调度节点。</p>
+
+<h2 id="自定义调度策略">自定义调度策略</h2>
+
+<p>在之前讨论的关于「加载调度策略」的部分，我们已经提到了，Scheduler 的调度策略可以通过两种方式来指定：</p>
+
+<ol>
+<li>Policy
+
+<ol>
+<li>ConfigMap</li>
+<li>PolicyFile</li>
+</ol></li>
+<li>Provider
+
+<ol>
+<li>Algorithm Name</li>
+</ol></li>
+</ol>
+
+<p>Policy 指定的是调度策略的文件，而 Provider 可直接指定调度算法的提供者的名称。</p>
+
+<p>Scheduler 为其使用者提供了非常大的自由度，若默认的调度策略不能满足我们的需求的话，允许我们自己定义调度策略。自定义的方式无非就是我们提到的两种：Policy 和 Provider。</p>
+
+<h3 id="policyfile">PolicyFile</h3>
+
+<h4 id="policy-config-file">&ndash;policy-config-file</h4>
+
+<p>我们可以在 Scheduler 启动的时候通过<code>--policy-config-file</code> 参数传入一个 policy 文件的路径，这个文件按照 json 的格式写明了我们想启用的调度策略：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-json" data-lang="json"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-json" data-lang="json"><span class="p">{</span>
+<span class="nt">&#34;kind&#34;</span> <span class="p">:</span> <span class="s2">&#34;Policy&#34;</span><span class="p">,</span>
+<span class="nt">&#34;apiVersion&#34;</span> <span class="p">:</span> <span class="s2">&#34;v1&#34;</span><span class="p">,</span>
+<span class="nt">&#34;predicates&#34;</span> <span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;PodFitsHostPorts&#34;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;PodFitsResources&#34;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;NoDiskConflict&#34;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;NoVolumeZoneConflict&#34;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;MatchNodeSelector&#34;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;HostName&#34;</span><span class="p">}</span>
+    <span class="p">],</span>
+<span class="nt">&#34;priorities&#34;</span> <span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;LeastRequestedPriority&#34;</span><span class="p">,</span> <span class="nt">&#34;weight&#34;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;BalancedResourceAllocation&#34;</span><span class="p">,</span> <span class="nt">&#34;weight&#34;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;ServiceSpreadingPriority&#34;</span><span class="p">,</span> <span class="nt">&#34;weight&#34;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="p">{</span><span class="nt">&#34;name&#34;</span> <span class="p">:</span> <span class="s2">&#34;EqualPriority&#34;</span><span class="p">,</span> <span class="nt">&#34;weight&#34;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="p">],</span>
+<span class="nt">&#34;hardPodAffinitySymmetricWeight&#34;</span> <span class="p">:</span> <span class="mi">10</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>调度函数的名称既可以是 Kubernetes 已经实现的，也可以是我们自己实现的。如何自己实现策略函数，我们放到后面来说。</p>
+
+<h4 id="policy-configmap">&ndash;policy-configmap</h4>
+
+<p>除了指定一个 policy 文件的地址，我们还可以将 policy 文件的内容放入 configMap 中，并在 Scheduler 启动的时候指定这个 configMap 的名称。需要注意的是，这个 configMap 必须要在 Scheduler 启动之前就创建好。</p>
+
+<h4 id="自定义-predicate-和-policy-的策略函数">自定义 Predicate 和 Policy 的策略函数</h4>
+
+<p>通过上面对 Predicate 和 Policy 两个调度策略的讨论，我们知道，Kubernetes 已经为我们默认实现了一些策略函数。这些函数可以写在上面所说的 Policy 文件中或者是 configMap 内。但是，当这些内置的函数不能满足我们需求的时候，我们可以自己实现一个。</p>
+
+<p>实现一个自定义策略函数并让他成功生效，通常需要以下几个步骤：</p>
+
+<ol>
+<li>按照 <a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithm/types.go#L35">kubernetes/types.go at release-1.12 · kubernetes/kubernetes · GitHub</a> 和 <a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithm/types.go#L40">kubernetes/types.go at release-1.12 · kubernetes/kubernetes · GitHub</a> 以及 <a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithm/types.go#L49">kubernetes/types.go at release-1.12 · kubernetes/kubernetes · GitHub</a> 提供的函数原型，可以实现两种调度策略需要的策略函数。并将实现放于 <code>pkg/scheduler/algorithm/priorities/</code>和<code>pkg/scheduler/algorithm/predicates</code> 目录下</li>
+<li>根据 <a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithmprovider/defaults/defaults.go#L38">kubernetes/defaults.go at release-1.12 · kubernetes/kubernetes · GitHub</a> algorithmprovider package 中的 Init 函数内将默认的策略函数注册到 Factory 的方式，我们也需要将自定义实现的函数注册到Factory 内</li>
+</ol>
+
+<p>对于实现步骤来说，我觉得还是比较简单的，根据参数写策略逻辑即可。稍微迷惑的就是第二步的注册过程。由于这是属于调度策略的事情，我们要返回 Scheduler 的创建逻辑，看一下这个 Factory 是怎么和 Scheduler 结合在一起的。</p>
+
+<p>在创建 Scheduler 的时候，有一个函数非常的重要：<code>NewSchedulerConfig</code>。该函数内的逻辑几乎创建了所有 Scheduler 在之后调度的过程中需要使用的各类对象。并且，最终使用的 config 生成我们之前也提到过，是和它的调度策略有关的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// 1. Construct the factory
+</span><span class="c1"></span><span class="nx">configurator</span> <span class="o">:=</span> <span class="nx">factory</span><span class="p">.</span><span class="nf">NewConfigFactory</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">factory</span><span class="p">.</span><span class="nx">ConfigFactoryArgs</span><span class="p">{</span>
+	<span class="nx">SchedulerName</span><span class="p">:</span>                  <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">SchedulerName</span><span class="p">,</span>
+	<span class="nx">Client</span><span class="p">:</span>                         <span class="nx">s</span><span class="p">.</span><span class="nx">Client</span><span class="p">,</span>
+	<span class="nx">NodeInformer</span><span class="p">:</span>                   <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">Nodes</span><span class="p">(),</span>
+	<span class="nx">PodInformer</span><span class="p">:</span>                    <span class="nx">s</span><span class="p">.</span><span class="nx">PodInformer</span><span class="p">,</span>
+	<span class="nx">PvInformer</span><span class="p">:</span>                     <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">PersistentVolumes</span><span class="p">(),</span>
+	<span class="nx">PvcInformer</span><span class="p">:</span>                    <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">PersistentVolumeClaims</span><span class="p">(),</span>
+	<span class="nx">ReplicationControllerInformer</span><span class="p">:</span>  <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">ReplicationControllers</span><span class="p">(),</span>
+	<span class="nx">ReplicaSetInformer</span><span class="p">:</span>             <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Apps</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">ReplicaSets</span><span class="p">(),</span>
+	<span class="nx">StatefulSetInformer</span><span class="p">:</span>            <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Apps</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">StatefulSets</span><span class="p">(),</span>
+	<span class="nx">ServiceInformer</span><span class="p">:</span>                <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Core</span><span class="p">().</span><span class="nf">V1</span><span class="p">().</span><span class="nf">Services</span><span class="p">(),</span>
+	<span class="nx">PdbInformer</span><span class="p">:</span>                    <span class="nx">s</span><span class="p">.</span><span class="nx">InformerFactory</span><span class="p">.</span><span class="nf">Policy</span><span class="p">().</span><span class="nf">V1beta1</span><span class="p">().</span><span class="nf">PodDisruptionBudgets</span><span class="p">(),</span>
+	<span class="nx">StorageClassInformer</span><span class="p">:</span>           <span class="nx">storageClassInformer</span><span class="p">,</span>
+	<span class="nx">HardPodAffinitySymmetricWeight</span><span class="p">:</span> <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">HardPodAffinitySymmetricWeight</span><span class="p">,</span>
+	<span class="nx">EnableEquivalenceClassCache</span><span class="p">:</span>    <span class="nx">utilfeature</span><span class="p">.</span><span class="nx">DefaultFeatureGate</span><span class="p">.</span><span class="nf">Enabled</span><span class="p">(</span><span class="nx">features</span><span class="p">.</span><span class="nx">EnableEquivalenceClassCache</span><span class="p">),</span>
+	<span class="nx">DisablePreemption</span><span class="p">:</span>              <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">DisablePreemption</span><span class="p">,</span>
+	<span class="nx">PercentageOfNodesToScore</span><span class="p">:</span>       <span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">PercentageOfNodesToScore</span><span class="p">,</span>
+	<span class="nx">BindTimeoutSeconds</span><span class="p">:</span>             <span class="o">*</span><span class="nx">s</span><span class="p">.</span><span class="nx">ComponentConfig</span><span class="p">.</span><span class="nx">BindTimeoutSeconds</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="c1">// 2. Create the config for scheduler according to the policy
+</span><span class="c1"></span><span class="nx">sc</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">configurator</span><span class="p">.</span><span class="nf">CreateFromConfig</span><span class="p">(</span><span class="o">*</span><span class="nx">policy</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;couldn&#39;t create scheduler from policy: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">config</span> <span class="p">=</span> <span class="nx">sc</span></code></pre></td></tr></table>
+</div>
+</div>
+<p><code>NewSchedulerConfig</code>函数的逻辑跟我们这部分主题有关的内容有两处，第一个是创建 Factory ，第二个是根据 Policy 创建 config。因为 Policy 中也是从 ConfigMap 或者 Policy File 内取出和调度策略相关的信息，比如要使用那些策略函数。所以，真正注册那些策略函数的逻辑应该是在<code>CreateFromConfig</code>中。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">configFactory</span><span class="p">)</span> <span class="nf">CreateFromConfig</span><span class="p">(</span><span class="nx">policy</span> <span class="nx">schedulerapi</span><span class="p">.</span><span class="nx">Policy</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">scheduler</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Creating scheduler from configuration: %v&#34;</span><span class="p">,</span> <span class="nx">policy</span><span class="p">)</span>
+
+	<span class="c1">// validate the policy configuration
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">validation</span><span class="p">.</span><span class="nf">ValidatePolicy</span><span class="p">(</span><span class="nx">policy</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+
+	<span class="nx">predicateKeys</span> <span class="o">:=</span> <span class="nx">sets</span><span class="p">.</span><span class="nf">NewString</span><span class="p">()</span>
+	<span class="k">if</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Predicates</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Using predicates from algorithm provider &#39;%v&#39;&#34;</span><span class="p">,</span> <span class="nx">DefaultProvider</span><span class="p">)</span>
+		<span class="nx">provider</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">GetAlgorithmProvider</span><span class="p">(</span><span class="nx">DefaultProvider</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+		<span class="p">}</span>
+		<span class="nx">predicateKeys</span> <span class="p">=</span> <span class="nx">provider</span><span class="p">.</span><span class="nx">FitPredicateKeys</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">predicate</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Predicates</span> <span class="p">{</span>
+			<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Registering predicate: %s&#34;</span><span class="p">,</span> <span class="nx">predicate</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+			<span class="nx">predicateKeys</span><span class="p">.</span><span class="nf">Insert</span><span class="p">(</span><span class="nf">RegisterCustomFitPredicate</span><span class="p">(</span><span class="nx">predicate</span><span class="p">))</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="nx">priorityKeys</span> <span class="o">:=</span> <span class="nx">sets</span><span class="p">.</span><span class="nf">NewString</span><span class="p">()</span>
+	<span class="k">if</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Priorities</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Using priorities from algorithm provider &#39;%v&#39;&#34;</span><span class="p">,</span> <span class="nx">DefaultProvider</span><span class="p">)</span>
+		<span class="nx">provider</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">GetAlgorithmProvider</span><span class="p">(</span><span class="nx">DefaultProvider</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+		<span class="p">}</span>
+		<span class="nx">priorityKeys</span> <span class="p">=</span> <span class="nx">provider</span><span class="p">.</span><span class="nx">PriorityFunctionKeys</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">priority</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Priorities</span> <span class="p">{</span>
+			<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Registering priority: %s&#34;</span><span class="p">,</span> <span class="nx">priority</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+			<span class="nx">priorityKeys</span><span class="p">.</span><span class="nf">Insert</span><span class="p">(</span><span class="nf">RegisterCustomPriorityFunction</span><span class="p">(</span><span class="nx">priority</span><span class="p">))</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nf">CreateFromKeys</span><span class="p">(</span><span class="nx">predicateKeys</span><span class="p">,</span> <span class="nx">priorityKeys</span><span class="p">,</span> <span class="nx">extenders</span><span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>通过上面截取的部分逻辑可以看出，在<code>CreateFromConfig</code>函数中，先查看了是否有提供的自定义的策略函数（包括 Predicate 和 Priority ），如果有的话，通过<code>RegisterCustomFitPredicate</code>进行注册，否则，使用默认的策略函数，通过<code>GetAlgorithmProvider</code>进行注册。</p>
+
+<h5 id="默认策略函数的注册">默认策略函数的注册</h5>
+
+<p><code>GetAlgorithmProvider</code> 是从一个 Map 中返回了一个类型为<code>AlgorithmProviderConfig</code>的对象。通过查看和这个函数相对应的写入版本<code>RegisterAlgorithmProvider</code>，我们了解到，他在 <a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithmprovider/defaults/defaults.go#L38">https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithmprovider/defaults/defaults.go#L38</a> 文件中的<code>registerAlgorithmProvider</code>函数内就被调用了。那么 Init 函数对应的 algorithmprovider package 是在哪里第一次被引用的呢？如果你此时返回到 schduler.go 文件中的 Run 函数处就可以知道，它在一开始运行的时候就调用了<code>ApplyFeatureGates</code>函数。而<code>ApplyFeatureGates</code>函数的定义就在 algorithmprovider package 中。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nf">registerAlgorithmProvider</span><span class="p">(</span><span class="nf">defaultPredicates</span><span class="p">(),</span> <span class="nf">defaultPriorities</span><span class="p">())</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>其中 <code>defaultPredicates</code> 和 <code>defaultPriorities</code>函数，就是我们最开始在 <a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithmprovider/defaults/defaults.go#L38">https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/scheduler/algorithmprovider/defaults/defaults.go#L38</a> 文件内看到的那些 Kubernetes 默认实现的策略函数。那也就是说，这个 Provider 其实是一个对象，里面包含了策略函数。
+随机查看一下<code>defaultPredicates</code>函数的逻辑，可知它在内部将策略函数塞入了一个 Map 中，该 Map 的 Key 为 Policy 的名称，Value为 策略函数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go">	<span class="nx">fitPredicateMap</span><span class="p">[</span><span class="nx">name</span><span class="p">]</span> <span class="p">=</span> <span class="nx">predicateFactory</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>不过，对于默认策略函数的注册，我们有一点需要注意：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Apply algorithms based on feature gates.
+</span><span class="c1">// *TODO: make configurable?*
+</span><span class="c1"></span><span class="nx">algorithmprovider</span><span class="p">.</span><span class="nf">ApplyFeatureGates</span><span class="p">()</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>在<code>ApplyFeatureGates</code>函数执行，即想要注册默认策略函数的时候，看起来是强制把所有的默认的策略函数都注册进去的。并且，通过注释也可以看出，这里 Kubernetes 官方也是想把它做成可配置的。所以，即使我们单独通过 policyFile 指定了默认策略函数的子集，看起来也并不会因此就只注册一部分默认策略函数。</p>
+
+<h5 id="自定义策略函数的注册">自定义策略函数的注册</h5>
+
+<p>自定义函数的注册也是通过遍历 Priority 和 Predicate  两个策略来分别向之前我们所说的 Map 注册相应的策略函数。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">RegisterCustomFitPredicate</span><span class="p">(</span><span class="nx">policy</span> <span class="nx">schedulerapi</span><span class="p">.</span><span class="nx">PredicatePolicy</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">predicateFactory</span> <span class="nx">FitPredicateFactory</span>
+	<span class="kd">var</span> <span class="nx">ok</span> <span class="kt">bool</span>
+
+	<span class="nf">validatePredicateOrDie</span><span class="p">(</span><span class="nx">policy</span><span class="p">)</span>
+
+	<span class="c1">// generate the predicate function, if a custom type is requested
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Argument</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Argument</span><span class="p">.</span><span class="nx">ServiceAffinity</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">predicateFactory</span> <span class="p">=</span> <span class="kd">func</span><span class="p">(</span><span class="nx">args</span> <span class="nx">PluginFactoryArgs</span><span class="p">)</span> <span class="nx">algorithm</span><span class="p">.</span><span class="nx">FitPredicate</span> <span class="p">{</span>
+				<span class="nx">predicate</span><span class="p">,</span> <span class="nx">precomputationFunction</span> <span class="o">:=</span> <span class="nx">predicates</span><span class="p">.</span><span class="nf">NewServiceAffinityPredicate</span><span class="p">(</span>
+					<span class="nx">args</span><span class="p">.</span><span class="nx">PodLister</span><span class="p">,</span>
+					<span class="nx">args</span><span class="p">.</span><span class="nx">ServiceLister</span><span class="p">,</span>
+					<span class="nx">args</span><span class="p">.</span><span class="nx">NodeInfo</span><span class="p">,</span>
+					<span class="nx">policy</span><span class="p">.</span><span class="nx">Argument</span><span class="p">.</span><span class="nx">ServiceAffinity</span><span class="p">.</span><span class="nx">Labels</span><span class="p">,</span>
+				<span class="p">)</span>
+
+				<span class="c1">// Once we generate the predicate we should also Register the Precomputation
+</span><span class="c1"></span>				<span class="nx">predicates</span><span class="p">.</span><span class="nf">RegisterPredicateMetadataProducer</span><span class="p">(</span><span class="nx">policy</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">precomputationFunction</span><span class="p">)</span>
+				<span class="k">return</span> <span class="nx">predicate</span>
+			<span class="p">}</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Argument</span><span class="p">.</span><span class="nx">LabelsPresence</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">predicateFactory</span> <span class="p">=</span> <span class="kd">func</span><span class="p">(</span><span class="nx">args</span> <span class="nx">PluginFactoryArgs</span><span class="p">)</span> <span class="nx">algorithm</span><span class="p">.</span><span class="nx">FitPredicate</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="nx">predicates</span><span class="p">.</span><span class="nf">NewNodeLabelPredicate</span><span class="p">(</span>
+					<span class="nx">policy</span><span class="p">.</span><span class="nx">Argument</span><span class="p">.</span><span class="nx">LabelsPresence</span><span class="p">.</span><span class="nx">Labels</span><span class="p">,</span>
+					<span class="nx">policy</span><span class="p">.</span><span class="nx">Argument</span><span class="p">.</span><span class="nx">LabelsPresence</span><span class="p">.</span><span class="nx">Presence</span><span class="p">,</span>
+				<span class="p">)</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="nx">predicateFactory</span><span class="p">,</span> <span class="nx">ok</span> <span class="p">=</span> <span class="nx">fitPredicateMap</span><span class="p">[</span><span class="nx">policy</span><span class="p">.</span><span class="nx">Name</span><span class="p">];</span> <span class="nx">ok</span> <span class="p">{</span>
+		<span class="c1">// checking to see if a pre-defined predicate is requested
+</span><span class="c1"></span>		<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Predicate type %s already registered, reusing.&#34;</span><span class="p">,</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Name</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="nx">predicateFactory</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">glog</span><span class="p">.</span><span class="nf">Fatalf</span><span class="p">(</span><span class="s">&#34;Invalid configuration: Predicate type not found for %s&#34;</span><span class="p">,</span> <span class="nx">policy</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="k">return</span> <span class="nf">RegisterFitPredicateFactory</span><span class="p">(</span><span class="nx">policy</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">predicateFactory</span><span class="p">)</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>注册自定义策略函数的逻辑比较奇怪。首先 <code>policy.Argument!=nil</code> 的分支临时生成并注册了两个特殊的策略函数，并不是我们想要的。其次，如果<code>else if</code>f分支还没命中的话，本次注册相当于失败了，因为<code>predicateFactory</code>没有被赋值。那也就是说，真正注册自定义函数的逻辑在执行<code>RegisterCustomFitPredicate</code>之前就应该被注册进去了。</p>
+
+<p>最终，找了半天也没找到还有什么其他位置可以根据 policy 规则注册自定义函数。但是转念一想，即使是默认的策略函数也是靠直接调用<code>defaultPredicates</code>等函数注册到名为<code>fitPredicateMap</code>中的，并且在运行<code>CreateFromConfig</code>也没有再进行多余的操作。这种注册策略函数远在 Scheduler 实例被创建之前的情况可能同样适用于自定义策略函数。并且，如果注册自定义策略函数真想我们之前想的一样：通过 policy 给出的名字找到我们已经实现的自定义策略函数，然后注册到一个 map 中。那么又是怎么通过 policy 中的自定义策略函数的名字找到它的实现的呢？显然是不可能的。So，注册自定义策略函数可能需要在 <code>ApplyFeatureGates</code>函数被调用的位置处进行。</p>
+
+<blockquote>
+<p>自定义的策略的实现其实包含两部分：1. 实现自定义策略函数 2. 将自定义策略函数的名称写入 Policy 文件内或者 Policy ConfigMap 内。完成了这两部，我们实现的自定义策略才会真正的被 Scheduler 执行。</p>
+</blockquote>
+
+<h2 id="对于-scheduler-的一些思考">对于 Scheduler 的一些思考</h2>
+
+<p>不光是 Kubernetes 中的 Scheduler，任何一个分布式系统中的调度器，我相信它的核心逻辑都是为了解决「资源管理」的问题，这里说的资源，不是 Kubernetes 中抽象的资源对象，如 Deployment 等。而是真实的一些存储资源和计算资源，如 CPU， MEM，Storage 等。</p>
+
+<p>Scheduler 的实现都比较简单，但是区别一个好的 Scheduler，我觉得是取决于它的调度算法，也就是我们之前说的调度策略。一个好的调度策略应该尽可能的提高集群资源的利用率，并且在可调度资源数量和节点数量增多的时候，还可以保证一个良好的性能。甚至是能够更好的适应不同的业务场景。</p>
+
+<p>由于最近这段时间接触了一个策略系统的项目<code>openpolicyaget</code>，所以我在想，在Kubernetes 后续的发展中，是否有可能单独的将调度策略抽象出来作为一个单独组件呢？这可能会比自定义 Policy 文件+自定义策略函数给用户提供的灵活性更大。</p>
+
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/kubernetes/">Kubernetes</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/2018/11/24/deep-into-array-and-linklist/">
+            <span class="next-text nav-default">Deep Into Array and Linklist</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2018/11/29/detect-source-code-of-scheduler/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>

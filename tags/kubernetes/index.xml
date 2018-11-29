@@ -6,10 +6,19 @@
     <description>Recent content in Kubernetes on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 23 Nov 2018 00:28:01 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 29 Nov 2018 14:36:58 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect Source Code of Scheduler</title>
+      <link>http://littledriver.net/post/2018/11/29/detect-source-code-of-scheduler/</link>
+      <pubDate>Thu, 29 Nov 2018 14:36:58 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/11/29/detect-source-code-of-scheduler/</guid>
+      <description>Detect the source code of Scheduler 本文基于 Kubernetes 1.12 版本 写在前面 在上一篇关于 Scheduler 的文章中，我们主要从宏观的层面上了解了 Kubernetes 中调度的大概流程。本篇 blog，我将从源码级别分析</description>
+    </item>
     
     <item>
       <title>Detect the Mechanism of Scheduling in Kubernetes</title>
