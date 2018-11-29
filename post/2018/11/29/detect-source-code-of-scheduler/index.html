@@ -215,6 +215,62 @@
 
     
     
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#detect-the-source-code-of-scheduler">Detect the source code of Scheduler</a>
+<ul>
+<li><a href="#写在前面">写在前面</a></li>
+<li><a href="#调度过程">调度过程</a></li>
+<li><a href="#scheduler-的启动和创建">Scheduler 的启动和创建</a>
+<ul>
+<li><a href="#创建">创建</a></li>
+<li><a href="#加载调度策略">加载调度策略</a></li>
+</ul></li>
+<li><a href="#运行">运行</a>
+<ul>
+<li><a href="#对号入座">对号入座</a>
+<ul>
+<li><a href="#nextpod">NextPod()</a></li>
+<li><a href="#schedule-pod">schedule(pod)</a></li>
+<li><a href="#assume">assume()</a></li>
+<li><a href="#bind">bind()</a></li>
+</ul></li>
+<li><a href="#关键步骤-algorithm-schedule">关键步骤—Algorithm.Schedule</a>
+<ul>
+<li><a href="#g-findnodesthatfit-根据-predicate-过滤节点">g.findNodesThatFit （根据 Predicate 过滤节点）</a>
+<ul>
+<li><a href="#podfitsonnode">podFitsOnNode</a></li>
+</ul></li>
+<li><a href="#prioritizenodes">PrioritizeNodes</a>
+<ul>
+<li><a href="#leastrequestedpriority-最小请求资源优先策略">LeastRequestedPriority — 最小请求资源优先策略</a></li>
+<li><a href="#balancedresourceallocation-平衡节点资源策略">BalancedResourceAllocation — 平衡节点资源策略</a></li>
+</ul></li>
+<li><a href="#selecthost">SelectHost</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#自定义调度策略">自定义调度策略</a>
+<ul>
+<li><a href="#policyfile">PolicyFile</a>
+<ul>
+<li><a href="#policy-config-file">&ndash;policy-config-file</a></li>
+<li><a href="#policy-configmap">&ndash;policy-configmap</a></li>
+<li><a href="#自定义-predicate-和-policy-的策略函数">自定义 Predicate 和 Policy 的策略函数</a>
+<ul>
+<li><a href="#默认策略函数的注册">默认策略函数的注册</a></li>
+<li><a href="#自定义策略函数的注册">自定义策略函数的注册</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#对于-scheduler-的一些思考">对于 Scheduler 的一些思考</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
 
     
     <div class="post-content">
