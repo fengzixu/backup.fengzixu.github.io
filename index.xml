@@ -496,7 +496,7 @@ type SchedulerAlgorithmSource struct {
 &lt;li&gt;GetBinder：将 Pod 调度的结果写回至 etcd&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&#34;运行&#34;&gt;运行&lt;/h2&gt;
+&lt;h3 id=&#34;运行&#34;&gt;运行&lt;/h3&gt;
 
 &lt;p&gt;进入 Scheduler 的 Run 函数，可以看到，它的运行逻辑非常简单：启动一个 goroutine，不断的运行&lt;code&gt;sched.scheduleOne&lt;/code&gt;函数进行调度，直到 StopEverything 这个 channel 接收到一个让其退出的消息：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -521,7 +521,7 @@ type SchedulerAlgorithmSource struct {
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;h3 id=&#34;对号入座&#34;&gt;对号入座&lt;/h3&gt;
+&lt;h4 id=&#34;对号入座&#34;&gt;对号入座&lt;/h4&gt;
 
 &lt;p&gt;当我们进入&lt;code&gt;sched.scheduleOne&lt;/code&gt;函数的时候，会看到很多在生成 Scheduler Config 时候创建的对象。整个 scheduleOne 的过程都可以用这些对象来进行描述：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -568,7 +568,7 @@ type SchedulerAlgorithmSource struct {
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;h4 id=&#34;nextpod&#34;&gt;NextPod()&lt;/h4&gt;
+&lt;h5 id=&#34;nextpod&#34;&gt;NextPod()&lt;/h5&gt;
 
 &lt;p&gt;首先，我们将从 podQueue 中取出一个待调度的 Pod。它使用了在创建 Scheduler Config 的时候，调用的&lt;code&gt;factory.NewConfigFactory&lt;/code&gt;函数内部生成的 Queue：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -589,7 +589,7 @@ type SchedulerAlgorithmSource struct {
 &lt;/div&gt;
 &lt;p&gt;既然从队列中取出 Pod 信息的位置我们找到了，那么相应的我们需要找到在哪里向内部塞入 Pod。通过观察&lt;code&gt;factor.NewConfigFactory&lt;/code&gt; 函数的内部逻辑，我们可以知道，它在 PodInformer 的 AddFunc 成员上注册了一个名为&lt;code&gt;addPodToCache&lt;/code&gt;的函数，而这个函数内部会将 Watch 到的 Pod 信息塞入到队列中，并且会将其缓存起来，塞入 schedulerCache。&lt;/p&gt;
 
-&lt;h4 id=&#34;schedule-pod&#34;&gt;schedule(pod)&lt;/h4&gt;
+&lt;h5 id=&#34;schedule-pod&#34;&gt;schedule(pod)&lt;/h5&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -639,7 +639,7 @@ type SchedulerAlgorithmSource struct {
 &lt;li&gt;将本次 Pod 调度失败的信息通过 Update 函数更新至 etcd 中&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h4 id=&#34;assume&#34;&gt;assume()&lt;/h4&gt;
+&lt;h5 id=&#34;assume&#34;&gt;assume()&lt;/h5&gt;
 
 &lt;p&gt;assume 函数内仅是调用了一个名为&lt;code&gt;AssumePod&lt;/code&gt;的函数。它会在其内部尝试将该 Pod 的信息插入到 SchedulerCache 维护的缓存中。若插入操作成功，那就证明这个 Pod 还没有被其他的调度过程占用，是可以被调度的，并且假设这个 Pod 的调度会成功。若插入失败，要么是这个 Pod 的信息根本无法被找到，要么就是这个 Pod 的信息已经存在于缓存中了，并且可能正在进行调度，不能立刻进行新的调度操作。所以，会将判定为调度失败的 Pod 重新加入到队列中等待重试。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -684,11 +684,11 @@ type SchedulerAlgorithmSource struct {
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;h4 id=&#34;bind&#34;&gt;bind()&lt;/h4&gt;
+&lt;h5 id=&#34;bind&#34;&gt;bind()&lt;/h5&gt;
 
 &lt;p&gt;若 assume 函数执行成功，则 scheduler 接下来会调用 bind 函数。其实 bind 函数和 assume 函数的功能一样，都只是一个异步调度 Pod 至 Node 的操作，它们所做的除了想 etcd 写入 Pod 最新的信息之外，就是将当前 Pod 的状态写入至缓存中。因为最终创建 Pod 相关容器的工作是由 Kubelet 来完成的。所以，如果 Scheduler 部分的逻辑没有发生错误，那我们就姑且认为它是调度成功了。这样的话，即使 kubelet 在执行和该 Pod 相关工作的时候发生了错误，也自己会通过向 API Server 发请求来将调度失败的信息更新至 etcd 中。上述这些基本都是异步的操作，尤其是对于在 assume 函数内操作的缓存，我们将会定期清理其中的和 Pod 有关的信息。&lt;/p&gt;
 
-&lt;h3 id=&#34;关键步骤-algorithm-schedule&#34;&gt;关键步骤—Algorithm.Schedule&lt;/h3&gt;
+&lt;h4 id=&#34;关键步骤-algorithm-schedule&#34;&gt;关键步骤—Algorithm.Schedule&lt;/h4&gt;
 
 &lt;p&gt;对于一个 Scheduler 来说，整个调度流程当中最重要的就是&lt;code&gt;Algorithm.Schedule&lt;/code&gt;函数，即按照一定的调度策略为待调度 Pod 计算出它的目的 Node。根据我们之前所说的「加载调度策略」部分的内容，可以很容易的看出在&lt;code&gt;CreateFromKeys&lt;/code&gt; 函数中我们调用&lt;code&gt;core.NewGenericScheduler&lt;/code&gt;，将返回值赋值给了配置中的&lt;code&gt;Algorithm&lt;/code&gt;成员，&lt;code&gt;Algorithm&lt;/code&gt;的数据类型为&lt;code&gt;genericScheduler&lt;/code&gt;。&lt;/p&gt;
 
@@ -723,7 +723,7 @@ type SchedulerAlgorithmSource struct {
 
 &lt;p&gt;随后，我们先根据之前预设的 predicate 策略先将 Nodes 集合分为可调度和不可调度两部分：&lt;code&gt;filteredNodes&lt;/code&gt; 和 &lt;code&gt;failedPredicateMap&lt;/code&gt;。然后再根据 Priority 策略将筛选出来的节点按照优先级排序。最终，我们将根据这些备选 Node 的信息选出一个「评分最高」的 Node，作为最终调度的 Node。&lt;/p&gt;
 
-&lt;h4 id=&#34;g-findnodesthatfit-根据-predicate-过滤节点&#34;&gt;g.findNodesThatFit （根据 Predicate 过滤节点）&lt;/h4&gt;
+&lt;h5 id=&#34;g-findnodesthatfit-根据-predicate-过滤节点&#34;&gt;g.findNodesThatFit （根据 Predicate 过滤节点）&lt;/h5&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -878,7 +878,7 @@ type SchedulerAlgorithmSource struct {
 &lt;li&gt;以 16 个 Worker，并发的对每一个 Node 都运行 &lt;code&gt;checkNode&lt;/code&gt;函数。满足条件的 Node 放入&lt;code&gt;filtered&lt;/code&gt;内，否则放入&lt;code&gt;failedPredicateMap&lt;/code&gt;内&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h5 id=&#34;podfitsonnode&#34;&gt;podFitsOnNode&lt;/h5&gt;
+&lt;h6 id=&#34;podfitsonnode&#34;&gt;podFitsOnNode&lt;/h6&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -1020,7 +1020,7 @@ type SchedulerAlgorithmSource struct {
 &lt;/div&gt;
 &lt;p&gt;该函数主要是通过检查被筛选的 Node 的内存资源是否已经处于一个压力较大的状态，来判断是否还应该向其调度新的 Pod。但是在这之前，它需要检查被调度的 Pod 是否对 CPU 和 MEM 等资源有硬性的要求。如果对资源要求的策略是「BestEffort」，那么就证明该 Pod 没有对其要使用的资源设置限制。换句话说，它可能用的多，超出此 Node 的剩余资源的量，也有可能用得少，不会超出。所以在这种情况下，不用在理会 Node 上的剩余资源量的问题。&lt;/p&gt;
 
-&lt;h4 id=&#34;prioritizenodes&#34;&gt;PrioritizeNodes&lt;/h4&gt;
+&lt;h5 id=&#34;prioritizenodes&#34;&gt;PrioritizeNodes&lt;/h5&gt;
 
 &lt;p&gt;理论上来说，通过 Predicate 策略的筛选之后，如果有余下的 Node，那么这些 Node 都是可被调度的。否则，将会返回一个错误，代表本次调度是失败的。这么看来，Predicate 策略应该是一种硬性的筛选规则，它会对候选的 Node 集合做减法。&lt;/p&gt;
 
@@ -1048,7 +1048,7 @@ type SchedulerAlgorithmSource struct {
 
 &lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/1414619F-3E97-41BA-8596-48C0673957F7.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
 
-&lt;h5 id=&#34;leastrequestedpriority-最小请求资源优先策略&#34;&gt;LeastRequestedPriority — 最小请求资源优先策略&lt;/h5&gt;
+&lt;h6 id=&#34;leastrequestedpriority-最小请求资源优先策略&#34;&gt;LeastRequestedPriority — 最小请求资源优先策略&lt;/h6&gt;
 
 &lt;p&gt;LeastRequestedPriority 是默认的 Priority 策略之一，它主要用来平衡集群中各节点的资源用量情况。通过将一些「资源使用比」较大的 Node 降低优先级，「资源使用比」较小的 Node 提高优先级，来防止新的 Pod 继续调度到那些负载已经过高的 Node 上。它通过一个公式，分别计算一个 Node 的 CPU 和 MEM 的占比并将它们加在一起，来作为这个策略评估 Node 的分数。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -1059,13 +1059,13 @@ type SchedulerAlgorithmSource struct {
 &lt;pre class=&#34;chroma&#34;&gt;(cpu((capacity-sum(requested))*10/capacity) + memory((capacity-sum(requested))*10/capacity))/2&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;h5 id=&#34;balancedresourceallocation-平衡节点资源策略&#34;&gt;BalancedResourceAllocation — 平衡节点资源策略&lt;/h5&gt;
+&lt;h6 id=&#34;balancedresourceallocation-平衡节点资源策略&#34;&gt;BalancedResourceAllocation — 平衡节点资源策略&lt;/h6&gt;
 
 &lt;p&gt;BalancedResourceAllocation 是默认的 Priority 策略之一，它会根据某个 Node 上面的 CPU 占比和 MEM 占比的差值来给 Node 评一个分数。差值越大的优先级越低，因为这代表在该 Node 上，CPU 和  MEM 资源的消耗差距过大，如果继续向其调度 Pod 的话，很可能导致 CPU 被消耗光了，但是 MEM 还有很多，到最后这个 Node 可能就会被判定为不可调度的节点。该策略会尽量选择资源消耗较为平衡的 Node。&lt;/p&gt;
 
 &lt;p&gt;但是，通过该策略在代码中相关的注释我们可以了解到，它不能单独使用，需要和 LeastRequestedPriority 策略一起配合使用。因为两者在解决「维护集群节点资源平衡」的问题上关注的点是不同的：前者更关注 Node 上  CPU 和  MEM 的总剩余量，后者则在剩余量没问题的情况下，关注 Node 上 CPU 和 MEM 的使用比差值。最后为 Pod 挑选出一个「资源剩余量」合适且「资源占比」平衡的 Node。&lt;/p&gt;
 
-&lt;h4 id=&#34;selecthost&#34;&gt;SelectHost&lt;/h4&gt;
+&lt;h5 id=&#34;selecthost&#34;&gt;SelectHost&lt;/h5&gt;
 
 &lt;p&gt;经过 Priority 策略的筛选，它不会丢掉任何的候选 Node。而是通过 SelectHost 函数，挑选一个分数最高的 Node。如果分数高的 Node 有很多的话，则通过随机策略选取一个作为最终的被调度节点。&lt;/p&gt;
 
