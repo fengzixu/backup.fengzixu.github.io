@@ -6,10 +6,19 @@
     <description>Recent content in 工作了也不能放松系列 on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 29 Nov 2018 14:36:58 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 02 Dec 2018 16:16:55 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect Logging of Docker</title>
+      <link>http://littledriver.net/post/2018/12/02/detect-logging-of-docker/</link>
+      <pubDate>Sun, 02 Dec 2018 16:16:55 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/12/02/detect-logging-of-docker/</guid>
+      <description>Docker—日志收集/管理方案 写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据</description>
+    </item>
     
     <item>
       <title>Detect Source Code of Scheduler</title>
