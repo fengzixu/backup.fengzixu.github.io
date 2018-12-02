@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="xuran" />
-  <meta name="description" content="Docker—日志收集/管理方案 写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据" />
+  <meta name="description" content="写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据。本文将带大家了解一下 Docker 面对的和" />
 
 
 
@@ -57,25 +57,25 @@
 
 
 <meta property="og:title" content="Detect Logging of Docker" />
-<meta property="og:description" content="Docker—日志收集/管理方案 写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据" />
+<meta property="og:description" content="写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据。本文将带大家了解一下 Docker 面对的和" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://littledriver.net/post/2018/12/02/detect-logging-of-docker/" /><meta property="article:published_time" content="2018-12-02T16:16:55&#43;08:00"/>
 <meta property="article:modified_time" content="2018-12-02T16:16:55&#43;08:00"/>
 
 <meta itemprop="name" content="Detect Logging of Docker">
-<meta itemprop="description" content="Docker—日志收集/管理方案 写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据">
+<meta itemprop="description" content="写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据。本文将带大家了解一下 Docker 面对的和">
 
 
 <meta itemprop="datePublished" content="2018-12-02T16:16:55&#43;08:00" />
 <meta itemprop="dateModified" content="2018-12-02T16:16:55&#43;08:00" />
-<meta itemprop="wordCount" content="3610">
+<meta itemprop="wordCount" content="3510">
 
 
 
 <meta itemprop="keywords" content="Docker," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Detect Logging of Docker"/>
-<meta name="twitter:description" content="Docker—日志收集/管理方案 写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据"/>
+<meta name="twitter:description" content="写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据。本文将带大家了解一下 Docker 面对的和"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -220,7 +220,7 @@
   <div class="post-toc-content">
     <nav id="TableOfContents">
 <ul>
-<li><a href="#docker-日志收集-管理方案">Docker—日志收集/管理方案</a>
+<li>
 <ul>
 <li><a href="#写在前面">写在前面</a></li>
 <li><a href="#日志种类">日志种类</a></li>
@@ -231,24 +231,21 @@
 <ul>
 <li><a href="#实质">实质</a></li>
 <li><a href="#docker-log-driver">Docker Log Driver</a></li>
-<li><a href="#生产环境中遇到的问题-真正打日志的服务不是-dockerdaemon-的子进程">生产环境中遇到的问题——真正打日志的服务不是 dockerdaemon 的子进程</a>
+<li><a href="#生产环境中的问题-真正打日志的服务不是-dockerdaemon-的子进程">生产环境中的问题——真正打日志的服务不是 dockerdaemon 的子进程</a>
 <ul>
 <li><a href="#问题">问题</a></li>
 <li><a href="#解决思路">解决思路</a></li>
 <li><a href="#解决方案">解决方案</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#文件日志">文件日志</a>
-<ul>
 <li><a href="#日志滚动">日志滚动</a></li>
-<li><a href="#日志收集">日志收集</a></li>
 </ul></li>
 <li><a href="#对上述解决方案的一点思考">对上述解决方案的一点思考</a>
 <ul>
 <li><a href="#再抽象一点-docker-的日志管理">再抽象一点——Docker 的日志管理</a></li>
 <li><a href="#能否对上述方案做一些优化">能否对上述方案做一些优化？</a></li>
 </ul></li>
-<li><a href="#如果没有-syslog-ng-和-logrotate">如果没有 syslog-ng 和 logrotate</a>
+<li><a href="#如果没有-syslog-ng-和-logrotate">如果没有 syslog-ng 和 logrotate</a></li>
+</ul></li>
+<li><a href="#文件日志">文件日志</a>
 <ul>
 <li><a href="#解决方案-1">解决方案</a>
 <ul>
@@ -267,8 +264,6 @@
     
     <div class="post-content">
       
-
-<h1 id="docker-日志收集-管理方案">Docker—日志收集/管理方案</h1>
 
 <h2 id="写在前面">写在前面</h2>
 
@@ -302,21 +297,21 @@
 
 <p>回想一下 Docker 的实现原理，无非是「多进程」+「隔离机制」。其中所有容器（子进程）都是由 dockerdaemon（父进程）来创建的。父进程可以收集子进程 PID Namespace 内 PID=1 进程的和标准输出的内容。因为只有 PID = 1的进程才是父进程创建的。如果该 PID = 1的子进程再创建孙子进程的话，父进程是无法收集到孙子进程内的标准输出的内容的。</p>
 
-<p>父进程是通过 Pipe 来获取子进程的和标准输出的。所以，在容器进程被创建的时候，会通过一个 Pipe 将输出到标准输出的日志信息传递给父进程。而这一些对容器内部应用都是透明的。</p>
+<p>父进程是通过 Pipe 来获取子进程的和标准输出的。所以，在容器进程被创建的时候，会通过一个 Pipe 将输出到标准输出的日志信息传递给父进程。而这一切对容器内部应用都是透明的。</p>
 
 <h4 id="docker-log-driver">Docker Log Driver</h4>
 
-<p>当 dockerdaemon 进程从 Pipe 中拿到日志信息之后，会将它交给一个特殊的模块来进行处理—— Docker Log Driver。Log Driver 的职责也很简单，既然收集到了日志信息，那肯定需要将它写入到一个位置，这个位置可以是一个 JSON 格式的文件（默认行为），也可以是一个有特殊含义的文件，如 syslog，甚至是一个日志的收集服务，如 logkit。</p>
+<p>当 dockerdaemon 进程从 Pipe 中拿到日志信息之后，会将它交给一个特殊的模块来进行处理—— Docker Log Driver。Log Driver 的职责也很简单，既然收集到了日志信息，那肯定需要将它写入到一个位置，这个位置可以是一个 JSON 格式的文件（默认行为），也可以是一个有特殊含义的文件，如 syslog，甚至是一个第三方日志的收集服务。</p>
 
 <p><img src="http://o6sfmikvw.bkt.clouddn.com/logdriver.png" alt="" /></p>
 
-<p>Log Driver 写入的位置，可以通过很灵活的方式进行配置。可以在 dockerdaemon 启动的时候通过 —log-driver 参数指定一个全局的路径，也可以在每个容器启动的时候用同样的参数指定一个新的路径。容器级别的 LogDriver 配置会覆盖全局的。</p>
+<p>Log Driver 写入的位置，可以通过很灵活的方式进行配置。可以在 dockerdaemon 启动的时候通过 —log-driver 参数配置，也可以在每个容器启动的时候用同样的参数配置。容器级别的 LogDriver 配置会覆盖全局的。</p>
 
-<h4 id="生产环境中遇到的问题-真正打日志的服务不是-dockerdaemon-的子进程">生产环境中遇到的问题——真正打日志的服务不是 dockerdaemon 的子进程</h4>
+<h4 id="生产环境中的问题-真正打日志的服务不是-dockerdaemon-的子进程">生产环境中的问题——真正打日志的服务不是 dockerdaemon 的子进程</h4>
 
 <h5 id="问题">问题</h5>
 
-<p>在基于 Kubernetes 平台开发数据库应用的时候，为了能够实现一些「自运维」的功能，通常在一个容器内，我们会以一些 baseImage 为基础，再启动我们的「业务进程」（负责自运维）和数据库进程（redisd，mysqld 等等）。此时，以 dockerdaemon 进程的视角来看的话，它的子进程就不是数据库进程或者说是我们的业务进程了。因为 baseImage 的存在，它通常在容器启动的时候会顺便启动一些辅助进程，帮我们在容器内部搭建一个较好的运行环境。但是，我们想要观察的日志大部分都来自于业务进程和数据库进程。</p>
+<p>在基于 Kubernetes 平台开发数据库应用的时候，为了能够实现一些「自运维」的功能，通常在一个容器内，我们会以一个baseImage 为基础，再启动我们的「业务进程」（负责自运维）和数据库进程（redisd，mysqld 等等）。此时，以 dockerdaemon 进程的视角来看的话，它的子进程就不是数据库进程或者说是我们的业务进程了。因为 baseImage 的存在，它通常在容器启动的时候会顺便启动一些辅助进程，帮我们在容器内部搭建一个较好的运行环境。但是，我们想要观察的日志大部分都来自于业务进程和数据库进程。</p>
 
 <h5 id="解决思路">解决思路</h5>
 
@@ -335,34 +330,27 @@
 <li>开启 Redis Server 自身提供的，将服务日志输出到 syslog 的功能</li>
 </ol>
 
-<h3 id="文件日志">文件日志</h3>
-
 <p>通过对上面关于「标准输出日志」遇到问题的解决方案的了解，我们可以发现，它其实有如下的几个风险：</p>
 
 <ol>
 <li>syslog 文件的内容可能会无限增大，占用容器的存储资源（此问题在 log driver 将日志保存在宿主机文件的情况下，也同样存在）</li>
-<li>如何在宿主机获得容器内部的全量日志</li>
 </ol>
 
-<h4 id="日志滚动">日志滚动</h4>
+<h5 id="日志滚动">日志滚动</h5>
 
 <p>在宿主机上，Docker 将会帮我们解决问题1。若你使用 json-file 这种 logdriver 的时候，会让你配置一个日志文件的大小。一旦达到这个阈值，Docker 会通过一些日志滚动服务来删除掉一部分旧的日志，从而保持日志文件一个稳定的大小。</p>
 
 <p>而在容器内部我们就得自己想办法了。之前提到过在生产环境中，我们在容器内部使用了 baseImage。其内部内置的一个服务叫：logrotate。他会帮我们针对某个特定的文件做「滚动」操作。</p>
 
-<h4 id="日志收集">日志收集</h4>
-
-<p>日志的收集可以找一个较为成熟的日志收集组件，配置在集群级别中。让它来收集所有的来自容器标准输出的日志。这个功能可以通过配置 dockerdaemon 进程的 logdriver 参数实现。</p>
-
-<h3 id="对上述解决方案的一点思考">对上述解决方案的一点思考</h3>
+<h4 id="对上述解决方案的一点思考">对上述解决方案的一点思考</h4>
 
 <p>其实上述方案的本质是：用文件日志作为服务日志和容器标准输出之间的桥梁，虽然容器内部是文件日志，但是是通过标准输出向外传递的。而容器内的文件日志可以通过 baseImage 提供的 syslog-ng 和 logrotate 服务来进行日志的重定向和文件日志的滚动。这是在我们没有成熟的收集容器内部文件日志的机制的前提下，想出来的一种解决方案。它复用了 Docker 提供的一些现有的机制。</p>
 
-<h4 id="再抽象一点-docker-的日志管理">再抽象一点——Docker 的日志管理</h4>
+<h5 id="再抽象一点-docker-的日志管理">再抽象一点——Docker 的日志管理</h5>
 
 <p>容器日志管理的本质是「如何处理 stdout」 和「如何将我关心的日志都打入 stdout」。这两个问题的出现，其实是受限于 Docker 对于容器日志的管理方式（通过父子进程 pipe 和 log driver）。</p>
 
-<h4 id="能否对上述方案做一些优化">能否对上述方案做一些优化？</h4>
+<h5 id="能否对上述方案做一些优化">能否对上述方案做一些优化？</h5>
 
 <p>上面的方案其实已经能解决容器日志所面临的大部分问题了。但是仍旧有个做的不是很好的点：baseImage 集成了太多了服务（如 logrotate 和 syslog-ng）。其实，对于 baseImage，你可以说这是优点，也可是说这是缺点。优点是方便，缺点就是可能会和业务进程抢占资源。</p>
 
@@ -375,9 +363,9 @@
 <li>集群级别部署一个高可靠的第三方日志收集组件，收集来自 logdriver（即标准输出）的日志内容</li>
 </ol>
 
-<p>这种方案，虽然在资源用量上面没有什么优化。但是却将日志服务和业务进程从一个容器中分开来，两者在 Kubernetes 中申请的资源也可以分别控制，互不影响。</p>
+<p>这种方案，虽然在资源用量上面没有什么优化。但是却将日志服务和业务进程从一个容器中分开来，两者申请的资源也可以分别控制，互不影响。</p>
 
-<h3 id="如果没有-syslog-ng-和-logrotate">如果没有 syslog-ng 和 logrotate</h3>
+<h4 id="如果没有-syslog-ng-和-logrotate">如果没有 syslog-ng 和 logrotate</h4>
 
 <p>其实大部分容器用户，它们对 baseImage 的要求不是很高。甚至有的时候他们希望 baseImage 是尽量干净，尽量小的。如果 baseImage 中没有我们上面说到的 syslog-ng 和 logrotate 服务的话，容器内的日志收集问题就比较麻烦（在业务进程仍然不是 pid=1的情况下）。</p>
 
@@ -385,10 +373,12 @@
 
 <ol>
 <li>日志文件内容的滚动</li>
-<li>如何确认日志文件的具体路径</li>
+<li>如何确认日志文件在宿主机的具体路径</li>
 </ol>
 
-<p>引发这两个问题的根源是相同的：我们由处理标准输出的内容变成了处理文件内容。前者有 logdriver 负责日志的滚动和最终日志文件在宿主机上的存储位置。而后者，就必须要我们自己来进程处理了。</p>
+<p>引发这两个问题的根源是相同的：我们由处理标准输出的内容变成了处理文件内容。对于「标准输出」，有 logdriver 负责日志的滚动和最终日志文件在宿主机上的存储位置。而对于「文件」，就必须要我们自己来处理了。</p>
+
+<h3 id="文件日志">文件日志</h3>
 
 <h4 id="解决方案-1">解决方案</h4>
 
@@ -404,7 +394,7 @@
 
 <h5 id="尝试2-每个容器集群配备一个日志收集服务-进程">尝试2——每个容器集群配备一个日志收集服务（进程）</h5>
 
-<p>既然每个容器一个收集程序有诸多缺点，那我们就借助开源社区的力量，找一个强大的日志收集组件，将它部署到集群中。这样一来整个集群只有一个日志收集服务。但是这个方案，也同样需要解决几个问题：</p>
+<p>既然每个容器一个收集程序有诸多缺点，那我们就借助开源社区的力量，找一个强大的日志收集组件，将它部署到集群中。这样一来整个集群只有一个日志收集服务。但是这个方案，也同样需要解决几个和日志路径相关的问题：</p>
 
 <ol>
 <li>Docker 依赖的底层存储方案不同，导致容器运行镜像时候的 top layer 的映射规则五花八门。你不知道容器的 top layer 实际映射到了物理机上的哪个目录。比如 AUFS 这种实现方案，映射关系很复杂，我在了解 AUFS 原理的时候，在这部分花了大量的时间。这种映射关系及时有，估计文档化也比较差，我一直没有找到一个很官方的解释。不了解映射关系就直接导致了：你的日志收集服务不知道到哪里去收集日志</li>
@@ -421,7 +411,7 @@
 
 <ol>
 <li>回滚的策略可配置</li>
-<li>判定是否满足回滚策略的信息可以很方便的获取到（如监听容器的各类事件）</li>
+<li>「判定是否满足回滚策略」的信息可以很方便的获取到（如监听容器的各类事件）</li>
 </ol>
 
 <h2 id="总结">总结</h2>

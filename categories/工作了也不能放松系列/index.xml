@@ -17,7 +17,7 @@
       <pubDate>Sun, 02 Dec 2018 16:16:55 +0800</pubDate>
       
       <guid>http://littledriver.net/post/2018/12/02/detect-logging-of-docker/</guid>
-      <description>Docker—日志收集/管理方案 写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据</description>
+      <description>写在前面 运行在容器内部的应用会在运行期间产生大量的日志，这些日志将作为我们 Debug，分析应用行为的重要依据。本文将带大家了解一下 Docker 面对的和</description>
     </item>
     
     <item>
