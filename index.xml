@@ -6,10 +6,118 @@
     <description>Recent content in Home on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 05 Dec 2018 17:16:38 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 05 Dec 2018 17:41:58 +0800</lastBuildDate>
     
         <atom:link href="http://littledriver.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect Statefulset</title>
+      <link>http://littledriver.net/post/2018/12/05/detect-statefulset/</link>
+      <pubDate>Wed, 05 Dec 2018 17:41:58 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/12/05/detect-statefulset/</guid>
+      
+        <description>
+
+&lt;h2 id=&#34;什么是-statefulset&#34;&gt;什么是 StatefulSet？&lt;/h2&gt;
+
+&lt;p&gt;StatefulSet 是 Kubernetes 提供一种资源对象。它适合用来管理我们的用状态服务。管理的内容包括部署，升级，扩容等。&lt;/p&gt;
+
+&lt;h2 id=&#34;statefulset-和-deployment-有什么不同&#34;&gt;StatefulSet 和 Deployment 有什么不同？&lt;/h2&gt;
+
+&lt;p&gt;其实 StatefulSet 和 Deployment 都是 Kubernetes 提供的资源对象。但是，Deployment 更适合帮我们管理无状态服务。所以，两者的区别主要是在于管理 Pod 的方式上。说的更加明确一点，两者行为上的不同主要是因为 Controller 对同一个操作实现逻辑的不同（部署，升级，扩容等）。&lt;/p&gt;
+
+&lt;p&gt;另外一个实现细节上面的不同之处是，StatefulSet 直接管辖的是 Pod，而 Deployment 和 Pod 之间还会有一个 ReplicaSet。&lt;/p&gt;
+
+&lt;h2 id=&#34;statefulset-为什么适合管理有状态服务&#34;&gt;StatefulSet 为什么适合管理有状态服务？&lt;/h2&gt;
+
+&lt;p&gt;我们先来看看有状态服务和无状态服务有什么区别。&lt;/p&gt;
+
+&lt;h3 id=&#34;有状态服务&#34;&gt;有状态服务&lt;/h3&gt;
+
+&lt;p&gt;「状态」指的是一些应用在对客户提供服务的过程中必要的一些信息，并且这些信息是需要被保存的。可以将它简单理解为一个计算的「中间结果」。有状态服务指的就是依赖这些信息对外提供服务的应用。&lt;/p&gt;
+
+&lt;h3 id=&#34;无状态服务&#34;&gt;无状态服务&lt;/h3&gt;
+
+&lt;p&gt;无状态的应用在对外提供服务的时候，将不会依赖任何持久化的数据。绝大部分它需要的信息都来自于网络请求，或者说内存中的一些信息。即使应用在对外服务的过程当中有重启行为，内存或者请求的信息丢失，也不需要担心。&lt;/p&gt;
+
+&lt;h3 id=&#34;如何管理&#34;&gt;如何管理&lt;/h3&gt;
+
+&lt;p&gt;StatefulSet 为有状态服务提供了以下几个机制来保证它们部署，扩容和升级的正常进行：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;稳定的存储&lt;/li&gt;
+&lt;li&gt;集群唯一的标识符&lt;/li&gt;
+&lt;li&gt;操作的顺序性&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其中第一个措施主要是用来解决「状态」的存储问题的。在 StatefulSet 中，若一个 Pod 创建一个存储设备。即使之后 Pod 和 Statefulset 被删除，这个存储设备已经它里面保存的「状态」信息仍旧会被保存下来。除非我们手动的将这些存储设备删除（存储设备包含 PVC，PV，以及底层的存储实例）。&lt;/p&gt;
+
+&lt;p&gt;第二个措施是和 Deployment 区别比较大的一点。对于一个无状态服务的集合来说，哪一个实例对外提供服务都是 ok 的，因为他们提供的服务不依赖任何状态。但是有状态服务就不一样了：比如 A 实例依赖 B 实例的输出，B 实例又依赖 C 实例的输出。所以很多时候，有状态服务接收的流量可能仅来自于其中一个实例。既然有这种需求，那么我们就必须要有一种明确的方式来标识 Statefulset 中管理的每一个实例（Pod）。这种标识符的生成有一套特殊的规则。&lt;/p&gt;
+
+&lt;p&gt;第三个措施主要是针对有状态服务部署，升级，销毁三个操作的。有状态服务一般都对实例部署的顺序和销毁的顺序有一些要求。比如，A 如果不启动，B 就无法启动，因为 B 在启动时依赖了 A 写入的一些状态信息。同理，升级和销毁操作也是这样。&lt;/p&gt;
+
+&lt;h2 id=&#34;statefulset-pod-标识符的生成规则&#34;&gt;StatefulSet Pod 标识符的生成规则&lt;/h2&gt;
+
+&lt;p&gt;假设现在有一个构造了3副本的 StatefulSet 对象，该对象的名字为 web。那么StatefulSet 首先会为这三个副本都标一个序号，从0~N-1。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;web-0&lt;/li&gt;
+&lt;li&gt;web-1&lt;/li&gt;
+&lt;li&gt;web-2&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Kubernetes 将其称为 Ordinal Index。&lt;/p&gt;
+
+&lt;p&gt;根据我们上面说过的，一个 StatefulSet 中不同的副本可能同一时间只能有一个实例对外提供服务，其余的两个都作为冗余，旨在为服务提供高可用的能力。所以，在网络通信的场景下， 这三个 Pod 也需要一个唯一的网络标识，这个唯一的网络标识，就是就是 Kubernetes 集群内部的  Pod DNS Name。它的生成规则如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;web{0-N-1}.$(service name).$(namespace).svc.cluster.local&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;其中 service name 来自于 StatefulSet 的  Service，namespace 也是根据 StatefulSet 这个对象所在的 ns 来确定的。&lt;/p&gt;
+
+&lt;p&gt;Kubernetes 将其称为 Stable Network ID。&lt;/p&gt;
+
+&lt;p&gt;除此之外，如果在 Pod.Spec 中还写入了 PVC 创建存储设备。那么 StatefulSet 还会为每一个 Pod 的 PVC 以及 PV 也生成一个唯一的标识。生成的规则如下:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;pvcName-web{0-N-1}&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 id=&#34;部署与升级&#34;&gt;部署与升级&lt;/h2&gt;
+
+&lt;p&gt;StatefulSet 的部署顺序将严格遵循以下几个原则：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;部署顺序和 Pod Ordinal Index 的顺序一致，从 0~N-1&lt;/li&gt;
+&lt;li&gt;删除顺序和 Pod Ordinal Index 的顺序相反，从 N-1~0&lt;/li&gt;
+&lt;li&gt;一个 Pod 开始部署之前，它前面的 Pod 必须处于 Running 和 Ready 状态。相反，一个 Pod 中止之前，它前面的 Pod 必须已经被中止&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;对于第三点来说，这种执行的顺序性不仅限于 Ordinal Index 相邻的两个 Pod。如一个三副本的 StatefulSet 部署，pod-0，pod-1 已经部署成功。但是在 pod-2  部署的时候，pod-0 挂了，此时 Pod-2 不会开始部署，因为它的前置 Pod 有异常。&lt;/p&gt;
+
+&lt;p&gt;StatefulSet 自身提供了两种升级策略：OnDelete， RollingUpdate&lt;/p&gt;
+
+&lt;h3 id=&#34;ondelete&#34;&gt;OnDelete&lt;/h3&gt;
+
+&lt;p&gt;当我们给 StatefulSet 配置了这种升级策略的时候，即使我们改动了 StatefulSet 的 template 中的信息，它也不会自动进行升级操作。我们需要手动的删除 Pod。这些 Pod 在重建之后，会自动应用最新的配置。这种方式的灵活性是比较大的，按照什么样的顺序升级，哪个 Pod 升级，哪个 Pod 不升级都可以由我们自己来控制。&lt;/p&gt;
+
+&lt;h3 id=&#34;rollingupdate&#34;&gt;RollingUpdate&lt;/h3&gt;
+
+&lt;p&gt;StatefulSet 将会自动的按照 Pod 终止的顺序进行升级（从 N-1~0）。另外，在 RollingUpdate 这个策略上，StatefulSet 还额外的提供了一个 Partition 的功能，用于分阶段的升级。Partition 是一个 Pod Ordinal Index，它是 StatefulSet.Spec.updateStrategy.rollingUpdate 下的一个字段。&lt;/p&gt;
+
+&lt;p&gt;假设我们现在有一个三副本的 StatefulSet，当 partition 指定为1的时候，那么只有 pod-1 和 pod-2 才会因为 template 中的信息的更新而进行升级，升级顺序还是按照  Ordinal Index 的逆序。而 pod-0 仍然会以旧的版本运行，即使发生重启。如果你的 partition 设置的值已经超过了 Ordinal Index 的范围，那么将没有 Pod 会升级。&lt;/p&gt;
+</description>
+      
+    </item>
     
     <item>
       <title>Detect Source Code of Statefulset Controller</title>
@@ -26,7 +134,7 @@
 
 &lt;h2 id=&#34;写在前面&#34;&gt;写在前面&lt;/h2&gt;
 
-&lt;p&gt;StatefulSet 作为 Kubernetes 提供的一种用于管理有状态服务的资源对象是非常重要的，尤其是对于数据库应用来说。宏观上来说，StatefulSet 的结构是比较简单的，它不像 Deployment，和 pod 之间还隔着一个 ReplicaSet。StatefulSet 是直接管辖 Pod 的。那么 StatefulSet Controller 内部是如何实现我们上一篇文章中所提到的那些用于管理有状态服务的特性的呢？&lt;/p&gt;
+&lt;p&gt;StatefulSet 作为 Kubernetes 提供的一种用于管理有状态服务的资源对象是非常重要的，尤其是对于数据库应用来说。宏观上来说，StatefulSet 的结构是比较简单的，它不像 Deployment，和 pod 之间还隔着一个 ReplicaSet。StatefulSet 是直接管辖 Pod 的。那么 StatefulSet Controller 内部是如何实现上一篇文章中所提到的那些用于管理有状态服务的特性的呢？&lt;/p&gt;
 
 &lt;h2 id=&#34;创建&#34;&gt;创建&lt;/h2&gt;
 
@@ -87,7 +195,7 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;其中 kubeclient 是从外部通过参数传递进来的一个 client 对象，StatefulSet Controller 会用它来调用一些 API 和 API Server 进行通信。queue 则作为 StatefulSet Controller 接收 StatefulSet 资源 event 的缓存。StatefulSet Controller 的本质就是根据队列中的 Event 将 StatefulSet 资源对象以及其所管辖的 Pod 驱动至用户的 Desire State。而剩余的成员大致可以分为以下两类：&lt;/p&gt;
+&lt;p&gt;其中 kubeclient 是从外部通过参数传递进来的一个 client 对象，StatefulSet Controller 会用它来调用一些 API 和 API Server 进行通信。queue 则作为 StatefulSet Controller 接收 StatefulSet Event 的缓存。StatefulSet Controller 的本质就是根据队列中的 Event 将 StatefulSet 对象以及其所管辖的 Pod 驱动至用户的 Desire State。而剩余的成员大致可以分为以下两类：&lt;/p&gt;
 
 &lt;ul&gt;
 &lt;li&gt;Lister&lt;/li&gt;
@@ -130,7 +238,7 @@
 &lt;span class=&#34;nx&#34;&gt;ssc&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;podListerSynced&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;podInformer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Informer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;().&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;HasSynced&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;PodInformer 的创建是很简单的：通过对&lt;code&gt;podInformer.Informer()&lt;/code&gt;的调用，我们向 SharedInformerFactory 中注册了一个属于 StatefulSet Controller 的 PodInformer。并且向这个 Informer 中注册了 Event 处理函数。&lt;code&gt;podInformer.Lister()&lt;/code&gt;将会生成一个类型为&lt;code&gt;PodLister&lt;/code&gt;的对象，它里面包含了一个 List 所有 ns 下 Pod 的函数以及一个可以只List 特定 ns 下 Pod 的对象，该对象同样实现了 List 和 Get 接口。&lt;/p&gt;
+&lt;p&gt;PodInformer 的创建是很简单的：通过对&lt;code&gt;podInformer.Informer()&lt;/code&gt;的调用，向 SharedInformerFactory 中注册了一个属于 StatefulSet Controller 的 PodInformer。并且向这个 Informer 中注册了 Event 处理函数。&lt;code&gt;podInformer.Lister()&lt;/code&gt;将会生成一个类型为&lt;code&gt;PodLister&lt;/code&gt;的对象，它里面包含了一个 List 所有 ns 下 Pod 的函数以及一个可以只 List 特定 ns 下 Pod 的函数。该对象同样实现了 List 和 Get 接口。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -196,11 +304,11 @@
 
 &lt;p&gt;在 Kubernetes 中有很多的 Controller，StatefulSet Controller 只是其中的一种。但是这些 Controller 的执行流程基本上是一样的（如上图所示）。本质上就是一个生产者和消费者的模型，中间用队列进行解耦。&lt;/p&gt;
 
-&lt;p&gt;这里要对 RateLimitedQueue 多说一下。RateLimitedQueue 是 Kubernetes 自己实现的一个「延迟队列」。当一个包含了Event 的 Task 的处理过程发生错误的时候，它没有立即将它加入队列，而是延迟一定的时间再加入。思考了一下，「延迟队列」的好处可能有以下几点：&lt;/p&gt;
+&lt;p&gt;这里要对 RateLimitedQueue 多说一下。RateLimitedQueue 是 Kubernetes 自己实现的一个「延迟队列」。当一个包含了 Event 的 Task 的处理过程发生错误的时候，它没有立即将它加入队列，而是延迟一定的时间再加入。思考了一下，「延迟队列」的好处可能有以下几点：&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;若处理  Task 失败后立即将其塞入队列且异常情况短时间内无法被处理，Queue 中将会有大量的「会处理失败」的Task。这可能导致「会处理成功」的 Task 的处理效率降低，甚至出现饥饿和饿死的情况。并且，频繁的重试一定会失败的 Task 还会增加消费者的负载。&lt;/li&gt;
-&lt;li&gt;某些类型的任务的处理过程分为多个阶段。每个阶段之间都必须要等待一段时间才可以。比如 Pod 的删除，我们可以在Pod.Spec 中指定一个参数&lt;code&gt;DeletionGracePeriodSeconds&lt;/code&gt;，以此来实现在 Pod 删除操作触发的一段时间之后再真正的执行 Pod 的删除逻辑（etcd 记录的删除，相应容器的销毁）。&lt;/li&gt;
+&lt;li&gt;某些类型的任务的处理过程分为多个阶段。每个阶段之间都必须要等待一段时间才可以。比如 Pod 的删除，可以在Pod.Spec 中指定一个参数&lt;code&gt;DeletionGracePeriodSeconds&lt;/code&gt;，以此来实现在 Pod 删除操作触发的一段时间之后再真正的执行 Pod 的删除逻辑（etcd 记录的删除，相应容器的销毁）。&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;h3 id=&#34;sync&#34;&gt;Sync&lt;/h3&gt;
@@ -284,28 +392,28 @@
 &lt;li&gt;进入 ssc.syncStatefulSet，执行接下来的处理逻辑&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;大致看完 Sync 函数的实现之后，我们发现，其内部并没有执行一些和创建，删除等关键操作相关的逻辑。我没没看到的一些实现细节可能在&lt;code&gt;ssc.syncStatefulSet&lt;/code&gt;函数内。而&lt;code&gt;ssc.syncStatefulSet&lt;/code&gt;函数最终也是掉用了我们前面说到的&lt;code&gt;control&lt;/code&gt;成员的&lt;code&gt;UpdateStatefulSet&lt;/code&gt;方法。&lt;/p&gt;
+&lt;p&gt;大致看完 Sync 函数的实现之后发现，其内部并没有执行一些和创建，删除等关键操作相关的逻辑。没看到的一些实现细节可能在&lt;code&gt;ssc.syncStatefulSet&lt;/code&gt;函数内。而&lt;code&gt;ssc.syncStatefulSet&lt;/code&gt;函数最终也是调用了前面说到的&lt;code&gt;control&lt;/code&gt;成员的&lt;code&gt;UpdateStatefulSet&lt;/code&gt;方法。&lt;/p&gt;
 
-&lt;p&gt;但是 Sync 函数内仍然有一些细节值得我们去深入的了解：&lt;/p&gt;
+&lt;p&gt;但是 Sync 函数内仍然有一些细节值得去深入的了解：&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;Revision 是什么资源？用来做什么的？&lt;/li&gt;
 &lt;li&gt;Adoption 是什么操作？&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;首先，我们来说说 Adoption 操作。&lt;/p&gt;
+&lt;p&gt;首先，来说说 Adoption 操作。&lt;/p&gt;
 
 &lt;h4 id=&#34;adoption&#34;&gt;Adoption&lt;/h4&gt;
 
-&lt;p&gt;Adoption 是 Controller 一种处理 owner 和 denpendent 资源关系不正常的一种方式，这种关系是通过  dependent 对象中的 ownerReference 信息来建立的，我们通常将它称为「级联关系」。ownerReference 在 dependent 对象部分，使得 dependent 可以据此找到其 owner。而 owner 则是通过 label Selector 来找到其对应的 dependent 资源。当 owner 资源的 Controller 在处理 Owner 的时候发现，通过 label Selector 找到的 dependent 资源中的 OwnerReference 已经为空。就会执行一个名为 Adoption 的操作：根据 owner 资源的的信息将正确的 OwnerReference 端重新写入进 dependent 对象中，以便修复 owner 和 denepedent 之间的级联关系。&lt;/p&gt;
+&lt;p&gt;Adoption 是 Controller 一种处理 owner 和 denpendent 资源关系不正常的一种方式，这种关系是通过  dependent 对象中的 ownerReference 信息来建立的，通常将它称为「级联关系」。ownerReference 在 dependent 对象部分，使得 dependent 可以据此找到其 owner。而 owner 则是通过 label Selector 来找到其对应的 dependent 资源。当 owner 资源的 Controller 在处理 Owner 的时候发现，通过 label Selector 找到的 dependent 资源中的 OwnerReference 已经为空。就会执行一个名为 Adoption 的操作：根据 owner 资源的信息将正确的 OwnerReference 端重新写入进 dependent 对象中，以便修复 owner 和 denepedent 之间的级联关系。&lt;/p&gt;
 
-&lt;p&gt;级联关系主要用于「资源管理」这个问题域中的「资源清理」问题。Kubernetes 通过 GC 和 级联关系一起实现了对集群中异常资源对象的清理。&lt;/p&gt;
+&lt;p&gt;级联关系主要用于「资源管理」这个问题域中的「资源清理」问题。Kubernetes 通过 GC 和级联关系一起实现了对集群中异常资源对象的清理。&lt;/p&gt;
 
 &lt;h4 id=&#34;revision&#34;&gt;Revision&lt;/h4&gt;
 
 &lt;p&gt;按理来说，StatefulSet 是直接管理 Pod 的，所以 StatefulSet  Controller 应该仅处理 StatefulSet 和 Pod 两种资源。即使要执行 Adoption 操作，也是在&lt;code&gt;ssc.getPodsForStatefulSet&lt;/code&gt;内对 Pod 执行。那么为什么还要对 Revision 这个资源执行呢？而且 k8s 的文档上面也没有公布过这个资源的相关信息。&lt;/p&gt;
 
-&lt;p&gt;递归的跟入&lt;code&gt;ssc.adoptOrphanRevisions&lt;/code&gt;函数，我们最终发现了这个资源的定义：&lt;/p&gt;
+&lt;p&gt;递归的跟入&lt;code&gt;ssc.adoptOrphanRevisions&lt;/code&gt;函数，最终发现了这个资源的定义：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -356,7 +464,7 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;根据注释我们可以知道，ControllerRevision 这个资源主要用于 DaemonSet 和 StatefulSet 两种资源的更新和回滚。回想一下之前对于 StatefulSet 的介绍，StatefulSet 的 RollingUpdate 更新策略是允许多个不同版本的 Pod 存在的。而 Pod 对应了 StatefulSet，所以Pod 版本的不同就代表着 StatefulSet 也不同。这样一来。既然 ControllerRevision 代表的是 StatefulSet 的版本信息，那么它理应被 StatefulSetController 进行管理。&lt;/p&gt;
+&lt;p&gt;根据注释可以知道，ControllerRevision 这个资源主要用于 DaemonSet 和 StatefulSet 两种资源的更新和回滚。回想一下之前对于 StatefulSet 的介绍，StatefulSet 的 RollingUpdate 更新策略是允许多个不同版本的 Pod 存在的。而 Pod 对应了 StatefulSet，所以Pod 版本的不同就代表着 StatefulSet 也不同。这样一来。既然 ControllerRevision 代表的是 StatefulSet 的版本信息，那么它理应被 StatefulSetController 进行管理。&lt;/p&gt;
 
 &lt;h3 id=&#34;control-updatestatefulset-创建-pod&#34;&gt;control.UpdateStatefulSet——创建 Pod&lt;/h3&gt;
 
@@ -510,11 +618,11 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;接下来，我们将会遍历刚刚生成的带有要创建 Pod 实例的 Slice。因为还没有创建过 Pod ，所以控制流会进入&lt;code&gt;!isCreated()&lt;/code&gt;分支。在该分支内部，我们会通过调用 API Server 的 HTTP API 为 StatefulSet 创建 Pod。因为第一创建的时候 Pod 的 Revision 就是被 currentRevision.Name 赋值的，所以两者相等，相应的 CurrentReplicas 也需要加1。&lt;/p&gt;
+&lt;p&gt;接下来，将会遍历刚刚生成的带有要创建 Pod 实例的 Slice。因为还没有创建过 Pod ，所以控制流会进入&lt;code&gt;!isCreated()&lt;/code&gt;分支。在该分支内部，会通过调用 API Server 的 HTTP API 为 StatefulSet 创建 Pod。因为第一创建的时候 Pod 的 Revision 就是被 currentRevision.Name 赋值的，所以两者相等，相应的 CurrentReplicas 也需要加1。&lt;/p&gt;
 
 &lt;p&gt;Pod 的 Revision 被赋值的位置其实就是 Slice 中 Pod 实例被创建的位置。其中 currentRevision.Name 最终被写入到了 Pod 的 Label 内，key 为 ControllerRevisionHashLabelKey， Value 为 currentRevision.Name。&lt;/p&gt;
 
-&lt;p&gt;在创建了第一个 Pod 之后，我们发现它需要判断&lt;code&gt;monotonic&lt;/code&gt;变量。看起来，如果这个条件为 True，就证明该 StatefulSet 不支持以 burst 形式创建 Pod。那么 burst 是个什么形式呢？&lt;/p&gt;
+&lt;p&gt;在创建了第一个 Pod 之后，发现它需要判断&lt;code&gt;monotonic&lt;/code&gt;变量。看起来，如果这个条件为 True，就证明该 StatefulSet 不支持以 burst 形式创建 Pod。那么 burst 是个什么形式呢？&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -541,7 +649,7 @@
 
 &lt;h5 id=&#34;round-2&#34;&gt;Round 2&lt;/h5&gt;
 
-&lt;p&gt;再次进入 updateStatefulSet 函数的时候，pods 集合就不再为空了，它会包含我们之前创建好的 Pod。遍历 Pod 集合，会将「合法」的 Pod 放在我们上一保存创建 Pod 实例的 Slice 内。&lt;/p&gt;
+&lt;p&gt;再次进入 updateStatefulSet 函数的时候，pods 集合就不再为空了，它会包含之前创建好的 Pod。遍历 Pod 集合，会将「合法」的 Pod 放在上一保存创建 Pod 实例的 Slice 内。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -608,7 +716,7 @@
 &lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;因为在第一轮创建中，实际上只创建了一个 Pod，所以这一次我们要为第二个 Pod 再次创建一个 Pod 实例：&lt;/p&gt;
+&lt;p&gt;因为在第一轮创建中，实际上只创建了一个 Pod，所以这一次要为第二个 Pod 再次创建一个 Pod 实例：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -635,14 +743,14 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;在 StatefulSet 没有被删除的情况下，将会和 Round1 开始遍历 replicas 这个 Slice。如果遍历到已经创建过的 Pod 实例，我们会进行如下的判断：&lt;/p&gt;
+&lt;p&gt;在 StatefulSet 没有被删除的情况下，将会和 Round1 开始遍历 replicas 这个 Slice。如果遍历到已经创建过的 Pod 实例，会进行如下的判断：&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;是否当前 Pod 已经处于 Running 状态。如果没有，那么退出此轮创建，继续等待&lt;/li&gt;
 &lt;li&gt;如果前一个 Pod 已经正常运行，会检查他的 Name，ordinal Index 等信息是否合法。如果合法，那么继续处理下一个候选 Pod。否则，重新执行一次前面的「检测」逻辑，若有问题则更新这个 Pod，否则不做任何处理，退出此次创建。&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;当我们遍历到第二个 Pod 实例的时候，因为没有被创建过，所以会执行和 Round 1 同样的逻辑。直到两个 Pod 都创建完成。&lt;/p&gt;
+&lt;p&gt;当遍历到第二个 Pod 实例的时候，因为没有被创建过，所以会执行和 Round 1 同样的逻辑。直到两个 Pod 都创建完成。&lt;/p&gt;
 
 &lt;h5 id=&#34;other-branch&#34;&gt;Other Branch&lt;/h5&gt;
 
@@ -658,17 +766,17 @@
 
 &lt;p&gt;在了解了创建流程之后，如果你再观察 Sync 函数，就会发现，不管是 StatefulSet 的创建，删除，还是更新，都是在 UpdateStatefulSet 这个函数内处理的。而在UpdateStatefulSet 内也只执行了 updateStatefulSet 一个函数。&lt;/p&gt;
 
-&lt;p&gt;在 StatefulSet 中，我们知道它有一个很重要的功能就是「横向扩缩容」。可以动态的增加或者减少 StatefulSet 管辖的 Pod 数量。其中「扩容功能」仍然可以复用上面创建Pod 的逻辑。因为决定是否要创建新的 Pod 的条件，就是 StatefulSet 对象中 Replica 字段的值。它代表了 StatefulSet 的副本数，即 Pod 数。&lt;/p&gt;
+&lt;p&gt;在 StatefulSet 中，知道它有一个很重要的功能就是「横向扩缩容」。可以动态的增加或者减少 StatefulSet 管辖的 Pod 数量。其中「扩容功能」仍然可以复用上面创建Pod 的逻辑。因为决定是否要创建新的 Pod 的条件，就是 StatefulSet 对象中 Replica 字段的值。它代表了 StatefulSet 的副本数，即 Pod 数。&lt;/p&gt;
 
-&lt;p&gt;在  Replica 规定数量的 Pod 都被创建且成功运行之后，假设我们要进行「缩容」操作。updateStatefulSet 具体会为我们怎样处理呢？&lt;/p&gt;
+&lt;p&gt;在  Replica 规定数量的 Pod 都被创建且成功运行之后，假设要进行「缩容」操作。updateStatefulSet 具体会为怎样处理呢？&lt;/p&gt;
 
 &lt;h4 id=&#34;修改-replica&#34;&gt;修改 Replica&lt;/h4&gt;
 
-&lt;p&gt;既然 Replica 是作为 StatefulSet 扩缩容判定的标准，想要触发「缩容」，就需要手动改小 Replica 的值。接着我们上面描述的例I子：一个具有两副本的 StatefulSet。此时我们将 Replica 的值改为1。控制流会因为响应了 StatefulSet 的 Update Event，再一次进入到 updateStatefulSet 函数中。&lt;/p&gt;
+&lt;p&gt;既然 Replica 是作为 StatefulSet 扩缩容判定的标准，想要触发「缩容」，就需要手动改小 Replica 的值。接着上面描述的例I子：一个具有两副本的 StatefulSet。此时将 Replica 的值改为1。控制流会因为响应了 StatefulSet 的 Update Event，再一次进入到 updateStatefulSet 函数中。&lt;/p&gt;
 
 &lt;h4 id=&#34;round-1-1&#34;&gt;Round 1&lt;/h4&gt;
 
-&lt;p&gt;当 Pod 集合不为空时，我们首先要根据 Pod 的 Ordinal Index 和 Replica 的值进行比较。因为 Pod 的 Ordinal Index 是从 0 开始的，所以若发现 Ordinal Index 已经大于等于 Replica 的值的时候，那么这个 Pod 就是要被缩容。它将会被塞入一个名为 condemned 的 Slice 中。&lt;/p&gt;
+&lt;p&gt;当 Pod 集合不为空时，首先要根据 Pod 的 Ordinal Index 和 Replica 的值进行比较。因为 Pod 的 Ordinal Index 是从 0 开始的，所以若发现 Ordinal Index 已经大于等于 Replica 的值的时候，那么这个 Pod 就是要被缩容。它将会被塞入一个名为 condemned 的 Slice 中。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -712,7 +820,7 @@
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;nx&#34;&gt;sort&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Sort&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;ascendingOrdinal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;condemned&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;然后，我们遍历  condemned 这个 Slice：&lt;/p&gt;
+&lt;p&gt;然后，遍历  condemned 这个 Slice：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -803,9 +911,9 @@
 &lt;/div&gt;
 &lt;p&gt;在第一轮执行这段逻辑的时候，若被缩容的 Pod 运行正常，会直接执行&lt;code&gt;ssc.podControl.DeleteStatefulPod&lt;/code&gt;。该函数内部的逻辑就是调用 API Server 的 HTTP API 对该 Pod 资源进行删除。&lt;/p&gt;
 
-&lt;p&gt;若删除 Pod 的请求成功被 API Server 响应，StatefulSet Controller 就认为这次删除是成功的，因为即使之后的删除步骤失败了也不是它能够控制得了。随着删除操作的执行，「缩容」的问题显然已经演变成了一个「资源管理」的问题。GC 和 API Server 会帮我们来完成接下来的删除步骤。&lt;/p&gt;
+&lt;p&gt;若删除 Pod 的请求成功被 API Server 响应，StatefulSet Controller 就认为这次删除是成功的，因为即使之后的删除步骤失败了也不是它能够控制得了。随着删除操作的执行，「缩容」的问题显然已经演变成了一个「资源管理」的问题。GC 和 API Server 会帮来完成接下来的删除步骤。&lt;/p&gt;
 
-&lt;p&gt;既然删除 Pod 成功了，那么相应的就要修改 CurrentReplicas 和 UpdatedReplicas 字段的值。两者都标识由 StatefulSet 创建的 Pod 的数量。如果我们是以默认「按顺序操作 Pod」 的模式创建的 StatefulSet，那么这一轮的「缩容」操作就到此为止了。因为按照 Orderd 模式的规则，必须要等到这个 Pod 完全被中止之后，我们才能够进行下一个操作。&lt;/p&gt;
+&lt;p&gt;既然删除 Pod 成功了，那么相应的就要修改 CurrentReplicas 和 UpdatedReplicas 字段的值。两者都标识由 StatefulSet 创建的 Pod 的数量。如果是以默认「按顺序操作 Pod」 的模式创建的 StatefulSet，那么这一轮的「缩容」操作就到此为止了。因为按照 Orderd 模式的规则，必须要等到这个 Pod 完全被中止之后，才能够进行下一个操作。&lt;/p&gt;
 
 &lt;h4 id=&#34;round-2-1&#34;&gt;Round 2&lt;/h4&gt;
 
@@ -886,11 +994,11 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;其中，Revision 成员按照递增的顺序保存资源的版本，从1到 N。Data 成员，则是把我们之前说到的 TargetState 和 TargetObjectState 信息经过 Encode 操作保存起来。其中 TargetState 和 TargetObjectState 所表示的信息都来自于 StatefulSet.Spec 的内容。&lt;/p&gt;
+&lt;p&gt;其中，Revision 成员按照递增的顺序保存资源的版本，从1到 N。Data 成员，则是把之前说到的 TargetState 和 TargetObjectState 信息经过 Encode 操作保存起来。其中 TargetState 和 TargetObjectState 所表示的信息都来自于 StatefulSet.Spec 的内容。&lt;/p&gt;
 
 &lt;h4 id=&#34;如何管理这些不同版本的资源&#34;&gt;如何管理这些不同版本的资源？&lt;/h4&gt;
 
-&lt;p&gt;在前面了解&lt;code&gt;UpdateStatefulSet&lt;/code&gt; 函数内创建 Pod 流程的时候，我们暂时忽略了一些函数名带有 Revision 的逻辑。这些逻辑其实就是用来操作 ControllerRevision 的。&lt;/p&gt;
+&lt;p&gt;在前面了解&lt;code&gt;UpdateStatefulSet&lt;/code&gt; 函数内创建 Pod 流程的时候，暂时忽略了一些函数名带有 Revision 的逻辑。这些逻辑其实就是用来操作 ControllerRevision 的。&lt;/p&gt;
 
 &lt;p&gt;首先，通过&lt;code&gt;ListRevisions&lt;/code&gt;函数想要获取和当前处理的 StatefulSet 对象相对应的 ControllerRevision 对象集合。它将根据以下几个筛选步骤，不断的缩小候选的 ControllerRevision 对象集合：&lt;/p&gt;
 
@@ -937,7 +1045,7 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;根据上面我们举的例子：一个两副本的 StatefulSet 对象，可以分两种场景来进行讨论。&lt;/p&gt;
+&lt;p&gt;根据上面举的例子：一个两副本的 StatefulSet 对象，可以分两种场景来进行讨论。&lt;/p&gt;
 
 &lt;h5 id=&#34;创建-statefulset-的第一个副本&#34;&gt;创建 StatefulSet 的第一个副本&lt;/h5&gt;
 
@@ -1009,7 +1117,7 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;跟进函数内部我们可以发现，ControllerRevision 对象最核心的两个成员：&lt;code&gt;Revision&lt;/code&gt; 和&lt;code&gt;Data&lt;/code&gt; 。一个通过 nextRevision 函数构造，另外一个通过 getPatch 函数构造。其中 nextRevision 函数的逻辑比较简单，就是在旧的 ControllerRevision 对象的  Revision 成员的基础上+1，由于本次是第一次创建，所以会默认赋值为1。&lt;/p&gt;
+&lt;p&gt;跟进函数内部可以发现，ControllerRevision 对象最核心的两个成员：&lt;code&gt;Revision&lt;/code&gt; 和&lt;code&gt;Data&lt;/code&gt; 。一个通过 nextRevision 函数构造，另外一个通过 getPatch 函数构造。其中 nextRevision 函数的逻辑比较简单，就是在旧的 ControllerRevision 对象的  Revision 成员的基础上+1，由于本次是第一次创建，所以会默认赋值为1。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
@@ -1063,7 +1171,7 @@
 &lt;/div&gt;
 &lt;p&gt;但是为什么在 Data 成员中没有把StatefulSet.Spec.volumeClaimTemplates 信息包含进来呢？这是因为 pod.Spec 中已经包含了 PVC 的名字了，而且 StatefulSet 删除或者 Pod 删除的情况下 PVC 和  PV 都会被删除。如果想拿到 PVC 相关信息的时候，可以直接通过 PVC 的名字来找到相应的 PVC 资源对象。&lt;/p&gt;
 
-&lt;p&gt;创建了 ControllerRevision 对象之后，我们会将其和之前旧的 ControllerRevision 对象进行比对，看它们有误差别。如果有，那就证明 StatefulSet 有更新，接下来要进行一系列的更新操作。否则，什么都不用做。&lt;/p&gt;
+&lt;p&gt;创建了 ControllerRevision 对象之后，会将其和之前旧的 ControllerRevision 对象进行比对，看它们有误差别。如果有，那就证明 StatefulSet 有更新，接下来要进行一系列的更新操作。否则，什么都不用做。&lt;/p&gt;
 
 &lt;p&gt;判定是否相同的标准也很简单，就是对 ControllerRevision.Data 进行比对：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -1080,7 +1188,7 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;由于我们处于的是第一轮的创建流程，所以本次对 ControllerRevision 对象是否相等的判定会失败。因为没有相等的 ControllerRevision 对象，所以默认会创建一个新的：&lt;/p&gt;
+&lt;p&gt;由于处于的是第一轮的创建流程，所以本次对 ControllerRevision 对象是否相等的判定会失败。因为没有相等的 ControllerRevision 对象，所以默认会创建一个新的：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -1190,7 +1298,7 @@
 
 &lt;p&gt;回滚操作其实和更新操作实现原理是一样的。你可以把回滚理解成一个反向的更新操作。通过对上面 StatefulSet Controller 对于 StatefulSet，Pod 各类 Event 的处理流程可以了解到，每一次版本的变更，都会产生一个新的 ControllerRevision 对象，它相当于之前版本的一个 snapshot。&lt;/p&gt;
 
-&lt;p&gt;假设我们现在有 3个旧的版本， A，B，C，当前版本为  D。如果此时我想回滚到 A 版本的话，我可以直接将  D 版本的  StatefulSet 对象的 template 部分改为和 A 版本一致的。此时，在&lt;code&gt;getStatefulSetRevisions&lt;/code&gt;函数中，新生成的包含 A 版本内容的 E 版本，将会在「版本比对」的过程中发现和 A 版本相同。此时，StatefulSet Controller 会进行两个操作：&lt;/p&gt;
+&lt;p&gt;假设现在有 3个旧的版本， A，B，C，当前版本为  D。如果此时我想回滚到 A 版本的话，我可以直接将  D 版本的  StatefulSet 对象的 template 部分改为和 A 版本一致的。此时，在&lt;code&gt;getStatefulSetRevisions&lt;/code&gt;函数中，新生成的包含 A 版本内容的 E 版本，将会在「版本比对」的过程中发现和 A 版本相同。此时，StatefulSet Controller 会进行两个操作：&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;修改 A 版本的  Revision 字段为最新的版本号&lt;/li&gt;
