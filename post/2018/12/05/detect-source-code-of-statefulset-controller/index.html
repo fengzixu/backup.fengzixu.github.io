@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Detect Source Code of Statefulset Controller - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="因为 blog 贴过多的代码或者链接不太美观，也不易于阅读。所以，建议大家下载 Kubernetes 1.12 版本的源码再配合 blog 来看。blog 只能对各位了解 StatefulSet Controller 原理起到一个抛砖引" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2018/12/05/detect-source-code-of-statefulset-controller/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="Detect Source Code of Statefulset Controller" />
+<meta property="og:description" content="因为 blog 贴过多的代码或者链接不太美观，也不易于阅读。所以，建议大家下载 Kubernetes 1.12 版本的源码再配合 blog 来看。blog 只能对各位了解 StatefulSet Controller 原理起到一个抛砖引" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2018/12/05/detect-source-code-of-statefulset-controller/" /><meta property="article:published_time" content="2018-12-05T17:16:38&#43;08:00"/>
+<meta property="article:modified_time" content="2018-12-05T17:16:38&#43;08:00"/>
+
+<meta itemprop="name" content="Detect Source Code of Statefulset Controller">
+<meta itemprop="description" content="因为 blog 贴过多的代码或者链接不太美观，也不易于阅读。所以，建议大家下载 Kubernetes 1.12 版本的源码再配合 blog 来看。blog 只能对各位了解 StatefulSet Controller 原理起到一个抛砖引">
+
+
+<meta itemprop="datePublished" content="2018-12-05T17:16:38&#43;08:00" />
+<meta itemprop="dateModified" content="2018-12-05T17:16:38&#43;08:00" />
+<meta itemprop="wordCount" content="9963">
+
+
+
+<meta itemprop="keywords" content="Kubernetes," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Detect Source Code of Statefulset Controller"/>
+<meta name="twitter:description" content="因为 blog 贴过多的代码或者链接不太美观，也不易于阅读。所以，建议大家下载 Kubernetes 1.12 版本的源码再配合 blog 来看。blog 只能对各位了解 StatefulSet Controller 原理起到一个抛砖引"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Detect Source Code of Statefulset Controller</h1>
+      
+      <div class="post-meta">
+        <time datetime="2018-12-05" class="post-time">
+          2018-12-05
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#写在前面">写在前面</a></li>
+<li><a href="#创建">创建</a>
+<ul>
+<li><a href="#lister">Lister</a></li>
+<li><a href="#control">control</a></li>
+</ul></li>
+<li><a href="#运行">运行</a>
+<ul>
+<li><a href="#运行流程">运行流程</a></li>
+<li><a href="#sync">Sync</a>
+<ul>
+<li><a href="#adoption">Adoption</a></li>
+<li><a href="#revision">Revision</a></li>
+</ul></li>
+<li><a href="#control-updatestatefulset-创建-pod">control.UpdateStatefulSet——创建 Pod</a>
+<ul>
+<li><a href="#updatestatefulset">updateStatefulSet</a>
+<ul>
+<li><a href="#round-1">Round 1</a></li>
+<li><a href="#round-2">Round 2</a></li>
+<li><a href="#other-branch">Other Branch</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#control-updatestatefulset-终止-pod">control.UpdateStatefulSet——终止 Pod</a>
+<ul>
+<li><a href="#修改-replica">修改 Replica</a></li>
+<li><a href="#round-1-1">Round 1</a></li>
+<li><a href="#round-2-1">Round 2</a></li>
+</ul></li>
+<li><a href="#control-updatestatefulset-更新-pod">control.UpdateStatefulSet——更新 Pod</a>
+<ul>
+<li><a href="#更新的基础-资源版本机制">更新的基础——资源版本机制</a></li>
+<li><a href="#如何定义一个资源的版本-需要哪些必要的信息">如何定义一个资源的版本？需要哪些必要的信息？</a></li>
+<li><a href="#如何管理这些不同版本的资源">如何管理这些不同版本的资源？</a>
+<ul>
+<li><a href="#创建-statefulset-的第一个副本">创建 StatefulSet 的第一个副本</a></li>
+<li><a href="#statefulset-所有副本已经创建完成">StatefulSet 所有副本已经创建完成</a></li>
+</ul></li>
+<li><a href="#statefulset-controller-是如何利用版本机制去做回滚和更新的">StatefulSet Controller 是如何利用版本机制去做回滚和更新的？</a>
+<ul>
+<li><a href="#ondelete">OnDelete</a></li>
+<li><a href="#rollingupdate">RollingUpdate</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>因为 blog 贴过多的代码或者链接不太美观，也不易于阅读。所以，建议大家下载 Kubernetes 1.12 版本的源码再配合 blog 来看。blog 只能对各位了解 StatefulSet Controller 原理起到一个抛砖引玉的作用。如果想了解的再清楚一些，还是要仔细的看一下它的内部实现。</p>
+</blockquote>
+
+<h2 id="写在前面">写在前面</h2>
+
+<p>StatefulSet 作为 Kubernetes 提供的一种用于管理有状态服务的资源对象是非常重要的，尤其是对于数据库应用来说。宏观上来说，StatefulSet 的结构是比较简单的，它不像 Deployment，和 pod 之间还隔着一个 ReplicaSet。StatefulSet 是直接管辖 Pod 的。那么 StatefulSet Controller 内部是如何实现我们上一篇文章中所提到的那些用于管理有状态服务的特性的呢？</p>
+
+<h2 id="创建">创建</h2>
+
+<p><a href="https://github.com/kubernetes/kubernetes/blob/release-1.12/pkg/controller/statefulset/stateful_set.go#L81">kubernetes/stateful_set.go at release-1.12 · kubernetes/kubernetes · GitHub</a></p>
+
+<p>StatefulSet Controller 和其他资源的 Controller 启动的方式一样，都是在 ControllerManager 中被创建和启动的。对于 StatefulSet 来说，ControllerManager 调用了一个名为 <code>NewStatefulSetController</code> 的函数来创建其 Controller。StatefulSet  Controller 的数据结构如下所示：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// StatefulSetController controls statefulsets.
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">StatefulSetController</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="c1">// client interface
+</span><span class="c1"></span>	<span class="nx">kubeClient</span> <span class="nx">clientset</span><span class="p">.</span><span class="nx">Interface</span>
+	<span class="c1">// control returns an interface capable of syncing a stateful set.
+</span><span class="c1"></span>	<span class="c1">// Abstracted out for testing.
+</span><span class="c1"></span>	<span class="nx">control</span> <span class="nx">StatefulSetControlInterface</span>
+	<span class="c1">// podControl is used for patching pods.
+</span><span class="c1"></span>	<span class="nx">podControl</span> <span class="nx">controller</span><span class="p">.</span><span class="nx">PodControlInterface</span>
+	<span class="c1">// podLister is able to list/get pods from a shared informer&#39;s store
+</span><span class="c1"></span>	<span class="nx">podLister</span> <span class="nx">corelisters</span><span class="p">.</span><span class="nx">PodLister</span>
+	<span class="c1">// podListerSynced returns true if the pod shared informer has synced at least once
+</span><span class="c1"></span>	<span class="nx">podListerSynced</span> <span class="nx">cache</span><span class="p">.</span><span class="nx">InformerSynced</span>
+	<span class="c1">// setLister is able to list/get stateful sets from a shared informer&#39;s store
+</span><span class="c1"></span>	<span class="nx">setLister</span> <span class="nx">appslisters</span><span class="p">.</span><span class="nx">StatefulSetLister</span>
+	<span class="c1">// setListerSynced returns true if the stateful set shared informer has synced at least once
+</span><span class="c1"></span>	<span class="nx">setListerSynced</span> <span class="nx">cache</span><span class="p">.</span><span class="nx">InformerSynced</span>
+	<span class="c1">// pvcListerSynced returns true if the pvc shared informer has synced at least once
+</span><span class="c1"></span>	<span class="nx">pvcListerSynced</span> <span class="nx">cache</span><span class="p">.</span><span class="nx">InformerSynced</span>
+	<span class="c1">// revListerSynced returns true if the rev shared informer has synced at least once
+</span><span class="c1"></span>	<span class="nx">revListerSynced</span> <span class="nx">cache</span><span class="p">.</span><span class="nx">InformerSynced</span>
+	<span class="c1">// StatefulSets that need to be synced.
+</span><span class="c1"></span>	<span class="nx">queue</span> <span class="nx">workqueue</span><span class="p">.</span><span class="nx">RateLimitingInterface</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>其中 kubeclient 是从外部通过参数传递进来的一个 client 对象，StatefulSet Controller 会用它来调用一些 API 和 API Server 进行通信。queue 则作为 StatefulSet Controller 接收 StatefulSet 资源 event 的缓存。StatefulSet Controller 的本质就是根据队列中的 Event 将 StatefulSet 资源对象以及其所管辖的 Pod 驱动至用户的 Desire State。而剩余的成员大致可以分为以下两类：</p>
+
+<ul>
+<li>Lister</li>
+<li>control</li>
+</ul>
+
+<h3 id="lister">Lister</h3>
+
+<p>StatefulSet Controller 关心两种资源</p>
+
+<ol>
+<li>StatefulSet</li>
+<li>Pod</li>
+</ol>
+
+<p>所以，在 StatefulSet Controller 中就必须要通过 List-Watch 机制来收集这两种资源的 Event。既然提到了 List-Watch，那么在 Controller 和 API Server 之间就一定会有相应类型的 Informer 的存在。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">podInformer</span><span class="p">.</span><span class="nf">Informer</span><span class="p">().</span><span class="nf">AddEventHandler</span><span class="p">(</span><span class="nx">cache</span><span class="p">.</span><span class="nx">ResourceEventHandlerFuncs</span><span class="p">{</span>
+	<span class="c1">// lookup the statefulset and enqueue
+</span><span class="c1"></span>	<span class="nx">AddFunc</span><span class="p">:</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">addPod</span><span class="p">,</span>
+	<span class="c1">// lookup current and old statefulset if labels changed
+</span><span class="c1"></span>	<span class="nx">UpdateFunc</span><span class="p">:</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">updatePod</span><span class="p">,</span>
+	<span class="c1">// lookup statefulset accounting for deletion tombstones
+</span><span class="c1"></span>	<span class="nx">DeleteFunc</span><span class="p">:</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">deletePod</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="nx">ssc</span><span class="p">.</span><span class="nx">podLister</span> <span class="p">=</span> <span class="nx">podInformer</span><span class="p">.</span><span class="nf">Lister</span><span class="p">()</span>
+<span class="nx">ssc</span><span class="p">.</span><span class="nx">podListerSynced</span> <span class="p">=</span> <span class="nx">podInformer</span><span class="p">.</span><span class="nf">Informer</span><span class="p">().</span><span class="nx">HasSynced</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>PodInformer 的创建是很简单的：通过对<code>podInformer.Informer()</code>的调用，我们向 SharedInformerFactory 中注册了一个属于 StatefulSet Controller 的 PodInformer。并且向这个 Informer 中注册了 Event 处理函数。<code>podInformer.Lister()</code>将会生成一个类型为<code>PodLister</code>的对象，它里面包含了一个 List 所有 ns 下 Pod 的函数以及一个可以只List 特定 ns 下 Pod 的对象，该对象同样实现了 List 和 Get 接口。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// PodLister helps list Pods.
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">PodLister</span> <span class="kd">interface</span> <span class="p">{</span>
+	<span class="c1">// List lists all Pods in the indexer.
+</span><span class="c1"></span>	<span class="nf">List</span><span class="p">(</span><span class="nx">selector</span> <span class="nx">labels</span><span class="p">.</span><span class="nx">Selector</span><span class="p">)</span> <span class="p">(</span><span class="nx">ret</span> <span class="p">[]</span><span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
+	<span class="c1">// Pods returns an object that can list and get Pods.
+</span><span class="c1"></span>	<span class="nf">Pods</span><span class="p">(</span><span class="nx">namespace</span> <span class="kt">string</span><span class="p">)</span> <span class="nx">PodNamespaceLister</span>
+	<span class="nx">PodListerExpansion</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<h3 id="control">control</h3>
+
+<p>control 整个 StatefulSet Controller 最核心的成员。StatefulSet Controller 几乎所有的功能逻辑均由这个成员的方法来实现。它的数据结构如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// NewDefaultStatefulSetControl returns a new instance of the default implementation StatefulSetControlInterface that
+</span><span class="c1">// implements the documented semantics for StatefulSets. podControl is the PodControlInterface used to create, update,
+</span><span class="c1">// and delete Pods and to create PersistentVolumeClaims. statusUpdater is the StatefulSetStatusUpdaterInterface used
+</span><span class="c1">// to update the status of StatefulSets. You should use an instance returned from NewRealStatefulPodControl() for any
+</span><span class="c1">// scenario other than testing.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">NewDefaultStatefulSetControl</span><span class="p">(</span>
+	<span class="nx">podControl</span> <span class="nx">StatefulPodControlInterface</span><span class="p">,</span>
+	<span class="nx">statusUpdater</span> <span class="nx">StatefulSetStatusUpdaterInterface</span><span class="p">,</span>
+	<span class="nx">controllerHistory</span> <span class="nx">history</span><span class="p">.</span><span class="nx">Interface</span><span class="p">,</span>
+	<span class="nx">recorder</span> <span class="nx">record</span><span class="p">.</span><span class="nx">EventRecorder</span><span class="p">)</span> <span class="nx">StatefulSetControlInterface</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">defaultStatefulSetControl</span><span class="p">{</span><span class="nx">podControl</span><span class="p">,</span> <span class="nx">statusUpdater</span><span class="p">,</span> <span class="nx">controllerHistory</span><span class="p">,</span> <span class="nx">recorder</span><span class="p">}</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>根据注释以及相应参数的定义可以了解到，podControl 主要用于操作 StatefulSet 管辖的 Pod，statusUpdater 主要用于更新 StatefulSet 的状态相关字段。</p>
+
+<h2 id="运行">运行</h2>
+
+<h3 id="运行流程">运行流程</h3>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/65FB159E-7EE2-4F6B-98B6-D57B80B3AD72.png" alt="" /></p>
+
+<p>在 Kubernetes 中有很多的 Controller，StatefulSet Controller 只是其中的一种。但是这些 Controller 的执行流程基本上是一样的（如上图所示）。本质上就是一个生产者和消费者的模型，中间用队列进行解耦。</p>
+
+<p>这里要对 RateLimitedQueue 多说一下。RateLimitedQueue 是 Kubernetes 自己实现的一个「延迟队列」。当一个包含了Event 的 Task 的处理过程发生错误的时候，它没有立即将它加入队列，而是延迟一定的时间再加入。思考了一下，「延迟队列」的好处可能有以下几点：</p>
+
+<ol>
+<li>若处理  Task 失败后立即将其塞入队列且异常情况短时间内无法被处理，Queue 中将会有大量的「会处理失败」的Task。这可能导致「会处理成功」的 Task 的处理效率降低，甚至出现饥饿和饿死的情况。并且，频繁的重试一定会失败的 Task 还会增加消费者的负载。</li>
+<li>某些类型的任务的处理过程分为多个阶段。每个阶段之间都必须要等待一段时间才可以。比如 Pod 的删除，我们可以在Pod.Spec 中指定一个参数<code>DeletionGracePeriodSeconds</code>，以此来实现在 Pod 删除操作触发的一段时间之后再真正的执行 Pod 的删除逻辑（etcd 记录的删除，相应容器的销毁）。</li>
+</ol>
+
+<h3 id="sync">Sync</h3>
+
+<p>通过上面的运行流程图可以看到，Worker 从 EventQueue 中取出 Event 包装成 Task，并且将 Task 交给了 Sync 函数来处理。Sync 函数的核心逻辑如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">namespace</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">cache</span><span class="p">.</span><span class="nf">SplitMetaNamespaceKey</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="nx">set</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">setLister</span><span class="p">.</span><span class="nf">StatefulSets</span><span class="p">(</span><span class="nx">namespace</span><span class="p">).</span><span class="nf">Get</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">IsNotFound</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">glog</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;StatefulSet has been deleted %v&#34;</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span>
+	<span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="nx">utilruntime</span><span class="p">.</span><span class="nf">HandleError</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;unable to retrieve StatefulSet %v from store: %v&#34;</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">err</span><span class="p">))</span>
+	<span class="k">return</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="nx">selector</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">metav1</span><span class="p">.</span><span class="nf">LabelSelectorAsSelector</span><span class="p">(</span><span class="nx">set</span><span class="p">.</span><span class="nx">Spec</span><span class="p">.</span><span class="nx">Selector</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="nx">utilruntime</span><span class="p">.</span><span class="nf">HandleError</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;error converting StatefulSet %v selector: %v&#34;</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">err</span><span class="p">))</span>
+	<span class="c1">// This is a non-transient error, so don&#39;t retry.
+</span><span class="c1"></span>	<span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span>
+
+<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ssc</span><span class="p">.</span><span class="nf">adoptOrphanRevisions</span><span class="p">(</span><span class="nx">set</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="nx">pods</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ssc</span><span class="p">.</span><span class="nf">getPodsForStatefulSet</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nx">selector</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="k">return</span> <span class="nx">ssc</span><span class="p">.</span><span class="nf">syncStatefulSet</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nx">pods</span><span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
+<ol>
+<li>通过 Task 的 Key，解压出其对应的 StatefulSet 的 Name 和 Namespace</li>
+<li>从 StatefulSet Informer 的缓存中，通过 Name 拿到相应的 StatefulSet 对象的信息</li>
+<li>对 Revision 资源对象尝试执行 Adoption 操作</li>
+<li>获取 StatefulSet 管辖的 Pod，并对 Pod 执行 Adoption 操作</li>
+<li>进入 ssc.syncStatefulSet，执行接下来的处理逻辑</li>
+</ol>
+
+<p>大致看完 Sync 函数的实现之后，我们发现，其内部并没有执行一些和创建，删除等关键操作相关的逻辑。我没没看到的一些实现细节可能在<code>ssc.syncStatefulSet</code>函数内。而<code>ssc.syncStatefulSet</code>函数最终也是掉用了我们前面说到的<code>control</code>成员的<code>UpdateStatefulSet</code>方法。</p>
+
+<p>但是 Sync 函数内仍然有一些细节值得我们去深入的了解：</p>
+
+<ol>
+<li>Revision 是什么资源？用来做什么的？</li>
+<li>Adoption 是什么操作？</li>
+</ol>
+
+<p>首先，我们来说说 Adoption 操作。</p>
+
+<h4 id="adoption">Adoption</h4>
+
+<p>Adoption 是 Controller 一种处理 owner 和 denpendent 资源关系不正常的一种方式，这种关系是通过  dependent 对象中的 ownerReference 信息来建立的，我们通常将它称为「级联关系」。ownerReference 在 dependent 对象部分，使得 dependent 可以据此找到其 owner。而 owner 则是通过 label Selector 来找到其对应的 dependent 资源。当 owner 资源的 Controller 在处理 Owner 的时候发现，通过 label Selector 找到的 dependent 资源中的 OwnerReference 已经为空。就会执行一个名为 Adoption 的操作：根据 owner 资源的的信息将正确的 OwnerReference 端重新写入进 dependent 对象中，以便修复 owner 和 denepedent 之间的级联关系。</p>
+
+<p>级联关系主要用于「资源管理」这个问题域中的「资源清理」问题。Kubernetes 通过 GC 和 级联关系一起实现了对集群中异常资源对象的清理。</p>
+
+<h4 id="revision">Revision</h4>
+
+<p>按理来说，StatefulSet 是直接管理 Pod 的，所以 StatefulSet  Controller 应该仅处理 StatefulSet 和 Pod 两种资源。即使要执行 Adoption 操作，也是在<code>ssc.getPodsForStatefulSet</code>内对 Pod 执行。那么为什么还要对 Revision 这个资源执行呢？而且 k8s 的文档上面也没有公布过这个资源的相关信息。</p>
+
+<p>递归的跟入<code>ssc.adoptOrphanRevisions</code>函数，我们最终发现了这个资源的定义：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// ControllerRevision implements an immutable snapshot of state data. Clients
+</span><span class="c1">// are responsible for serializing and deserializing the objects that contain
+</span><span class="c1">// their internal state.
+</span><span class="c1">// Once a ControllerRevision has been successfully created, it can not be updated.
+</span><span class="c1">// The API Server will fail validation of all requests that attempt to mutate
+</span><span class="c1">// the Data field. ControllerRevisions may, however, be deleted. Note that, due to its use by both
+</span><span class="c1">// the DaemonSet and StatefulSet controllers for update and rollback, this object is beta. However,
+</span><span class="c1">// it may be subject to name and representation changes in future releases, and clients should not
+</span><span class="c1">// depend on its stability. It is primarily for internal use by controllers.
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">ControllerRevision</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">metav1</span><span class="p">.</span><span class="nx">TypeMeta</span> <span class="s">`json:&#34;,inline&#34;`</span>
+	<span class="c1">// Standard object&#39;s metadata.
+</span><span class="c1"></span>	<span class="c1">// More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+</span><span class="c1"></span>	<span class="c1">// +optional
+</span><span class="c1"></span>	<span class="nx">metav1</span><span class="p">.</span><span class="nx">ObjectMeta</span> <span class="s">`json:&#34;metadata,omitempty&#34; protobuf:&#34;bytes,1,opt,name=metadata&#34;`</span>
+
+	<span class="c1">// Data is the serialized representation of the state.
+</span><span class="c1"></span>	<span class="nx">Data</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">RawExtension</span> <span class="s">`json:&#34;data,omitempty&#34; protobuf:&#34;bytes,2,opt,name=data&#34;`</span>
+
+	<span class="c1">// Revision indicates the revision of the state represented by Data.
+</span><span class="c1"></span>	<span class="nx">Revision</span> <span class="kt">int64</span> <span class="s">`json:&#34;revision&#34; protobuf:&#34;varint,3,opt,name=revision&#34;`</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>根据注释我们可以知道，ControllerRevision 这个资源主要用于 DaemonSet 和 StatefulSet 两种资源的更新和回滚。回想一下之前对于 StatefulSet 的介绍，StatefulSet 的 RollingUpdate 更新策略是允许多个不同版本的 Pod 存在的。而 Pod 对应了 StatefulSet，所以Pod 版本的不同就代表着 StatefulSet 也不同。这样一来。既然 ControllerRevision 代表的是 StatefulSet 的版本信息，那么它理应被 StatefulSetController 进行管理。</p>
+
+<h3 id="control-updatestatefulset-创建-pod">control.UpdateStatefulSet——创建 Pod</h3>
+
+<p><code>UpdateStatefulSet</code> 函数会先获取 StatefulSet 的全部 revision，并将它们从小到大排序。然后会根据已经获取到的 revision 集合计算一下当前的 revision 和下一个版本的 revision。第一次创建的时候，updateRevision 和 currentRevision 都是相同的，为1。</p>
+
+<p>然后，将会执行一个名为<code>updateStatefulSet</code>的函数。这个函数里包含了 Pod 的创建，删除，更新等操作的核心逻辑。</p>
+
+<h4 id="updatestatefulset">updateStatefulSet</h4>
+
+<blockquote>
+<p>假设现在有一个两副本的 StatefulSet 需要创建</p>
+</blockquote>
+
+<h5 id="round-1">Round 1</h5>
+
+<p>对于 StatefulSet 第一次创建来说，该函数的内很多逻辑都是不会执行的。这是因为通过参数传进来的 Pods 集合为空。所以，会首先创建指定数量的 Pod。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// for any empty indices in the sequence [0,set.Spec.Replicas) create a new Pod at the correct revision
+</span><span class="c1"></span><span class="k">for</span> <span class="nx">ord</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">ord</span> <span class="p">&lt;</span> <span class="nx">replicaCount</span><span class="p">;</span> <span class="nx">ord</span><span class="o">++</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">replicas</span><span class="p">[</span><span class="nx">ord</span><span class="p">]</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">replicas</span><span class="p">[</span><span class="nx">ord</span><span class="p">]</span> <span class="p">=</span> <span class="nf">newVersionedStatefulSetPod</span><span class="p">(</span>
+			<span class="nx">currentSet</span><span class="p">,</span>
+			<span class="nx">updateSet</span><span class="p">,</span>
+			<span class="nx">currentRevision</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+			<span class="nx">updateRevision</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">ord</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>通过调用<code>newVersionedStatefulSetPod</code>函数创建了即将要生成的 Pod 的实例，并且将其塞入到了一个 Slice 中。其中 index 为 Pod 的序号，value 为 Pod 的实例。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Examine each replica with respect to its ordinal
+</span><span class="c1"></span><span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">replicas</span> <span class="p">{</span>
+	<span class="c1">// delete and recreate failed pods
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nf">isFailed</span><span class="p">(</span><span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="p">{</span>
+		<span class="o">...</span>
+	<span class="p">}</span>
+	<span class="c1">// If we find a Pod that has not been created we create the Pod
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">!</span><span class="nf">isCreated</span><span class="p">(</span><span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">podControl</span><span class="p">.</span><span class="nf">CreateStatefulPod</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="nx">err</span>
+		<span class="p">}</span>
+		<span class="nx">status</span><span class="p">.</span><span class="nx">Replicas</span><span class="o">++</span>
+		<span class="k">if</span> <span class="nf">getPodRevision</span><span class="p">(</span><span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">==</span> <span class="nx">currentRevision</span><span class="p">.</span><span class="nx">Name</span> <span class="p">{</span>
+			<span class="nx">status</span><span class="p">.</span><span class="nx">CurrentReplicas</span><span class="o">++</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="nf">getPodRevision</span><span class="p">(</span><span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">==</span> <span class="nx">updateRevision</span><span class="p">.</span><span class="nx">Name</span> <span class="p">{</span>
+			<span class="nx">status</span><span class="p">.</span><span class="nx">UpdatedReplicas</span><span class="o">++</span>
+		<span class="p">}</span>
+
+		<span class="c1">// if the set does not allow bursting, return immediately
+</span><span class="c1"></span>		<span class="k">if</span> <span class="nx">monotonic</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="kc">nil</span>
+		<span class="p">}</span>
+		<span class="c1">// pod created, no more work possible for this round
+</span><span class="c1"></span>		<span class="k">continue</span>
+	<span class="p">}</span>
+	<span class="c1">// If we find a Pod that is currently terminating, we must wait until graceful deletion
+</span><span class="c1"></span>	<span class="c1">// completes before we continue to make progress.
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nf">isTerminating</span><span class="p">(</span><span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="nx">monotonic</span> <span class="p">{</span>
+		<span class="o">...</span>
+	<span class="p">}</span>
+	<span class="c1">// If we have a Pod that has been created but is not running and ready we can not make progress.
+</span><span class="c1"></span>	<span class="c1">// We must ensure that all for each Pod, when we create it, all of its predecessors, with respect to its
+</span><span class="c1"></span>	<span class="c1">// ordinal, are Running and Ready.
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">!</span><span class="nf">isRunningAndReady</span><span class="p">(</span><span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="nx">monotonic</span> <span class="p">{</span>
+		<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">4</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span>
+			<span class="s">&#34;StatefulSet %s/%s is waiting for Pod %s to be Running and Ready&#34;</span><span class="p">,</span>
+			<span class="nx">set</span><span class="p">.</span><span class="nx">Namespace</span><span class="p">,</span>
+			<span class="nx">set</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+			<span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">Name</span><span class="p">)</span>
+		<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="kc">nil</span>
+	<span class="p">}</span>
+	<span class="c1">// Enforce the StatefulSet invariants
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nf">identityMatches</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="nf">storageMatches</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="p">{</span>
+		<span class="k">continue</span>
+	<span class="p">}</span>
+	<span class="c1">// Make a deep copy so we don&#39;t mutate the shared cache
+</span><span class="c1"></span>	<span class="nx">replica</span> <span class="o">:=</span> <span class="nx">replicas</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nf">DeepCopy</span><span class="p">()</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">podControl</span><span class="p">.</span><span class="nf">UpdateStatefulPod</span><span class="p">(</span><span class="nx">updateSet</span><span class="p">,</span> <span class="nx">replica</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>接下来，我们将会遍历刚刚生成的带有要创建 Pod 实例的 Slice。因为还没有创建过 Pod ，所以控制流会进入<code>!isCreated()</code>分支。在该分支内部，我们会通过调用 API Server 的 HTTP API 为 StatefulSet 创建 Pod。因为第一创建的时候 Pod 的 Revision 就是被 currentRevision.Name 赋值的，所以两者相等，相应的 CurrentReplicas 也需要加1。</p>
+
+<p>Pod 的 Revision 被赋值的位置其实就是 Slice 中 Pod 实例被创建的位置。其中 currentRevision.Name 最终被写入到了 Pod 的 Label 内，key 为 ControllerRevisionHashLabelKey， Value 为 currentRevision.Name。</p>
+
+<p>在创建了第一个 Pod 之后，我们发现它需要判断<code>monotonic</code>变量。看起来，如果这个条件为 True，就证明该 StatefulSet 不支持以 burst 形式创建 Pod。那么 burst 是个什么形式呢？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">monotonic</span> <span class="o">:=</span> <span class="p">!</span><span class="nf">allowsBurst</span><span class="p">(</span><span class="nx">set</span><span class="p">)</span>
+
+<span class="c1">// allowsBurst is true if the alpha burst annotation is set.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">allowsBurst</span><span class="p">(</span><span class="nx">set</span> <span class="o">*</span><span class="nx">apps</span><span class="p">.</span><span class="nx">StatefulSet</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">set</span><span class="p">.</span><span class="nx">Spec</span><span class="p">.</span><span class="nx">PodManagementPolicy</span> <span class="o">==</span> <span class="nx">apps</span><span class="p">.</span><span class="nx">ParallelPodManagement</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>查看 <code>monotonic</code>被赋值的位置以及其函数定义可知，这个变量代表的是对「StatefulSet 是否允许并行操作 Pod」 条件的判断结果。根据上一篇关于 StatefulSet 行为介绍的文章内容，StatefulSet 默认情况下是需要按照顺序逐个操作 Pod 的。如果你想并行的去操作而不在意先后顺序，则需要为其指定管理策略：ParallelPodManagement。</p>
+
+<p>所以，创建 Pod 的流程在这一步会被临时结束，返回一个 status 的对象。status 对象内部的信息展示了当前这个 StatefulSet 对象以及其管辖 Pod 的情况。</p>
+
+<p>在第一次退出 updateStatefulSet 函数之后，control.UpdateStatefulSet 函数将会执行接下来的逻辑：向 API Server 更新 StatefulSet 的状态。</p>
+
+<h5 id="round-2">Round 2</h5>
+
+<p>再次进入 updateStatefulSet 函数的时候，pods 集合就不再为空了，它会包含我们之前创建好的 Pod。遍历 Pod 集合，会将「合法」的 Pod 放在我们上一保存创建 Pod 实例的 Slice 内。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// First we partition pods into two lists valid replicas and condemned Pods
+</span><span class="c1"></span><span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">pods</span> <span class="p">{</span>
+	<span class="nx">status</span><span class="p">.</span><span class="nx">Replicas</span><span class="o">++</span>
+
+	<span class="c1">// count the number of running and ready replicas
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nf">isRunningAndReady</span><span class="p">(</span><span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="p">{</span>
+		<span class="nx">status</span><span class="p">.</span><span class="nx">ReadyReplicas</span><span class="o">++</span>
+	<span class="p">}</span>
+
+	<span class="c1">// count the number of current and update replicas
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nf">isCreated</span><span class="p">(</span><span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="p">!</span><span class="nf">isTerminating</span><span class="p">(</span><span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="nf">getPodRevision</span><span class="p">(</span><span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">==</span> <span class="nx">currentRevision</span><span class="p">.</span><span class="nx">Name</span> <span class="p">{</span>
+			<span class="nx">status</span><span class="p">.</span><span class="nx">CurrentReplicas</span><span class="o">++</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="nf">getPodRevision</span><span class="p">(</span><span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="o">==</span> <span class="nx">updateRevision</span><span class="p">.</span><span class="nx">Name</span> <span class="p">{</span>
+			<span class="nx">status</span><span class="p">.</span><span class="nx">UpdatedReplicas</span><span class="o">++</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="nx">ord</span> <span class="o">:=</span> <span class="nf">getOrdinal</span><span class="p">(</span><span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="nx">ord</span> <span class="o">&amp;&amp;</span> <span class="nx">ord</span> <span class="p">&lt;</span> <span class="nx">replicaCount</span> <span class="p">{</span>
+		<span class="c1">// if the ordinal of the pod is within the range of the current number of replicas,
+</span><span class="c1"></span>		<span class="c1">// insert it at the indirection of its ordinal
+</span><span class="c1"></span>		<span class="nx">replicas</span><span class="p">[</span><span class="nx">ord</span><span class="p">]</span> <span class="p">=</span> <span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span>
+
+	<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="nx">ord</span> <span class="o">&gt;=</span> <span class="nx">replicaCount</span> <span class="p">{</span>
+		<span class="c1">// if the ordinal is greater than the number of replicas add it to the condemned list
+</span><span class="c1"></span>		<span class="nx">condemned</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">condemned</span><span class="p">,</span> <span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span>
+	<span class="p">}</span>
+	<span class="c1">// If the ordinal could not be parsed (ord &lt; 0), ignore the Pod.
+</span><span class="c1"></span><span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>因为在第一轮创建中，实际上只创建了一个 Pod，所以这一次我们要为第二个 Pod 再次创建一个 Pod 实例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// for any empty indices in the sequence [0,set.Spec.Replicas) create a new Pod at the correct revision
+</span><span class="c1"></span><span class="k">for</span> <span class="nx">ord</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">ord</span> <span class="p">&lt;</span> <span class="nx">replicaCount</span><span class="p">;</span> <span class="nx">ord</span><span class="o">++</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">replicas</span><span class="p">[</span><span class="nx">ord</span><span class="p">]</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">replicas</span><span class="p">[</span><span class="nx">ord</span><span class="p">]</span> <span class="p">=</span> <span class="nf">newVersionedStatefulSetPod</span><span class="p">(</span>
+			<span class="nx">currentSet</span><span class="p">,</span>
+			<span class="nx">updateSet</span><span class="p">,</span>
+			<span class="nx">currentRevision</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+			<span class="nx">updateRevision</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">ord</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>在 StatefulSet 没有被删除的情况下，将会和 Round1 开始遍历 replicas 这个 Slice。如果遍历到已经创建过的 Pod 实例，我们会进行如下的判断：</p>
+
+<ol>
+<li>是否当前 Pod 已经处于 Running 状态。如果没有，那么退出此轮创建，继续等待</li>
+<li>如果前一个 Pod 已经正常运行，会检查他的 Name，ordinal Index 等信息是否合法。如果合法，那么继续处理下一个候选 Pod。否则，重新执行一次前面的「检测」逻辑，若有问题则更新这个 Pod，否则不做任何处理，退出此次创建。</li>
+</ol>
+
+<p>当我们遍历到第二个 Pod 实例的时候，因为没有被创建过，所以会执行和 Round 1 同样的逻辑。直到两个 Pod 都创建完成。</p>
+
+<h5 id="other-branch">Other Branch</h5>
+
+<p>在遍历 replicas 这个 Slice 的过程中，还有几个其他的分支也有必要说下。</p>
+
+<ul>
+<li>isFailed： 如果某个 Pod 创建失败，那么 StatefulSet Controller 会删掉它，并且重新创建它。此时，它会继续执行 !isCreated 分支的内容。</li>
+<li>isTerminating &amp;&amp; monotonic： 如果 Pod 已经在终止的过程中且开启了「按顺序处理 Pod 」的特性，将会退出此次循环</li>
+<li>isRunningAndReady &amp;&amp; monotonic： 如果 Pod 已经被创建，但是还没有 Running &amp;&amp; Ready，且开启了「按顺序处理 Pod 」的特性，将会退出此次循环，直到该 Pod 正常运行才继续操作。这是符合 StatefulSet 的预期行为的。</li>
+</ul>
+
+<h3 id="control-updatestatefulset-终止-pod">control.UpdateStatefulSet——终止 Pod</h3>
+
+<p>在了解了创建流程之后，如果你再观察 Sync 函数，就会发现，不管是 StatefulSet 的创建，删除，还是更新，都是在 UpdateStatefulSet 这个函数内处理的。而在UpdateStatefulSet 内也只执行了 updateStatefulSet 一个函数。</p>
+
+<p>在 StatefulSet 中，我们知道它有一个很重要的功能就是「横向扩缩容」。可以动态的增加或者减少 StatefulSet 管辖的 Pod 数量。其中「扩容功能」仍然可以复用上面创建Pod 的逻辑。因为决定是否要创建新的 Pod 的条件，就是 StatefulSet 对象中 Replica 字段的值。它代表了 StatefulSet 的副本数，即 Pod 数。</p>
+
+<p>在  Replica 规定数量的 Pod 都被创建且成功运行之后，假设我们要进行「缩容」操作。updateStatefulSet 具体会为我们怎样处理呢？</p>
+
+<h4 id="修改-replica">修改 Replica</h4>
+
+<p>既然 Replica 是作为 StatefulSet 扩缩容判定的标准，想要触发「缩容」，就需要手动改小 Replica 的值。接着我们上面描述的例I子：一个具有两副本的 StatefulSet。此时我们将 Replica 的值改为1。控制流会因为响应了 StatefulSet 的 Update Event，再一次进入到 updateStatefulSet 函数中。</p>
+
+<h4 id="round-1-1">Round 1</h4>
+
+<p>当 Pod 集合不为空时，我们首先要根据 Pod 的 Ordinal Index 和 Replica 的值进行比较。因为 Pod 的 Ordinal Index 是从 0 开始的，所以若发现 Ordinal Index 已经大于等于 Replica 的值的时候，那么这个 Pod 就是要被缩容。它将会被塞入一个名为 condemned 的 Slice 中。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// slice that will contain all Pods such that 0 &lt;= getOrdinal(pod) &lt; set.Spec.Replicas
+</span><span class="c1"></span><span class="nx">replicas</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span> <span class="nx">replicaCount</span><span class="p">)</span>
+<span class="c1">// slice that will contain all Pods such that set.Spec.Replicas &lt;= getOrdinal(pod)
+</span><span class="c1"></span><span class="nx">condemned</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">pods</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="nx">ord</span> <span class="o">:=</span> <span class="nf">getOrdinal</span><span class="p">(</span><span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="nx">ord</span> <span class="o">&amp;&amp;</span> <span class="nx">ord</span> <span class="p">&lt;</span> <span class="nx">replicaCount</span> <span class="p">{</span>
+	<span class="c1">// if the ordinal of the pod is within the range of the current number of replicas,
+</span><span class="c1"></span>	<span class="c1">// insert it at the indirection of its ordinal
+</span><span class="c1"></span>	<span class="nx">replicas</span><span class="p">[</span><span class="nx">ord</span><span class="p">]</span> <span class="p">=</span> <span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span>
+
+<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="nx">ord</span> <span class="o">&gt;=</span> <span class="nx">replicaCount</span> <span class="p">{</span>
+	<span class="c1">// if the ordinal is greater than the number of replicas add it to the condemned list
+</span><span class="c1"></span>	<span class="nx">condemned</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">condemned</span><span class="p">,</span> <span class="nx">pods</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>因为在遍历 pods 集合的时候，无法确定 Pod 在 Slice 中的顺序是怎样的。而在缩容的过程中，又必须按照  Pod 的 Ordinal Index 逆序进行操作。所以，会对 condemned 进行一次排序。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">sort</span><span class="p">.</span><span class="nf">Sort</span><span class="p">(</span><span class="nf">ascendingOrdinal</span><span class="p">(</span><span class="nx">condemned</span><span class="p">))</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>然后，我们遍历  condemned 这个 Slice：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="k">for</span> <span class="nx">target</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="nx">condemned</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="nx">target</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">target</span><span class="err">—</span> <span class="p">{</span>
+	<span class="c1">// wait for terminating pods to expire
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nf">isTerminating</span><span class="p">(</span><span class="nx">condemned</span><span class="p">[</span><span class="nx">target</span><span class="p">])</span> <span class="p">{</span>
+		<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">4</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span>
+			<span class="err">“</span><span class="nx">StatefulSet</span> <span class="o">%</span><span class="nx">s</span><span class="o">/%</span><span class="nx">s</span> <span class="nx">is</span> <span class="nx">waiting</span> <span class="k">for</span> <span class="nx">Pod</span> <span class="o">%</span><span class="nx">s</span> <span class="nx">to</span> <span class="nx">Terminate</span> <span class="nx">prior</span> <span class="nx">to</span> <span class="nx">scale</span> <span class="nx">down</span><span class="err">”</span><span class="p">,</span>
+			<span class="nx">set</span><span class="p">.</span><span class="nx">Namespace</span><span class="p">,</span>
+			<span class="nx">set</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+			<span class="nx">condemned</span><span class="p">[</span><span class="nx">target</span><span class="p">].</span><span class="nx">Name</span><span class="p">)</span>
+		<span class="c1">// block if we are in monotonic mode
+</span><span class="c1"></span>		<span class="k">if</span> <span class="nx">monotonic</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="kc">nil</span>
+		<span class="p">}</span>
+		<span class="k">continue</span>
+	<span class="p">}</span>
+	<span class="c1">// if we are in monotonic mode and the condemned target is not the first unhealthy Pod block
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">!</span><span class="nf">isRunningAndReady</span><span class="p">(</span><span class="nx">condemned</span><span class="p">[</span><span class="nx">target</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="nx">monotonic</span> <span class="o">&amp;&amp;</span> <span class="nx">condemned</span><span class="p">[</span><span class="nx">target</span><span class="p">]</span> <span class="o">!=</span> <span class="nx">firstUnhealthyPod</span> <span class="p">{</span>
+		<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">4</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span>
+			<span class="err">“</span><span class="nx">StatefulSet</span> <span class="o">%</span><span class="nx">s</span><span class="o">/%</span><span class="nx">s</span> <span class="nx">is</span> <span class="nx">waiting</span> <span class="k">for</span> <span class="nx">Pod</span> <span class="o">%</span><span class="nx">s</span> <span class="nx">to</span> <span class="nx">be</span> <span class="nx">Running</span> <span class="nx">and</span> <span class="nx">Ready</span> <span class="nx">prior</span> <span class="nx">to</span> <span class="nx">scale</span> <span class="nx">down</span><span class="err">”</span><span class="p">,</span>
+			<span class="nx">set</span><span class="p">.</span><span class="nx">Namespace</span><span class="p">,</span>
+			<span class="nx">set</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+			<span class="nx">firstUnhealthyPod</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+		<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="kc">nil</span>
+	<span class="p">}</span>
+	<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="err">“</span><span class="nx">StatefulSet</span> <span class="o">%</span><span class="nx">s</span><span class="o">/%</span><span class="nx">s</span> <span class="nx">terminating</span> <span class="nx">Pod</span> <span class="o">%</span><span class="nx">s</span> <span class="k">for</span> <span class="nx">scale</span> <span class="nx">down</span><span class="err">”</span><span class="p">,</span>
+		<span class="nx">set</span><span class="p">.</span><span class="nx">Namespace</span><span class="p">,</span>
+		<span class="nx">set</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+		<span class="nx">condemned</span><span class="p">[</span><span class="nx">target</span><span class="p">].</span><span class="nx">Name</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">podControl</span><span class="p">.</span><span class="nf">DeleteStatefulPod</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nx">condemned</span><span class="p">[</span><span class="nx">target</span><span class="p">]);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="nf">getPodRevision</span><span class="p">(</span><span class="nx">condemned</span><span class="p">[</span><span class="nx">target</span><span class="p">])</span> <span class="o">==</span> <span class="nx">currentRevision</span><span class="p">.</span><span class="nx">Name</span> <span class="p">{</span>
+		<span class="nx">status</span><span class="p">.</span><span class="nx">CurrentReplicas</span><span class="err">—</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="nf">getPodRevision</span><span class="p">(</span><span class="nx">condemned</span><span class="p">[</span><span class="nx">target</span><span class="p">])</span> <span class="o">==</span> <span class="nx">updateRevision</span><span class="p">.</span><span class="nx">Name</span> <span class="p">{</span>
+		<span class="nx">status</span><span class="p">.</span><span class="nx">UpdatedReplicas</span><span class="err">—</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="nx">monotonic</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="kc">nil</span>
+	<span class="p">}</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>在第一轮执行这段逻辑的时候，若被缩容的 Pod 运行正常，会直接执行<code>ssc.podControl.DeleteStatefulPod</code>。该函数内部的逻辑就是调用 API Server 的 HTTP API 对该 Pod 资源进行删除。</p>
+
+<p>若删除 Pod 的请求成功被 API Server 响应，StatefulSet Controller 就认为这次删除是成功的，因为即使之后的删除步骤失败了也不是它能够控制得了。随着删除操作的执行，「缩容」的问题显然已经演变成了一个「资源管理」的问题。GC 和 API Server 会帮我们来完成接下来的删除步骤。</p>
+
+<p>既然删除 Pod 成功了，那么相应的就要修改 CurrentReplicas 和 UpdatedReplicas 字段的值。两者都标识由 StatefulSet 创建的 Pod 的数量。如果我们是以默认「按顺序操作 Pod」 的模式创建的 StatefulSet，那么这一轮的「缩容」操作就到此为止了。因为按照 Orderd 模式的规则，必须要等到这个 Pod 完全被中止之后，我们才能够进行下一个操作。</p>
+
+<h4 id="round-2-1">Round 2</h4>
+
+<p>如果上一轮被中止的 Pod 还没有完全被清理干净，控制流会再次回到遍历 condemned 逻辑的位置。如果该 Pod 仍然在中止的过程中且开启了 Orderd 模式，会直接退出此次缩容流程。不断的轮训，直到这个 Pod 消失。</p>
+
+<h3 id="control-updatestatefulset-更新-pod">control.UpdateStatefulSet——更新 Pod</h3>
+
+<h4 id="更新的基础-资源版本机制">更新的基础——资源版本机制</h4>
+
+<p>很多 Controller 在对它管辖的资源对象进行更新的时候，可能都会有一个相反的需求，就是回滚。那么对于对一个资源来说，它通常会有两个不同的版本：</p>
+
+<ol>
+<li>history</li>
+<li>current</li>
+</ol>
+
+<p>之所以没有把 future 版本也列出来，是因为 future 版本信息并不会被保存下来。只要资源对象的信息发生修改，那么就会触发更新操作。之前的 current 版本会变为 history，而所谓的 future 会立刻变成 current 版本。</p>
+
+<p>既然资源有了版本，那么随之而来的就是需要解决两个问题：</p>
+
+<ol>
+<li>如何定义一个资源的版本？需要哪些必要的信息？</li>
+<li>如何管理这些不同版本的资源？</li>
+<li>StatefulSet Controller 是如何利用版本机制去做回滚和更新的？</li>
+</ol>
+
+<h4 id="如何定义一个资源的版本-需要哪些必要的信息">如何定义一个资源的版本？需要哪些必要的信息？</h4>
+
+<p>首先，「资源版本」这个概念在 Kubernetes 中，尤其是对于一个资源对象来说，它就是某一时间段内，用户对这个资源对象设定的的 desire state。这个 desire state 不仅仅可以描述用户对这个资源对象的期望，还可以作为创建这个资源对象的模板。在 StatefulSet Controller 中，它会操作两种资源：StatefulSet 和  Pod。其中 StatefulSet 和 Pod 之间也是存在层级关系的。所以，它集合两者定义了一个「版本」：</p>
+
+<ul>
+<li>TargetState——StatefulSet
+
+<ul>
+<li>当前有多少副本，即 Pod 数量 [0, replica-1]</li>
+<li>所有的 Pod 都必须处于 Target Object State</li>
+</ul></li>
+<li>TargetObjectState——Pod
+
+<ul>
+<li>StatefulSet.Spec.template</li>
+<li>StatefulSet.Spec.volumeClaimTemplates</li>
+</ul></li>
+</ul>
+
+<p>如果你找到一个创建 StatefulSet 资源的 yaml 文件，再对比上面 TargetState 和 TargetObjectState 的定义，就可以看出：只要是有了这两个包含在「版本」内的模板信息，就可以构造出符合特定版本的 StatefulSet 对象。</p>
+
+<p>StatefulSet 将资源的版本信息存储在了一个名为<code>ControllerRevision</code>的结构当中。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">ControllerRevision</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">metav1</span><span class="p">.</span><span class="nx">TypeMeta</span> <span class="s">`json:&#34;,inline&#34;`</span>
+	<span class="c1">// Standard object&#39;s metadata.
+</span><span class="c1"></span>	<span class="c1">// More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+</span><span class="c1"></span>	<span class="c1">// +optional
+</span><span class="c1"></span>	<span class="nx">metav1</span><span class="p">.</span><span class="nx">ObjectMeta</span> <span class="s">`json:&#34;metadata,omitempty&#34; protobuf:&#34;bytes,1,opt,name=metadata&#34;`</span>
+
+	<span class="c1">// Data is the serialized representation of the state.
+</span><span class="c1"></span>	<span class="nx">Data</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">RawExtension</span> <span class="s">`json:&#34;data,omitempty&#34; protobuf:&#34;bytes,2,opt,name=data&#34;`</span>
+
+	<span class="c1">// Revision indicates the revision of the state represented by Data.
+</span><span class="c1"></span>	<span class="nx">Revision</span> <span class="kt">int64</span> <span class="s">`json:&#34;revision&#34; protobuf:&#34;varint,3,opt,name=revision&#34;`</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>其中，Revision 成员按照递增的顺序保存资源的版本，从1到 N。Data 成员，则是把我们之前说到的 TargetState 和 TargetObjectState 信息经过 Encode 操作保存起来。其中 TargetState 和 TargetObjectState 所表示的信息都来自于 StatefulSet.Spec 的内容。</p>
+
+<h4 id="如何管理这些不同版本的资源">如何管理这些不同版本的资源？</h4>
+
+<p>在前面了解<code>UpdateStatefulSet</code> 函数内创建 Pod 流程的时候，我们暂时忽略了一些函数名带有 Revision 的逻辑。这些逻辑其实就是用来操作 ControllerRevision 的。</p>
+
+<p>首先，通过<code>ListRevisions</code>函数想要获取和当前处理的 StatefulSet 对象相对应的 ControllerRevision 对象集合。它将根据以下几个筛选步骤，不断的缩小候选的 ControllerRevision 对象集合：</p>
+
+<ol>
+<li>在 StatefulSet 对象所在的 NS 中，先获取到所有的 ControllerRevision 对象集合</li>
+<li>根据 StatefulSet 对象中的 LabelSelector 对第一步的结果进行筛选。既然可以用LabelSelector，那么就证明在创建 ControllerRevision 对象的时候，是对其写入了特定的 label 的。ControllerRevision 对象的 Label 看起来和 Pod 的 Label 是一样的。</li>
+<li>同一个 NS 下面且能够匹配 Label Selector 的 ControllerRevision 可能不止一个，甚至是有一部分并不是 StatefulSet Controller 来管理的。所以，将会通过 OwnerReference 对第二步的结果进行进一步的筛选。既然可以用 OwnerReference，就说明 ControllerRevision 对象在创建的时候，是和  StatefulSet Controller 建立过「从属关系」的。</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">rh</span> <span class="o">*</span><span class="nx">realHistory</span><span class="p">)</span> <span class="nf">ListControllerRevisions</span><span class="p">(</span><span class="nx">parent</span> <span class="nx">metav1</span><span class="p">.</span><span class="nx">Object</span><span class="p">,</span> <span class="nx">selector</span> <span class="nx">labels</span><span class="p">.</span><span class="nx">Selector</span><span class="p">)</span> <span class="p">([]</span><span class="o">*</span><span class="nx">apps</span><span class="p">.</span><span class="nx">ControllerRevision</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="c1">// List all revisions in the namespace that match the selector
+</span><span class="c1"></span>	<span class="nx">history</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">rh</span><span class="p">.</span><span class="nx">lister</span><span class="p">.</span><span class="nf">ControllerRevisions</span><span class="p">(</span><span class="nx">parent</span><span class="p">.</span><span class="nf">GetNamespace</span><span class="p">()).</span><span class="nf">List</span><span class="p">(</span><span class="nx">selector</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+	<span class="kd">var</span> <span class="nx">owned</span> <span class="p">[]</span><span class="o">*</span><span class="nx">apps</span><span class="p">.</span><span class="nx">ControllerRevision</span>
+	<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">history</span> <span class="p">{</span>
+		<span class="nx">ref</span> <span class="o">:=</span> <span class="nx">metav1</span><span class="p">.</span><span class="nf">GetControllerOf</span><span class="p">(</span><span class="nx">history</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span>
+		<span class="k">if</span> <span class="nx">ref</span> <span class="o">==</span> <span class="kc">nil</span> <span class="o">||</span> <span class="nx">ref</span><span class="p">.</span><span class="nx">UID</span> <span class="o">==</span> <span class="nx">parent</span><span class="p">.</span><span class="nf">GetUID</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nx">owned</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">owned</span><span class="p">,</span> <span class="nx">history</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span>
+		<span class="p">}</span>
+
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">owned</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>根据上面我们举的例子：一个两副本的 StatefulSet 对象，可以分两种场景来进行讨论。</p>
+
+<h5 id="创建-statefulset-的第一个副本">创建 StatefulSet 的第一个副本</h5>
+
+<p>在第一个Pod 创建的流程中，ListControllerRevisions 将会得到一个空的 Slice，因为此时没有一个副本被创建。之后，控制流程会进入 <code>getStatefulSetRevisions</code>函数。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// create a new revision from the current set
+</span><span class="c1"></span><span class="nx">updateRevision</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">newRevision</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nf">nextRevision</span><span class="p">(</span><span class="nx">revisions</span><span class="p">),</span> <span class="o">&amp;</span><span class="nx">collisionCount</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">collisionCount</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>首先，会通过<code>newRevision</code>函数创建一个 ControllerRevision 对象，updateRevision.Revision 为 1，即初始版本。那么，在 newRevision 函数的内部，究竟是通过哪些信息来构造 ControllerRevision 对象的呢？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">newRevision</span><span class="p">(</span><span class="nx">set</span> <span class="o">*</span><span class="nx">apps</span><span class="p">.</span><span class="nx">StatefulSet</span><span class="p">,</span> <span class="nx">revision</span> <span class="kt">int64</span><span class="p">,</span> <span class="nx">collisionCount</span> <span class="o">*</span><span class="kt">int32</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">apps</span><span class="p">.</span><span class="nx">ControllerRevision</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">patch</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">getPatch</span><span class="p">(</span><span class="nx">set</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+	<span class="nx">cr</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">history</span><span class="p">.</span><span class="nf">NewControllerRevision</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span>
+		<span class="nx">controllerKind</span><span class="p">,</span>
+		<span class="nx">set</span><span class="p">.</span><span class="nx">Spec</span><span class="p">.</span><span class="nx">Template</span><span class="p">.</span><span class="nx">Labels</span><span class="p">,</span>
+		<span class="nx">runtime</span><span class="p">.</span><span class="nx">RawExtension</span><span class="p">{</span><span class="nx">Raw</span><span class="p">:</span> <span class="nx">patch</span><span class="p">},</span>
+		<span class="nx">revision</span><span class="p">,</span>
+		<span class="nx">collisionCount</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="nx">cr</span><span class="p">.</span><span class="nx">ObjectMeta</span><span class="p">.</span><span class="nx">Annotations</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">cr</span><span class="p">.</span><span class="nx">ObjectMeta</span><span class="p">.</span><span class="nx">Annotations</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">set</span><span class="p">.</span><span class="nx">Annotations</span> <span class="p">{</span>
+		<span class="nx">cr</span><span class="p">.</span><span class="nx">ObjectMeta</span><span class="p">.</span><span class="nx">Annotations</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="p">=</span> <span class="nx">value</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">cr</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>跟进函数内部我们可以发现，ControllerRevision 对象最核心的两个成员：<code>Revision</code> 和<code>Data</code> 。一个通过 nextRevision 函数构造，另外一个通过 getPatch 函数构造。其中 nextRevision 函数的逻辑比较简单，就是在旧的 ControllerRevision 对象的  Revision 成员的基础上+1，由于本次是第一次创建，所以会默认赋值为1。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">getPatch</span><span class="p">(</span><span class="nx">set</span> <span class="o">*</span><span class="nx">apps</span><span class="p">.</span><span class="nx">StatefulSet</span><span class="p">)</span> <span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">str</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">runtime</span><span class="p">.</span><span class="nf">Encode</span><span class="p">(</span><span class="nx">patchCodec</span><span class="p">,</span> <span class="nx">set</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+	<span class="kd">var</span> <span class="nx">raw</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}</span>
+	<span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">str</span><span class="p">),</span> <span class="o">&amp;</span><span class="nx">raw</span><span class="p">)</span>
+	<span class="nx">objCopy</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span>
+	<span class="nx">specCopy</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span>
+	<span class="nx">spec</span> <span class="o">:=</span> <span class="nx">raw</span><span class="p">[</span><span class="s">&#34;spec&#34;</span><span class="p">].(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span>
+	<span class="nx">template</span> <span class="o">:=</span> <span class="nx">spec</span><span class="p">[</span><span class="s">&#34;template&#34;</span><span class="p">].(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span>
+	<span class="nx">specCopy</span><span class="p">[</span><span class="s">&#34;template&#34;</span><span class="p">]</span> <span class="p">=</span> <span class="nx">template</span>
+	<span class="nx">template</span><span class="p">[</span><span class="s">&#34;$patch&#34;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&#34;replace&#34;</span>
+	<span class="nx">objCopy</span><span class="p">[</span><span class="s">&#34;spec&#34;</span><span class="p">]</span> <span class="p">=</span> <span class="nx">specCopy</span>
+	<span class="nx">patch</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">objCopy</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">patch</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>通过对 <code>getPatch</code>函数的逻辑观察可知，它首先将 StatefulSet 对象的信息解压到一个 Map 内。最终返回的 path 变量，其实是 StatefulSet.spec.template 的内容，也就是 StatefulSet 内 PodSpec 相关的信息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">map</span><span class="p">[</span><span class="nx">template</span><span class="p">]=</span><span class="nx">pod</span><span class="p">.</span><span class="nx">Spec</span>
+<span class="kd">map</span><span class="p">[</span><span class="nx">spec</span><span class="p">]=</span><span class="kd">map</span><span class="p">[</span><span class="nx">template</span><span class="p">]</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>但是为什么在 Data 成员中没有把StatefulSet.Spec.volumeClaimTemplates 信息包含进来呢？这是因为 pod.Spec 中已经包含了 PVC 的名字了，而且 StatefulSet 删除或者 Pod 删除的情况下 PVC 和  PV 都会被删除。如果想拿到 PVC 相关信息的时候，可以直接通过 PVC 的名字来找到相应的 PVC 资源对象。</p>
+
+<p>创建了 ControllerRevision 对象之后，我们会将其和之前旧的 ControllerRevision 对象进行比对，看它们有误差别。如果有，那就证明 StatefulSet 有更新，接下来要进行一系列的更新操作。否则，什么都不用做。</p>
+
+<p>判定是否相同的标准也很简单，就是对 ControllerRevision.Data 进行比对：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">EqualRevision</span><span class="p">(</span><span class="nx">lhs</span> <span class="o">*</span><span class="nx">apps</span><span class="p">.</span><span class="nx">ControllerRevision</span><span class="p">,</span> <span class="nx">rhs</span> <span class="o">*</span><span class="nx">apps</span><span class="p">.</span><span class="nx">ControllerRevision</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+	<span class="o">...</span>
+	<span class="k">return</span> <span class="nx">bytes</span><span class="p">.</span><span class="nf">Equal</span><span class="p">(</span><span class="nx">lhs</span><span class="p">.</span><span class="nx">Data</span><span class="p">.</span><span class="nx">Raw</span><span class="p">,</span> <span class="nx">rhs</span><span class="p">.</span><span class="nx">Data</span><span class="p">.</span><span class="nx">Raw</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">apiequality</span><span class="p">.</span><span class="nx">Semantic</span><span class="p">.</span><span class="nf">DeepEqual</span><span class="p">(</span><span class="nx">lhs</span><span class="p">.</span><span class="nx">Data</span><span class="p">.</span><span class="nx">Object</span><span class="p">,</span> <span class="nx">rhs</span><span class="p">.</span><span class="nx">Data</span><span class="p">.</span><span class="nx">Object</span><span class="p">)</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>由于我们处于的是第一轮的创建流程，所以本次对 ControllerRevision 对象是否相等的判定会失败。因为没有相等的 ControllerRevision 对象，所以默认会创建一个新的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">//if there is no equivalent revision we create a new one
+</span><span class="c1"></span><span class="nx">updateRevision</span><span class="p">,</span> <span class="nx">err</span> <span class="p">=</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">controllerHistory</span><span class="p">.</span><span class="nf">CreateControllerRevision</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nx">updateRevision</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">collisionCount</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">collisionCount</span><span class="p">,</span> <span class="nx">err</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>最终，<code>getStatefulSetRevisions</code> 函数返回的 currentRevision 和 updateRevision 都是同一个，即版本号为 1的 ControllerRevision 对象。</p>
+
+<h5 id="statefulset-所有副本已经创建完成">StatefulSet 所有副本已经创建完成</h5>
+
+<p>如果 StatefulSet 对象已经被创建完成。<code>newRevision</code>依然会照常执行。如果此时对 StatefulSet 对象没有任何更新的话，那么新生成的 ControllerRevision 对象除了 Revision 成员有变化之外，Data 成员的内容仍然是旧的。</p>
+
+<p>接下来就是判断新的 ControllerRevision 是否和之前的 ControllerRevision 相同。如果相同的话，updateRevision 就会被更新为旧的且最近的 ControllerRevision 对象。最终，<code>getStatefulSetRevisions</code> 函数返回的 currentRevision 和 updateRevision 仍然是同一个，表示 StatefulSet 对象没有被修改过。</p>
+
+<h4 id="statefulset-controller-是如何利用版本机制去做回滚和更新的">StatefulSet Controller 是如何利用版本机制去做回滚和更新的？</h4>
+
+<p>StatefulSet Controller 对于 Pod 或者  StatefulSet Update Event 的响应逻辑处于<code>updateStatefulSet</code>函数的尾部。之前也说过，创建和扩缩容等操作的响应逻辑也是在这里。</p>
+
+<p>在处理 Update Event 的时候，StatefulSet Controller 会区分不同类型的更新策略进行处理。</p>
+
+<h5 id="ondelete">OnDelete</h5>
+
+<p>如果更新策略是 OnDelete，响应 Update Event 的逻辑不会做任何处理。因为此更新策略本身就是放弃自动更新机制，用户手动删除 Pod 进行更新的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// for the OnDelete strategy we short circuit. Pods will be updated when they are manually deleted.
+</span><span class="c1"></span><span class="k">if</span> <span class="nx">set</span><span class="p">.</span><span class="nx">Spec</span><span class="p">.</span><span class="nx">UpdateStrategy</span><span class="p">.</span><span class="nx">Type</span> <span class="o">==</span> <span class="nx">apps</span><span class="p">.</span><span class="nx">OnDeleteStatefulSetStrategyType</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<h5 id="rollingupdate">RollingUpdate</h5>
+
+<p>首先，将从 StatefulSet 对象的信息中获取<code>set.Spec.UpdateStrategy.RollingUpdate.Partition</code>字段。默认情况下如果不显示指定，Partition 为 0。Partition 这个字段的作用在上一篇文章中也提到过：</p>
+
+<blockquote>
+<p>StatefulSet 在更新的时候，会先在其管辖的 Pod 集合内，通过 Partition 筛选 Ordinal Index 大于等于他的 Pod。然后再按照 Ordinal Index 逆序的顺序逐个更新剩余的 Pod。</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">updateMin</span> <span class="o">:=</span> <span class="mi">0</span>
+<span class="k">if</span> <span class="nx">set</span><span class="p">.</span><span class="nx">Spec</span><span class="p">.</span><span class="nx">UpdateStrategy</span><span class="p">.</span><span class="nx">RollingUpdate</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="nx">updateMin</span> <span class="p">=</span> <span class="nb">int</span><span class="p">(</span><span class="o">*</span><span class="nx">set</span><span class="p">.</span><span class="nx">Spec</span><span class="p">.</span><span class="nx">UpdateStrategy</span><span class="p">.</span><span class="nx">RollingUpdate</span><span class="p">.</span><span class="nx">Partition</span><span class="p">)</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>更新 StatefulSet 的核心逻辑也很简单：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// we terminate the Pod with the largest ordinal that does not match the update revision.
+</span><span class="c1"></span><span class="k">for</span> <span class="nx">target</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="nx">replicas</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="nx">target</span> <span class="o">&gt;=</span> <span class="nx">updateMin</span><span class="p">;</span> <span class="nx">target</span><span class="o">--</span> <span class="p">{</span>
+
+	<span class="c1">// delete the Pod if it is not already terminating and does not match the update revision.
+</span><span class="c1"></span>	<span class="k">if</span> <span class="nf">getPodRevision</span><span class="p">(</span><span class="nx">replicas</span><span class="p">[</span><span class="nx">target</span><span class="p">])</span> <span class="o">!=</span> <span class="nx">updateRevision</span><span class="p">.</span><span class="nx">Name</span> <span class="o">&amp;&amp;</span> <span class="p">!</span><span class="nf">isTerminating</span><span class="p">(</span><span class="nx">replicas</span><span class="p">[</span><span class="nx">target</span><span class="p">])</span> <span class="p">{</span>
+		<span class="nx">glog</span><span class="p">.</span><span class="nf">V</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;StatefulSet %s/%s terminating Pod %s for update&#34;</span><span class="p">,</span>
+			<span class="nx">set</span><span class="p">.</span><span class="nx">Namespace</span><span class="p">,</span>
+			<span class="nx">set</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+			<span class="nx">replicas</span><span class="p">[</span><span class="nx">target</span><span class="p">].</span><span class="nx">Name</span><span class="p">)</span>
+		<span class="nx">err</span> <span class="o">:=</span> <span class="nx">ssc</span><span class="p">.</span><span class="nx">podControl</span><span class="p">.</span><span class="nf">DeleteStatefulPod</span><span class="p">(</span><span class="nx">set</span><span class="p">,</span> <span class="nx">replicas</span><span class="p">[</span><span class="nx">target</span><span class="p">])</span>
+		<span class="nx">status</span><span class="p">.</span><span class="nx">CurrentReplicas</span><span class="o">--</span>
+		<span class="k">return</span> <span class="o">&amp;</span><span class="nx">status</span><span class="p">,</span> <span class="nx">err</span>
+	<span class="p">}</span>
+
+<span class="o">...</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>按照 Ordinal Index 逆序的顺序逐个通过删除 Pod 的方式让它们重启，并应用最新版本的配置。</p>
+
+<p>回滚操作其实和更新操作实现原理是一样的。你可以把回滚理解成一个反向的更新操作。通过对上面 StatefulSet Controller 对于 StatefulSet，Pod 各类 Event 的处理流程可以了解到，每一次版本的变更，都会产生一个新的 ControllerRevision 对象，它相当于之前版本的一个 snapshot。</p>
+
+<p>假设我们现在有 3个旧的版本， A，B，C，当前版本为  D。如果此时我想回滚到 A 版本的话，我可以直接将  D 版本的  StatefulSet 对象的 template 部分改为和 A 版本一致的。此时，在<code>getStatefulSetRevisions</code>函数中，新生成的包含 A 版本内容的 E 版本，将会在「版本比对」的过程中发现和 A 版本相同。此时，StatefulSet Controller 会进行两个操作：</p>
+
+<ol>
+<li>修改 A 版本的  Revision 字段为最新的版本号</li>
+<li>使用  A 版本  ControllerRevision 对象保存的信息对 StatefulSet 管辖的 Pod 进行更新</li>
+</ol>
+
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/kubernetes/">Kubernetes</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/2018/12/02/detect-logging-of-docker/">
+            <span class="next-text nav-default">Detect Logging of Docker</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2018/12/05/detect-source-code-of-statefulset-controller/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>

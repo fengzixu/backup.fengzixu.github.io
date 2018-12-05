@@ -6,10 +6,19 @@
     <description>Recent content in Posts on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 02 Dec 2018 16:16:55 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 05 Dec 2018 17:16:38 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detect Source Code of Statefulset Controller</title>
+      <link>http://littledriver.net/post/2018/12/05/detect-source-code-of-statefulset-controller/</link>
+      <pubDate>Wed, 05 Dec 2018 17:16:38 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/12/05/detect-source-code-of-statefulset-controller/</guid>
+      <description>因为 blog 贴过多的代码或者链接不太美观，也不易于阅读。所以，建议大家下载 Kubernetes 1.12 版本的源码再配合 blog 来看。blog 只能对各位了解 StatefulSet Controller 原理起到一个抛砖引</description>
+    </item>
     
     <item>
       <title>Detect Logging of Docker</title>
