@@ -81,7 +81,7 @@
 
 &lt;h3 id=&#34;select&#34;&gt;select&lt;/h3&gt;
 
-&lt;p&gt;Golang 中有一个名为&lt;code&gt;select&lt;/code&gt;的原语，它的作用类似 Linux 系统调用中的&lt;code&gt;select&lt;/code&gt;。我们可以将多个 Channel 的读取或者写入操作放在 Select 的 Case 中进行使用。通常情况下，我们用非缓冲的 Channel 和 Select 一起实现一个「超时处理机制」：&lt;/p&gt;
+&lt;p&gt;Golang 中有一个名为&lt;code&gt;select&lt;/code&gt;的原语，它的作用类似 Linux 系统调用中的&lt;code&gt;select&lt;/code&gt;。我们可以将多个 Channel 的读取或者写入操作放在 &lt;code&gt;select&lt;/code&gt; 的 Case 中进行使用。通常情况下，我们用非缓冲的 Channel 和 &lt;code&gt;select&lt;/code&gt; 一起实现一个「超时处理机制」：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -93,7 +93,7 @@
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;k&#34;&gt;select&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-	&lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;value&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ch&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;value&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ch&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
 		&lt;span class=&#34;nf&#34;&gt;handle&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;value&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
   &lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;time&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;After&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;5&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;time&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Second&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
       &lt;span class=&#34;nf&#34;&gt;handleTimeout&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
@@ -266,13 +266,15 @@
 
 &lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/202C789E-7919-4900-9A30-E466CFA3C7B8.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;回到刚才那个触发了「阻塞」操作的 goroutine，我们将它标记为 G1。此时它将从 M 上被调度下来，放入一个等待队列中，即我们上面提到过的 sendq 内。而此时，Golang Scheduler 将会从 runable queue 中取出一个可执行的 goroutine，将其调度到线程上执行。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/72D7B7DC-C88F-477D-ADC8-479792C36D8E.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;回到刚才那个触发了「阻塞」操作的 goroutine，我们将它标记为 G1。&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/E0BEED54-438E-4BE0-A715-B56DE8EE4882.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;此时，如果有另外一个 goroutine 从 Channel 中读取一个消息，当消息成功的被读取之后，这次「读取」操作仍然没有结束。它还会执行接下来的两个步骤：&lt;/p&gt;
+&lt;p&gt;此时它将从 M 上被调度下来，放入一个等待队列中，即我们上面提到过的 sendq 内。Golang Scheduler 将会从 runable queue 中取出一个可执行的 goroutine，将其调度到线程上执行。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/72D7B7DC-C88F-477D-ADC8-479792C36D8E.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;如果有另外一个 goroutine 从 Channel 中读取一个消息，当消息成功的被读取之后，这次「读取」操作仍然没有结束。它还会执行接下来的两个步骤：&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;从 sendq 中将 G1 要写入的元素直接塞入 queue 中&lt;/li&gt;
@@ -293,7 +295,7 @@
 &lt;li&gt;Golang Scheduler 将 G2 调离线程，从 runnable queue 中找一个新的且可运行的 goroutine 调度执行&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;按照上面「读取操作唤醒写入操作」过程的描述，写入操作应该是先获取锁，然后将消息写入 buf 中，然后释放锁。最终将 G2唤醒。G2下次再被调度执行的时候就可以拿到 buf 中的消息了。但是，Golang 对这一过程进行了优化：&lt;/p&gt;
+&lt;p&gt;按照上面「读取操作唤醒写入操作」过程的描述，写入操作 G1 应该是先获取锁，然后将消息写入 buf 中，然后释放锁。最终将 G2 唤醒。G2 下次再被调度执行的时候就可以拿到 buf 中的消息了。但是，Golang 对这一过程进行了优化：&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;去掉 G1 对锁的操作&lt;/li&gt;
