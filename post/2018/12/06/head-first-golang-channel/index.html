@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Head First Golang Channel - LittleDriver</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xuran" />
+  <meta name="description" content="Channel 的种类 在 Golang 中，Channel 作为多个 goroutine 之间通信的桥梁，大致可以分为两类： 缓冲 非缓冲 Channel 在使用之间，必须要通过make来进行创建。 非缓冲 Channel 若在" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.51" />
+
+
+<link rel="canonical" href="http://littledriver.net/post/2018/12/06/head-first-golang-channel/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.f384a7fa4673433bc34e238c5074bb1303d90e5d5a29a2ffbaf61226ef213c29.css" integrity="sha256-84Sn&#43;kZzQzvDTiOMUHS7EwPZDl1aKaL/uvYSJu8hPCk=" media="screen">
+
+
+
+
+
+<meta property="og:title" content="Head First Golang Channel" />
+<meta property="og:description" content="Channel 的种类 在 Golang 中，Channel 作为多个 goroutine 之间通信的桥梁，大致可以分为两类： 缓冲 非缓冲 Channel 在使用之间，必须要通过make来进行创建。 非缓冲 Channel 若在" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://littledriver.net/post/2018/12/06/head-first-golang-channel/" /><meta property="article:published_time" content="2018-12-06T23:15:24&#43;08:00"/>
+<meta property="article:modified_time" content="2018-12-06T23:15:24&#43;08:00"/>
+
+<meta itemprop="name" content="Head First Golang Channel">
+<meta itemprop="description" content="Channel 的种类 在 Golang 中，Channel 作为多个 goroutine 之间通信的桥梁，大致可以分为两类： 缓冲 非缓冲 Channel 在使用之间，必须要通过make来进行创建。 非缓冲 Channel 若在">
+
+
+<meta itemprop="datePublished" content="2018-12-06T23:15:24&#43;08:00" />
+<meta itemprop="dateModified" content="2018-12-06T23:15:24&#43;08:00" />
+<meta itemprop="wordCount" content="3186">
+
+
+
+<meta itemprop="keywords" content="Golang," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Head First Golang Channel"/>
+<meta name="twitter:description" content="Channel 的种类 在 Golang 中，Channel 作为多个 goroutine 之间通信的桥梁，大致可以分为两类： 缓冲 非缓冲 Channel 在使用之间，必须要通过make来进行创建。 非缓冲 Channel 若在"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">LittleDriver</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      LittleDriver
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/">Home</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://littledriver.net/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Head First Golang Channel</h1>
+      
+      <div class="post-meta">
+        <time datetime="2018-12-06" class="post-time">
+          2018-12-06
+        </time>
+        <div class="post-category">
+            <a href="http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/"> 工作了也不能放松系列 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#channel-的种类">Channel 的种类</a>
+<ul>
+<li><a href="#非缓冲-channel">非缓冲 Channel</a></li>
+<li><a href="#缓冲-channel">缓冲 Channel</a></li>
+</ul></li>
+<li><a href="#channel-的关闭操作">Channel 的关闭操作</a></li>
+<li><a href="#channel-的常用姿势">Channel 的常用姿势</a>
+<ul>
+<li><a href="#多个-goroutine-间通信">多个 goroutine 间通信</a></li>
+<li><a href="#select">select</a></li>
+<li><a href="#range">range</a></li>
+</ul></li>
+<li><a href="#channel-的内部实现">Channel 的内部实现</a>
+<ul>
+<li><a href="#数据结构">数据结构</a></li>
+<li><a href="#写入和读取操作">写入和读取操作</a>
+<ul>
+<li><a href="#非阻塞场景">非阻塞场景</a>
+<ul>
+<li><a href="#写入">写入</a></li>
+<li><a href="#读取">读取</a></li>
+</ul></li>
+<li><a href="#阻塞场景">阻塞场景</a>
+<ul>
+<li><a href="#goroutine-用户态实现的线程模型">goroutine—用户态实现的线程模型</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="channel-的种类">Channel 的种类</h2>
+
+<p>在 Golang 中，Channel 作为多个 goroutine 之间通信的桥梁，大致可以分为两类：</p>
+
+<ul>
+<li>缓冲</li>
+<li>非缓冲</li>
+</ul>
+
+<p>Channel 在使用之间，必须要通过<code>make</code>来进行创建。</p>
+
+<h3 id="非缓冲-channel">非缓冲 Channel</h3>
+
+<p>若在两个 gorountine 中使用了非缓冲 Channel，就说明在通信双方的中间，留给它们可以存放「通信消息」的位置只有一个。此时，如果该 Channel 中没有消息，那么「读取」操作将会被阻塞。同样，如果该 Channel 中有消息但是没有被取走，那么「写入」操作将会被阻塞。</p>
+
+<p>在使用了 Channel 之后，通信双方和 Channel 一起可以构成一个相当标准的「生产者—消费者」模型。</p>
+
+<h3 id="缓冲-channel">缓冲 Channel</h3>
+
+<p>缓冲 Channel 与非缓冲 Channel 唯一不同的地方就在于存放「通信消息」的位置可以有多个。「写入」和「读取」操作被阻塞的条件也随之变成了：</p>
+
+<ul>
+<li>当缓冲区满的时候，「写入」操作被阻塞</li>
+<li>当缓冲区空的时候，「读取」操作被阻塞</li>
+</ul>
+
+<h2 id="channel-的关闭操作">Channel 的关闭操作</h2>
+
+<p>Channel 的操作和队列一样，无非就三个：写入，读取，删除（关闭）。其中写入和读取操作相对来说比较简单。接下来我们看下，如果某个 Channel 不想使用，准备关闭它，需要通过调用一个名为<code>close</code> 的函数。若一个 Channel 已经被关闭，再对它进行一些操作可能会引起不同的结果：</p>
+
+<ul>
+<li>重复关闭：程序会 panic</li>
+<li>向关闭的 Channel 继续写入数据：程序会 panic</li>
+<li>从关闭的 Channel 中读取数据：程序会正常读取 Channel 中余下的消息。当 Channel 中不再有消息的时候，它会返回一个 Channel 存储消息类型的 0 值。假设我们现在有一个存储 int 类型消息的 Channel。当 Channel 已经关闭之后，我们继续读取它内部的消息。由于 int 的默认值是0，且 Channel 里面也完全有可能有 0 这个数据。所以我们要通过额外的一个变量来判断这个 0 到底是标识 Channel 内没有消息了还是数据就是 0。</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">msg</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="o">&lt;-</span> <span class="nx">ch</span>
+<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+	<span class="nx">log</span><span class="p">.</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;There is no msg&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">log</span><span class="p">.</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;You get a new msg from channel&#34;</span><span class="p">)</span></code></pre></td></tr></table>
+</div>
+</div>
+<p><code>ok</code> 是一个 bool 类型的变量，它会告诉我们此次读取出来的消息是默认的0值，还是缓冲区内真正保存的内容。</p>
+
+<h2 id="channel-的常用姿势">Channel 的常用姿势</h2>
+
+<h3 id="多个-goroutine-间通信">多个 goroutine 间通信</h3>
+
+<p>完全可以在 Golang 中将 Channel 当做消息队列来使用。通过 Channel 在多个 goroutine 间共享数据是非常方便的，减少了很多使用者的心智负担，不需要再担心锁的问题。</p>
+
+<h3 id="select">select</h3>
+
+<p>Golang 中有一个名为<code>select</code>的原语，它的作用类似 Linux 系统调用中的<code>select</code>。我们可以将多个 Channel 的读取或者写入操作放在 Select 的 Case 中进行使用。通常情况下，我们用非缓冲的 Channel 和 Select 一起实现一个「超时处理机制」：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="k">select</span> <span class="p">{</span>
+	<span class="k">case</span> <span class="nx">value</span> <span class="o">:=</span> <span class="o">&lt;-</span> <span class="nx">ch</span><span class="p">:</span>
+		<span class="nf">handle</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+  <span class="k">case</span> <span class="nx">time</span><span class="p">.</span><span class="nf">After</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">):</span>
+      <span class="nf">handleTimeout</span><span class="p">()</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<h3 id="range">range</h3>
+
+<p>range 通常用于遍历一个集合内的元素，它同样可以用于 Channel，无论是缓冲版本还是非缓冲版本。（这里埋了一个小伏笔）。若 Channel 中有数据，那么 range 其实就相当于执行一个「读取」操作。关键是，当 channel 中没有数据的时候，range 它会发生什么情况呢？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;fmt&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;Hello, playground&#34;</span><span class="p">)</span>
+	<span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span>
+	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="nx">ch</span> <span class="o">&lt;-</span> <span class="mi">1</span>
+	<span class="p">}()</span>
+
+	<span class="nx">count</span> <span class="o">:=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="nx">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">ch</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Print</span><span class="p">(</span><span class="nx">v</span><span class="p">)</span>
+		<span class="nx">count</span><span class="o">++</span>
+		<span class="k">if</span> <span class="nx">count</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">{</span>
+			<span class="nb">close</span><span class="p">(</span><span class="nx">ch</span><span class="p">)</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>上述实例程序最终会顺利退出。最主要的原因是我们在读取了 Channel 中的消息之后，主动的关闭了这个 Channel。而 range 一个关闭了 Channel 会自动退出循环。如果不执行 close 操作的话，那么程序会报错：dead lock。因为 range 执行的读取操作会一直阻塞在那。</p>
+
+<h2 id="channel-的内部实现">Channel 的内部实现</h2>
+
+<h3 id="数据结构">数据结构</h3>
+
+<p>Channel 的本质其实是一个指针，它指向了一个名为<code>hchan</code>的结构体，所以我们在传递 Channel 变量的时候不需要对其进行取地址操作：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">hchan</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">qcount</span>   <span class="kt">uint</span>           <span class="c1">// total data in the queue
+</span><span class="c1"></span>    <span class="nx">dataqsiz</span> <span class="kt">uint</span>           <span class="c1">// size of the circular queue
+</span><span class="c1"></span>    <span class="nx">buf</span>      <span class="nx">unsafe</span><span class="p">.</span><span class="nx">Pointer</span> <span class="c1">// points to an array of dataqsiz elements
+</span><span class="c1"></span>    <span class="nx">elemsize</span> <span class="kt">uint16</span>
+    <span class="nx">closed</span>   <span class="kt">uint32</span>
+    <span class="nx">elemtype</span> <span class="o">*</span><span class="nx">_type</span> <span class="c1">// element type
+</span><span class="c1"></span>    <span class="nx">sendx</span>    <span class="kt">uint</span>   <span class="c1">// send index
+</span><span class="c1"></span>    <span class="nx">recvx</span>    <span class="kt">uint</span>   <span class="c1">// receive index
+</span><span class="c1"></span>    <span class="nx">recvq</span>    <span class="nx">waitq</span>  <span class="c1">// list of recv waiters
+</span><span class="c1"></span>    <span class="nx">sendq</span>    <span class="nx">waitq</span>  <span class="c1">// list of send waiters
+</span><span class="c1"></span>
+    <span class="c1">// lock protects all fields in hchan, as well as several
+</span><span class="c1"></span>    <span class="c1">// fields in sudogs blocked on this channel.
+</span><span class="c1"></span>    <span class="c1">//
+</span><span class="c1"></span>    <span class="c1">// Do not change another G&#39;s status while holding this lock
+</span><span class="c1"></span>    <span class="c1">// (in particular, do not ready a G), as this can deadlock
+</span><span class="c1"></span>    <span class="c1">// with stack shrinking.
+</span><span class="c1"></span>    <span class="nx">lock</span> <span class="nx">mutex</span>
+<span class="p">}</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>通过注释其实我们就可以大概的了解 Channel 是如何来实现的：</p>
+
+<p>首先，qcount 和 dataqsiz 分别代表了缓冲区内元素的个数以及缓冲区本身的大小，注释中是通过 queue 来标识的。那就说明，Channel 底层的缓冲区可能是通过一个队列实现的。紧接着，我们看到了三个比较关键的成员：</p>
+
+<ul>
+<li>buf</li>
+<li>sendx</li>
+<li>recvx</li>
+</ul>
+
+<p>其中 buf 所指向的内存区域应该就是我们前面说到的 queue 了。而且，我们又发现了<code>sendx</code> 和<code>sendx</code>两个成员。他们似乎标识了缓冲区中读取和写入要操作的索引信息。这三个成员在一起，不得不让我们怀疑，Channel 底层的缓冲区是通过一个「循环队列」的数据结构来实现的。因为 Channel 中既有读取操作也有写入操作，如果一直使用线性增长的缓冲区，势必会造成资源的浪费，并且在元素顺序的整理上也会付出相当大的代价。</p>
+
+<p>既然是对内存中的数据操作，并且还会涉及到多个 goroutine，所以不可避免的要通过锁来避免「竞争」：lock。另外，之前提到过，如果一个 Channel 的缓冲区没有元素或者已经满了，那么执行读取操作或者写入操作的 goroutine 会被组塞住。而 recvq 和 sendq 就是用来保存它们的。以便在方便的时候将它们唤醒。</p>
+
+<h3 id="写入和读取操作">写入和读取操作</h3>
+
+<p>Golang 使用 groutine 和 Channel 实现了CSP(Communicating Sequential Processes)模型。在 CSP 模型中有一个非常重要的理念：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">不要通过共享内存的方式进行通信</span><span class="err">，</span><span class="nx">要通过通信的方式共享内存</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>这个理念在 Channel 的写入和读取操作上得到了充分展示。</p>
+
+<p>无论是写入还是读取操作，涉及到 hchan 数据结构中的成员有如下几个：</p>
+
+<ul>
+<li>lock</li>
+<li>sendx/recvx</li>
+<li>buf</li>
+<li>recvq/sendq</li>
+</ul>
+
+<h4 id="非阻塞场景">非阻塞场景</h4>
+
+<p>我们先把阻塞写入和读取操作的场景放在一边，只讨论下 Channel 写入和读取数据的过程。因为这是最基本的，也是最主要的部分。</p>
+
+<h5 id="写入">写入</h5>
+
+<p>当我们向一个 Channel 发送一个数据的时候，写入操作会首先尝试获取 lock，将 buf 锁住，防止出现竞争。然后根据 sendx 给出的索引值，将消息 Copy 一份，塞入其中。为什么一定要 Copy 一份呢？直接使用原始数据不行么？很显然，如果我们将原始数据即生产者写入的数据放到 buf 内，这相当于让消费者和生产者共享内存了。这是违背了 CSP 模型提出的那个核心理念的。最后，在写入操作完成的时候，它会释放 lock。</p>
+
+<h5 id="读取">读取</h5>
+
+<p>读取操作是写入操作的逆过程。在获取 Channel 元素的时候，也同样会执行一个 Copy 操作。</p>
+
+<h4 id="阻塞场景">阻塞场景</h4>
+
+<p>当 buf 已经存满消息的时候，触发写入操作的 goroutine 将会被阻塞住。此时这个阻塞的 goroutine 将会被存储到我们前面说的 <code>hchan</code>对象的 sendq 成员内。直到 buf 内再次有空位即有读取操作发生之后，该 goroutine 才会被唤醒，执行完之前的写入操作。</p>
+
+<h5 id="goroutine-用户态实现的线程模型">goroutine—用户态实现的线程模型</h5>
+
+<p>既然说到了 goroutine 的唤醒与阻塞，我们就不得不回忆起操作系统中线程和进程的相关概念。实际上，goroutine 就是一种 Golang 在用户态下实现的轻量级线程，它由用户态中的 go runtime 进行管理。但是，goroutine 最终还是跑在一个线程上的。因为可被 CPU 调度执行的最小单位是进程创建的线程。goroutine 和 线程的关系类似于「多路复用」，一个线程可能会携带多个 goroutine。Golang Scheduler 将会依照一定的调度策略，将线程和 goroutine 进行绑定，以便线程和 goroutine 一起被 CPU 调度运行。</p>
+
+<p>线程，goroutine，调度上下文三者之间的关系如下图所示：</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/202C789E-7919-4900-9A30-E466CFA3C7B8.png" alt="" /></p>
+
+<p>回到刚才那个触发了「阻塞」操作的 goroutine，我们将它标记为 G1。此时它将从 M 上被调度下来，放入一个等待队列中，即我们上面提到过的 sendq 内。而此时，Golang Scheduler 将会从 runable queue 中取出一个可执行的 goroutine，将其调度到线程上执行。</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/72D7B7DC-C88F-477D-ADC8-479792C36D8E.png" alt="" /></p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/E0BEED54-438E-4BE0-A715-B56DE8EE4882.png" alt="" /></p>
+
+<p>此时，如果有另外一个 goroutine 从 Channel 中读取一个消息，当消息成功的被读取之后，这次「读取」操作仍然没有结束。它还会执行接下来的两个步骤：</p>
+
+<ol>
+<li>从 sendq 中将 G1 要写入的元素直接塞入 queue 中</li>
+<li>通过使用 Golang Scheduler 提供的一些接口，将 G1 塞入我们上面提到的 runnable queue 中</li>
+</ol>
+
+<p>上面我们提到的是写入操作被阻塞，接下来我们来看看当读取操作被阻塞的时候会发生什么。</p>
+
+<p>读取操作被阻塞过程的前半部分和写入操作一样</p>
+
+<p><img src="http://o6sfmikvw.bkt.clouddn.com/A3EA4792-1D3B-4E20-B7E6-281C69FF8F03.png" alt="" /></p>
+
+<p>一共发生了三件事：</p>
+
+<ol>
+<li>创建一个 sudog 对象，保存 G2</li>
+<li>将 sudog 对象塞入 recvq 中</li>
+<li>Golang Scheduler 将 G2 调离线程，从 runnable queue 中找一个新的且可运行的 goroutine 调度执行</li>
+</ol>
+
+<p>按照上面「读取操作唤醒写入操作」过程的描述，写入操作应该是先获取锁，然后将消息写入 buf 中，然后释放锁。最终将 G2唤醒。G2下次再被调度执行的时候就可以拿到 buf 中的消息了。但是，Golang 对这一过程进行了优化：</p>
+
+<ol>
+<li>去掉 G1 对锁的操作</li>
+<li>直接将 G1 当中要写入的数据塞入 G2 sudog 中的 elem 成员</li>
+</ol>
+
+<p>第一个操作不用说了，减少对锁的操作肯定会提升程序的执行效率。第二个操作避免了 G2 再一次访问 buf，也提升了程序运行的效率。</p>
+
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://littledriver.net/tags/golang/">Golang</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/2018/12/05/detect-statefulset/">
+            <span class="next-text nav-default">Detect StatefulSet</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_config = function () {
+      this.page.url = "http://littledriver.net/post/2018/12/06/head-first-golang-channel/";
+    };
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'fengzixu';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+  
+    
+
+
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  
+  
+    <a href="mailto:hnustphoenix@email.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://twitter.com/Haier0715" rel="me noopener" class="iconfont"
+      title="twitter"  target="_blank"
+      >
+      <svg class="icon" viewBox="0 0 1264 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M1229.8616 18.043658c0 0-117.852626 63.135335-164.151872 67.344358-105.225559-164.151872-505.082682-92.598492-437.738325 223.078185C278.622548 312.675223 89.216542 47.506814 89.216542 47.506814s-117.852626 189.406006 75.762402 345.139833C127.097743 396.85567 55.544363 371.601535 55.544363 371.601535S26.081207 535.753407 253.368414 615.724832c-21.045112 29.463156-113.643603 8.418045-113.643603 8.418045s25.254134 143.10676 231.496229 180.987961c-143.10676 130.479693-387.230056 92.598492-370.393967 105.225559 206.242095 189.406006 1119.599946 231.496229 1128.01799-643.98042C1179.353331 249.539887 1263.533778 123.269217 1263.533778 123.269217s-130.479693 37.881201-138.897738 33.672179C1225.652577 98.015083 1229.8616 18.043658 1229.8616 18.043658"></path>
+</svg>
+
+    </a>
+  
+    <a href="https://github.com/fengzixu" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://littledriver.net/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        xuran
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ="></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script id="dsq-count-scr" src="//fengzixu.disqus.com/count.js" async></script>
+
+
+
+
+
+</body>
+</html>

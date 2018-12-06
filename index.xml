@@ -6,10 +6,304 @@
     <description>Recent content in Home on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 05 Dec 2018 17:41:58 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 06 Dec 2018 23:15:24 +0800</lastBuildDate>
     
         <atom:link href="http://littledriver.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Head First Golang Channel</title>
+      <link>http://littledriver.net/post/2018/12/06/head-first-golang-channel/</link>
+      <pubDate>Thu, 06 Dec 2018 23:15:24 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/12/06/head-first-golang-channel/</guid>
+      
+        <description>
+
+&lt;h2 id=&#34;channel-的种类&#34;&gt;Channel 的种类&lt;/h2&gt;
+
+&lt;p&gt;在 Golang 中，Channel 作为多个 goroutine 之间通信的桥梁，大致可以分为两类：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;缓冲&lt;/li&gt;
+&lt;li&gt;非缓冲&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Channel 在使用之间，必须要通过&lt;code&gt;make&lt;/code&gt;来进行创建。&lt;/p&gt;
+
+&lt;h3 id=&#34;非缓冲-channel&#34;&gt;非缓冲 Channel&lt;/h3&gt;
+
+&lt;p&gt;若在两个 gorountine 中使用了非缓冲 Channel，就说明在通信双方的中间，留给它们可以存放「通信消息」的位置只有一个。此时，如果该 Channel 中没有消息，那么「读取」操作将会被阻塞。同样，如果该 Channel 中有消息但是没有被取走，那么「写入」操作将会被阻塞。&lt;/p&gt;
+
+&lt;p&gt;在使用了 Channel 之后，通信双方和 Channel 一起可以构成一个相当标准的「生产者—消费者」模型。&lt;/p&gt;
+
+&lt;h3 id=&#34;缓冲-channel&#34;&gt;缓冲 Channel&lt;/h3&gt;
+
+&lt;p&gt;缓冲 Channel 与非缓冲 Channel 唯一不同的地方就在于存放「通信消息」的位置可以有多个。「写入」和「读取」操作被阻塞的条件也随之变成了：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;当缓冲区满的时候，「写入」操作被阻塞&lt;/li&gt;
+&lt;li&gt;当缓冲区空的时候，「读取」操作被阻塞&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;channel-的关闭操作&#34;&gt;Channel 的关闭操作&lt;/h2&gt;
+
+&lt;p&gt;Channel 的操作和队列一样，无非就三个：写入，读取，删除（关闭）。其中写入和读取操作相对来说比较简单。接下来我们看下，如果某个 Channel 不想使用，准备关闭它，需要通过调用一个名为&lt;code&gt;close&lt;/code&gt; 的函数。若一个 Channel 已经被关闭，再对它进行一些操作可能会引起不同的结果：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;重复关闭：程序会 panic&lt;/li&gt;
+&lt;li&gt;向关闭的 Channel 继续写入数据：程序会 panic&lt;/li&gt;
+&lt;li&gt;从关闭的 Channel 中读取数据：程序会正常读取 Channel 中余下的消息。当 Channel 中不再有消息的时候，它会返回一个 Channel 存储消息类型的 0 值。假设我们现在有一个存储 int 类型消息的 Channel。当 Channel 已经关闭之后，我们继续读取它内部的消息。由于 int 的默认值是0，且 Channel 里面也完全有可能有 0 这个数据。所以我们要通过额外的一个变量来判断这个 0 到底是标识 Channel 内没有消息了还是数据就是 0。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;nx&#34;&gt;msg&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ok&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ch&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;!&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;ok&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Info&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;There is no msg&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;nx&#34;&gt;log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Info&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;You get a new msg from channel&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;ok&lt;/code&gt; 是一个 bool 类型的变量，它会告诉我们此次读取出来的消息是默认的0值，还是缓冲区内真正保存的内容。&lt;/p&gt;
+
+&lt;h2 id=&#34;channel-的常用姿势&#34;&gt;Channel 的常用姿势&lt;/h2&gt;
+
+&lt;h3 id=&#34;多个-goroutine-间通信&#34;&gt;多个 goroutine 间通信&lt;/h3&gt;
+
+&lt;p&gt;完全可以在 Golang 中将 Channel 当做消息队列来使用。通过 Channel 在多个 goroutine 间共享数据是非常方便的，减少了很多使用者的心智负担，不需要再担心锁的问题。&lt;/p&gt;
+
+&lt;h3 id=&#34;select&#34;&gt;select&lt;/h3&gt;
+
+&lt;p&gt;Golang 中有一个名为&lt;code&gt;select&lt;/code&gt;的原语，它的作用类似 Linux 系统调用中的&lt;code&gt;select&lt;/code&gt;。我们可以将多个 Channel 的读取或者写入操作放在 Select 的 Case 中进行使用。通常情况下，我们用非缓冲的 Channel 和 Select 一起实现一个「超时处理机制」：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;k&#34;&gt;select&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;value&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ch&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+		&lt;span class=&#34;nf&#34;&gt;handle&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;value&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+  &lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;time&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;After&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;5&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;time&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Second&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+      &lt;span class=&#34;nf&#34;&gt;handleTimeout&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h3 id=&#34;range&#34;&gt;range&lt;/h3&gt;
+
+&lt;p&gt;range 通常用于遍历一个集合内的元素，它同样可以用于 Channel，无论是缓冲版本还是非缓冲版本。（这里埋了一个小伏笔）。若 Channel 中有数据，那么 range 其实就相当于执行一个「读取」操作。关键是，当 channel 中没有数据的时候，range 它会发生什么情况呢？&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kn&#34;&gt;package&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;main&lt;/span&gt;
+
+&lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+	&lt;span class=&#34;s&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;Hello, playground&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;ch&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;make&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;chan&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;go&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;ch&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}()&lt;/span&gt;
+
+	&lt;span class=&#34;nx&#34;&gt;count&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;v&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;range&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ch&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;v&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;count&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;count&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+			&lt;span class=&#34;nb&#34;&gt;close&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;ch&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;上述实例程序最终会顺利退出。最主要的原因是我们在读取了 Channel 中的消息之后，主动的关闭了这个 Channel。而 range 一个关闭了 Channel 会自动退出循环。如果不执行 close 操作的话，那么程序会报错：dead lock。因为 range 执行的读取操作会一直阻塞在那。&lt;/p&gt;
+
+&lt;h2 id=&#34;channel-的内部实现&#34;&gt;Channel 的内部实现&lt;/h2&gt;
+
+&lt;h3 id=&#34;数据结构&#34;&gt;数据结构&lt;/h3&gt;
+
+&lt;p&gt;Channel 的本质其实是一个指针，它指向了一个名为&lt;code&gt;hchan&lt;/code&gt;的结构体，所以我们在传递 Channel 变量的时候不需要对其进行取地址操作：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;hchan&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+    &lt;span class=&#34;nx&#34;&gt;qcount&lt;/span&gt;   &lt;span class=&#34;kt&#34;&gt;uint&lt;/span&gt;           &lt;span class=&#34;c1&#34;&gt;// total data in the queue
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;dataqsiz&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;uint&lt;/span&gt;           &lt;span class=&#34;c1&#34;&gt;// size of the circular queue
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;buf&lt;/span&gt;      &lt;span class=&#34;nx&#34;&gt;unsafe&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Pointer&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// points to an array of dataqsiz elements
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;elemsize&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;uint16&lt;/span&gt;
+    &lt;span class=&#34;nx&#34;&gt;closed&lt;/span&gt;   &lt;span class=&#34;kt&#34;&gt;uint32&lt;/span&gt;
+    &lt;span class=&#34;nx&#34;&gt;elemtype&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;_type&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// element type
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;sendx&lt;/span&gt;    &lt;span class=&#34;kt&#34;&gt;uint&lt;/span&gt;   &lt;span class=&#34;c1&#34;&gt;// send index
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;recvx&lt;/span&gt;    &lt;span class=&#34;kt&#34;&gt;uint&lt;/span&gt;   &lt;span class=&#34;c1&#34;&gt;// receive index
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;recvq&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;waitq&lt;/span&gt;  &lt;span class=&#34;c1&#34;&gt;// list of recv waiters
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;sendq&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;waitq&lt;/span&gt;  &lt;span class=&#34;c1&#34;&gt;// list of send waiters
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;
+    &lt;span class=&#34;c1&#34;&gt;// lock protects all fields in hchan, as well as several
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;c1&#34;&gt;// fields in sudogs blocked on this channel.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;c1&#34;&gt;//
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;c1&#34;&gt;// Do not change another G&amp;#39;s status while holding this lock
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;c1&#34;&gt;// (in particular, do not ready a G), as this can deadlock
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;c1&#34;&gt;// with stack shrinking.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;lock&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;mutex&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;通过注释其实我们就可以大概的了解 Channel 是如何来实现的：&lt;/p&gt;
+
+&lt;p&gt;首先，qcount 和 dataqsiz 分别代表了缓冲区内元素的个数以及缓冲区本身的大小，注释中是通过 queue 来标识的。那就说明，Channel 底层的缓冲区可能是通过一个队列实现的。紧接着，我们看到了三个比较关键的成员：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;buf&lt;/li&gt;
+&lt;li&gt;sendx&lt;/li&gt;
+&lt;li&gt;recvx&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;其中 buf 所指向的内存区域应该就是我们前面说到的 queue 了。而且，我们又发现了&lt;code&gt;sendx&lt;/code&gt; 和&lt;code&gt;sendx&lt;/code&gt;两个成员。他们似乎标识了缓冲区中读取和写入要操作的索引信息。这三个成员在一起，不得不让我们怀疑，Channel 底层的缓冲区是通过一个「循环队列」的数据结构来实现的。因为 Channel 中既有读取操作也有写入操作，如果一直使用线性增长的缓冲区，势必会造成资源的浪费，并且在元素顺序的整理上也会付出相当大的代价。&lt;/p&gt;
+
+&lt;p&gt;既然是对内存中的数据操作，并且还会涉及到多个 goroutine，所以不可避免的要通过锁来避免「竞争」：lock。另外，之前提到过，如果一个 Channel 的缓冲区没有元素或者已经满了，那么执行读取操作或者写入操作的 goroutine 会被组塞住。而 recvq 和 sendq 就是用来保存它们的。以便在方便的时候将它们唤醒。&lt;/p&gt;
+
+&lt;h3 id=&#34;写入和读取操作&#34;&gt;写入和读取操作&lt;/h3&gt;
+
+&lt;p&gt;Golang 使用 groutine 和 Channel 实现了CSP(Communicating Sequential Processes)模型。在 CSP 模型中有一个非常重要的理念：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;nx&#34;&gt;不要通过共享内存的方式进行通信&lt;/span&gt;&lt;span class=&#34;err&#34;&gt;，&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;要通过通信的方式共享内存&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;这个理念在 Channel 的写入和读取操作上得到了充分展示。&lt;/p&gt;
+
+&lt;p&gt;无论是写入还是读取操作，涉及到 hchan 数据结构中的成员有如下几个：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;lock&lt;/li&gt;
+&lt;li&gt;sendx/recvx&lt;/li&gt;
+&lt;li&gt;buf&lt;/li&gt;
+&lt;li&gt;recvq/sendq&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;非阻塞场景&#34;&gt;非阻塞场景&lt;/h4&gt;
+
+&lt;p&gt;我们先把阻塞写入和读取操作的场景放在一边，只讨论下 Channel 写入和读取数据的过程。因为这是最基本的，也是最主要的部分。&lt;/p&gt;
+
+&lt;h5 id=&#34;写入&#34;&gt;写入&lt;/h5&gt;
+
+&lt;p&gt;当我们向一个 Channel 发送一个数据的时候，写入操作会首先尝试获取 lock，将 buf 锁住，防止出现竞争。然后根据 sendx 给出的索引值，将消息 Copy 一份，塞入其中。为什么一定要 Copy 一份呢？直接使用原始数据不行么？很显然，如果我们将原始数据即生产者写入的数据放到 buf 内，这相当于让消费者和生产者共享内存了。这是违背了 CSP 模型提出的那个核心理念的。最后，在写入操作完成的时候，它会释放 lock。&lt;/p&gt;
+
+&lt;h5 id=&#34;读取&#34;&gt;读取&lt;/h5&gt;
+
+&lt;p&gt;读取操作是写入操作的逆过程。在获取 Channel 元素的时候，也同样会执行一个 Copy 操作。&lt;/p&gt;
+
+&lt;h4 id=&#34;阻塞场景&#34;&gt;阻塞场景&lt;/h4&gt;
+
+&lt;p&gt;当 buf 已经存满消息的时候，触发写入操作的 goroutine 将会被阻塞住。此时这个阻塞的 goroutine 将会被存储到我们前面说的 &lt;code&gt;hchan&lt;/code&gt;对象的 sendq 成员内。直到 buf 内再次有空位即有读取操作发生之后，该 goroutine 才会被唤醒，执行完之前的写入操作。&lt;/p&gt;
+
+&lt;h5 id=&#34;goroutine-用户态实现的线程模型&#34;&gt;goroutine—用户态实现的线程模型&lt;/h5&gt;
+
+&lt;p&gt;既然说到了 goroutine 的唤醒与阻塞，我们就不得不回忆起操作系统中线程和进程的相关概念。实际上，goroutine 就是一种 Golang 在用户态下实现的轻量级线程，它由用户态中的 go runtime 进行管理。但是，goroutine 最终还是跑在一个线程上的。因为可被 CPU 调度执行的最小单位是进程创建的线程。goroutine 和 线程的关系类似于「多路复用」，一个线程可能会携带多个 goroutine。Golang Scheduler 将会依照一定的调度策略，将线程和 goroutine 进行绑定，以便线程和 goroutine 一起被 CPU 调度运行。&lt;/p&gt;
+
+&lt;p&gt;线程，goroutine，调度上下文三者之间的关系如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/202C789E-7919-4900-9A30-E466CFA3C7B8.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;回到刚才那个触发了「阻塞」操作的 goroutine，我们将它标记为 G1。此时它将从 M 上被调度下来，放入一个等待队列中，即我们上面提到过的 sendq 内。而此时，Golang Scheduler 将会从 runable queue 中取出一个可执行的 goroutine，将其调度到线程上执行。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/72D7B7DC-C88F-477D-ADC8-479792C36D8E.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/E0BEED54-438E-4BE0-A715-B56DE8EE4882.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;此时，如果有另外一个 goroutine 从 Channel 中读取一个消息，当消息成功的被读取之后，这次「读取」操作仍然没有结束。它还会执行接下来的两个步骤：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;从 sendq 中将 G1 要写入的元素直接塞入 queue 中&lt;/li&gt;
+&lt;li&gt;通过使用 Golang Scheduler 提供的一些接口，将 G1 塞入我们上面提到的 runnable queue 中&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;上面我们提到的是写入操作被阻塞，接下来我们来看看当读取操作被阻塞的时候会发生什么。&lt;/p&gt;
+
+&lt;p&gt;读取操作被阻塞过程的前半部分和写入操作一样&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://o6sfmikvw.bkt.clouddn.com/A3EA4792-1D3B-4E20-B7E6-281C69FF8F03.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;一共发生了三件事：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;创建一个 sudog 对象，保存 G2&lt;/li&gt;
+&lt;li&gt;将 sudog 对象塞入 recvq 中&lt;/li&gt;
+&lt;li&gt;Golang Scheduler 将 G2 调离线程，从 runnable queue 中找一个新的且可运行的 goroutine 调度执行&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;按照上面「读取操作唤醒写入操作」过程的描述，写入操作应该是先获取锁，然后将消息写入 buf 中，然后释放锁。最终将 G2唤醒。G2下次再被调度执行的时候就可以拿到 buf 中的消息了。但是，Golang 对这一过程进行了优化：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;去掉 G1 对锁的操作&lt;/li&gt;
+&lt;li&gt;直接将 G1 当中要写入的数据塞入 G2 sudog 中的 elem 成员&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;第一个操作不用说了，减少对锁的操作肯定会提升程序的执行效率。第二个操作避免了 G2 再一次访问 buf，也提升了程序运行的效率。&lt;/p&gt;
+</description>
+      
+    </item>
     
     <item>
       <title>Detect StatefulSet</title>

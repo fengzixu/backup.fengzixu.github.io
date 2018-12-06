@@ -6,10 +6,19 @@
     <description>Recent content in Golang on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 14 Aug 2018 15:45:25 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 06 Dec 2018 23:15:24 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/tags/golang/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Head First Golang Channel</title>
+      <link>http://littledriver.net/post/2018/12/06/head-first-golang-channel/</link>
+      <pubDate>Thu, 06 Dec 2018 23:15:24 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/12/06/head-first-golang-channel/</guid>
+      <description>Channel 的种类 在 Golang 中，Channel 作为多个 goroutine 之间通信的桥梁，大致可以分为两类： 缓冲 非缓冲 Channel 在使用之间，必须要通过make来进行创建。 非缓冲 Channel 若在</description>
+    </item>
     
     <item>
       <title>Head First Scheduler of Golang</title>
