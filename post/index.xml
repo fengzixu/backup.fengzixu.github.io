@@ -6,10 +6,19 @@
     <description>Recent content in Posts on LittleDriver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 06 Dec 2018 23:15:24 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 09 Dec 2018 20:45:33 +0800</lastBuildDate>
     
 	<atom:link href="http://littledriver.net/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Head First Solution of Expired Keys in Redis</title>
+      <link>http://littledriver.net/post/2018/12/09/head-first-solution-of-expired-keys-in-redis/</link>
+      <pubDate>Sun, 09 Dec 2018 20:45:33 +0800</pubDate>
+      
+      <guid>http://littledriver.net/post/2018/12/09/head-first-solution-of-expired-keys-in-redis/</guid>
+      <description>Redis 的多数据库模式 Redis Server Redis 是一个将数据保存在内存中的 key-value 数据库。很多使用 Redis 的人或许不知道，Redis 在单机数据库的实现上将总容量切分成多个「数据库</description>
+    </item>
     
     <item>
       <title>Head First Golang Channel</title>
