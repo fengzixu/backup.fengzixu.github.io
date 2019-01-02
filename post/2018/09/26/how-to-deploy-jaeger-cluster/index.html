@@ -68,7 +68,7 @@
 
 <meta itemprop="datePublished" content="2018-09-26T17:58:57&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-26T17:58:57&#43;08:00" />
-<meta itemprop="wordCount" content="4328">
+<meta itemprop="wordCount" content="4076">
 
 
 
@@ -352,21 +352,229 @@ ceph-deploy purgedata xr-service-mesh-lab xr-service-mesh-lab1</pre></td></tr></
 </div>
 </div>
 <p>在集群的任意节点中，选取一个作为 deploy node，以 cephd 账户登录。在该节点上执行</p>
+
+<p><code>ceph-deploy new xr-service-mesh-lab(nodeName)</code></p>
+
+<p>将该节点同时作为 monitor 节点。执行了该命令之后，我们可以发现，在当前目录下会自动生成一些文件，这些文件是在之后的部署过程中会用到的。</p>
+
+<p>编辑 <code>ceph.conf</code>文件，在末尾添加几行内容：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-ceph-deploy new xr-service-mesh-lab(nodeName)```" data-lang="ceph-deploy new xr-service-mesh-lab(nodeName)```"><span class="lnt">1
+<pre class="chroma"><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
-</span></code></pre></td>
+</span></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-ceph-deploy new xr-service-mesh-lab(nodeName)```" data-lang="ceph-deploy new xr-service-mesh-lab(nodeName)```">将该节点同时作为 monitor 节点。执行了该命令之后，我们可以发现，在当前目录下会自动生成一些文件，这些文件是在之后的部署过程中会用到的。
-
-编辑 `ceph.conf`文件，在末尾添加几行内容：</code></pre></td></tr></table>
-</div>
-</div>
-<p>osd pool default size = 2 (该参数可以根据自己搭建的 ceph 集群的 osd 节点的个数修改)
+<pre class="chroma">osd pool default size = 2 (该参数可以根据自己搭建的 ceph 集群的 osd 节点的个数修改)
 osd max object name len = 256
-osd max object namespace len = 64</p>
+osd max object namespace len = 64</pre></td></tr></table>
+</div>
+</div>
+<p>接下来，执行</p>
+
+<p><code>ceph-deploy install xr-service-mesh-lab xr-service-mesh-lab1</code></p>
+
+<p>命令，在两个节点上安装好部署 ceph 集群所需要的 binary。</p>
+
+<p>在 mon-node 上（如果你没有切换过节点操作的话，就是当前的 node，也是 deploy-node），进行初始化操作</p>
+
+<p><code>ceph-deploy mon create-initial</code></p>
+
+<p>执行完毕后，会在当前目录下观察到很多以 .keyring 后缀结尾的文件。之后，可以运行</p>
+
+<p><code>ps aux | grep ceph</code></p>
+
+<p>命令，查看 ceph-mon 进程已经运行。</p>
+
+<p>截止目前，对于这个 ceph 集群，我们还有 osd 节点没有部署。osd 节点的部署分为两部分：prepare, activate</p>
+
+<h3 id="prepare">Prepare</h3>
+
+<blockquote>
+<p>执行这一步之前，最好是在 Node 上都挂载好了专用的数据盘，否则，只能是创建一个目录，使用「系统盘」的空间。笔者在部署的时候，在两个节点的_mnt目录下分别挂在了两块500G 的 数据盘，并且在这两块盘上分别创建了两个目录： /mnt/osd0 /mnt/osd1</p>
+</blockquote>
+
+<p>在 deploy-node 上执行如下命令：<code>ceph-deploy osd prepare xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1</code></p>
+
+<h3 id="activate">Activate</h3>
+
+<p>在 deploy-node 上执行如下命令：<code>ceph-deploy osd activate xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1</code>
+若发现如如下报错信息：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">[WARNIN] 2016-11-04 14:25:40.325075 7fd1aa73f800 -1  ** ERROR: error creating empty object store in /mnt/osd0: (13) Permission denied</pre></td></tr></table>
+</div>
+</div>
+<p>进一步查看 <code>/mnt/osd0</code>目录权限信息：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">drwxr-sr-x 2 root root 4096 Nov  4 14:25 osd0</pre></td></tr></table>
+</div>
+</div>
+<p>可以发现该目录的 user 和 group 都是 root，且除了创建者之外其余的 user 是没有 w 权限的，这也就解释了上面，创建目录因权限问题失败的现象。
+再次观察执行 activate 命令输出的日志，可以发现：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">... ...
+[xr-service-mesh-lab][WARNIN] got monmap epoch 1
+[xr-service-mesh-lab][WARNIN] command: Running command: /usr/bin/timeout 300 ceph-osd --cluster ceph --mkfs --mkkey -i 0 --monmap /mnt/osd0/activate.monmap --osd-data /mnt/osd0 --osd-journal /mnt/osd0/journal --osd-uuid 6def4f7f-4f37-43a5-8699-5c6ab608c89c --keyring /var/mnt/keyring --setuser cephd --setgroup cephd</pre></td></tr></table>
+</div>
+</div>
+<p>我们在 Node 上启动 ceph-osd 进程使用的都是名为 cephd 的 user 和 group。所以，要处理这个问题，可以手动对 Node 上对应的目录使用<code>chown -R cephd:cephd &lt;dir&gt;</code>命令，更改目录权限。修复完成后可以重新执行 activate 命令，正常情况下会顺利通过。</p>
+
+<h3 id="ceph-rbd-cluster-state">Ceph rbd Cluster State</h3>
+
+<p>ceph 集群 activate 成功之后，可以在 deploy-node 上使用两个命令来查看集群的健康情况：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">$ ceph osd tree
+
+ID WEIGHT  TYPE NAME                     UP/DOWN REWEIGHT PRIMARY-AFFINITY
+-1 0.49959 root default
+-2 0.01909     host xr-service-mesh-lab
+ 0 0.01909         osd.0                      up  1.00000          1.00000
+-3 0.48050     host xr-service-mesh-lab1
+ 1 0.48050         osd.1                      up  1.00000          1.00000
+
+$ ceps -s
+
+    cluster d38afe19-16bd-40f1-b1e4-4249471d656c
+     health HEALTH_OK
+     monmap e1: 1 mons at {xr-service-mesh-lab=172.20.6.29:6789/0}
+            election epoch 3, quorum 0 xr-service-mesh-lab
+     osdmap e10: 2 osds: 2 up, 2 in; 10 remapped pgs
+            flags sortbitwise,require_jewel_osds
+      pgmap v31: 64 pgs, 1 pools, 0 bytes data, 0 objects
+            11934 MB used, 473 GB / 511 GB avail
+                  54 active+clean
+                  10 active</pre></td></tr></table>
+</div>
+</div>
+<p>可以看到，两个 osd 节点目前都是正常的</p>
+
+<h3 id="cooperate-with-kubernetes">Cooperate with kubernetes</h3>
+
+<p>在部署了 ceph 集群之后，要想在 kubernetes 中通过 ceph 使用集群中的存储资源，还需要一个「桥梁」，它就是 Storage Class。Storage Class 究竟是什么，以及我们要如何构造一个 Storage Class。可以看下另外一篇文章，对 Storage Class 有一个基本的了解：<a href="http://localhost:1313/posts/notion-of-pv-and-pvc/">notion-of-pv-and-pvc</a>。</p>
+
+<p>要想创建 ceph rbd 的 Storage Class，根据如下链接所给出的步骤操作即可：<a href="https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd">https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd</a></p>
+
+<h3 id="create-pod-with-pv-on-ceph">Create pod with pv on ceph</h3>
+
+<p>在按照上面的步骤创建好了 ceph rbd 集群以及对应的 Storage Class 资源对象之后，就可以通过创建一个使用了存储资源的 Pod 来测试我们的 ceph rbd 集群是否工作正常。</p>
+
+<p>首先，我们创建一个 PVC，在 ceph rbd 集群上申请一定量的存储资源：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: claim1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: rbd
+  resources:
+    requests:
+      storage: 1Gi</pre></td></tr></table>
+</div>
+</div>
+<p>其次，创建一个 Pod，并且通过挂载的方式，在容器内使用我们刚刚申请的存储资源：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">kind: Pod
+apiVersion: v1
+metadata:
+  name: test-pod
+spec:
+  containers:
+  - name: test-pod
+    image: gcr.io/google_containers/busybox:1.24
+    command:
+    - &#34;/bin/sh&#34;
+    args:
+    - &#34;-c&#34;
+    - &#34;touch /mnt/SUCCESS &amp;&amp; exit 0 || exit 1&#34;
+    volumeMounts:
+    - name: pvc
+      mountPath: &#34;/mnt&#34;
+  restartPolicy: &#34;Never&#34;
+  volumes:
+  - name: pvc
+    persistentVolumeClaim:
+      claimName: claim1</pre></td></tr></table>
+</div>
+</div>
+<p>最终，我们可以看到 PV 成功的被创建：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt"> 1
@@ -397,193 +605,21 @@ osd max object namespace len = 64</p>
 </span><span class="lnt">26
 </span><span class="lnt">27
 </span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">接下来，执行
-
-```ceph-deploy install xr-service-mesh-lab xr-service-mesh-lab1```
-
-命令，在两个节点上安装好部署 ceph 集群所需要的 binary。
-
-在 mon-node 上（如果你没有切换过节点操作的话，就是当前的 node，也是 deploy-node），进行初始化操作 
-
-```ceph-deploy mon create-initial```
-
-执行完毕后，会在当前目录下观察到很多以 .keyring 后缀结尾的文件。之后，可以运行
-
- ```ps aux | grep ceph```
- 
- 命令，查看 ceph-mon 进程已经运行。
-
-截止目前，对于这个 ceph 集群，我们还有 osd 节点没有部署。osd 节点的部署分为两部分：prepare, activate
-
-### Prepare
-
-&gt; 执行这一步之前，最好是在 Node 上都挂载好了专用的数据盘，否则，只能是创建一个目录，使用「系统盘」的空间。笔者在部署的时候，在两个节点的_mnt目录下分别挂在了两块500G 的 数据盘，并且在这两块盘上分别创建了两个目录： /mnt/osd0 /mnt/osd1  
-
-在 deploy-node 上执行如下命令：`ceph-deploy osd prepare xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1`
-
-### Activate
-
-在 deploy-node 上执行如下命令：`ceph-deploy osd activate xr-service-mesh-lab:/mnt/osd0 xr-service-mesh-lab1:/mnt/osd1`
-若发现如如下报错信息：</pre></td></tr></table>
-</div>
-</div>
-<p>[WARNIN] 2016-11-04 14:25:40.325075 7fd1aa73f800 -1  ** ERROR: error creating empty object store in /mnt/osd0: (13) Permission denied</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">进一步查看 `/mnt/osd0`目录权限信息：</pre></td></tr></table>
-</div>
-</div>
-<p>drwxr-sr-x 2 root root 4096 Nov  4 14:25 osd0</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">可以发现该目录的 user 和 group 都是 root，且除了创建者之外其余的 user 是没有 w 权限的，这也就解释了上面，创建目录因权限问题失败的现象。
-再次观察执行 activate 命令输出的日志，可以发现：</pre></td></tr></table>
-</div>
-</div>
-<p>&hellip; &hellip;
-[xr-service-mesh-lab][WARNIN] got monmap epoch 1
-[xr-service-mesh-lab][WARNIN] command: Running command: /usr/bin/timeout 300 ceph-osd &ndash;cluster ceph &ndash;mkfs &ndash;mkkey -i 0 &ndash;monmap /mnt/osd0/activate.monmap &ndash;osd-data /mnt/osd0 &ndash;osd-journal /mnt/osd0/journal &ndash;osd-uuid 6def4f7f-4f37-43a5-8699-5c6ab608c89c &ndash;keyring /var/mnt/keyring &ndash;setuser cephd &ndash;setgroup cephd</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">我们在 Node 上启动 ceph-osd 进程使用的都是名为 cephd 的 user 和 group。所以，要处理这个问题，可以手动对 Node 上对应的目录使用`chown -R cephd:cephd &lt;dir&gt;`命令，更改目录权限。修复完成后可以重新执行 activate 命令，正常情况下会顺利通过。
-
-### Ceph rbd Cluster State
-
- ceph 集群 activate 成功之后，可以在 deploy-node 上使用两个命令来查看集群的健康情况：</pre></td></tr></table>
-</div>
-</div>
-<p>$ ceph osd tree</p>
-
-<p>ID WEIGHT  TYPE NAME                     UP/DOWN REWEIGHT PRIMARY-AFFINITY
--1 0.49959 root default
--2 0.01909     host xr-service-mesh-lab
- 0 0.01909         osd.0                      up  1.00000          1.00000
--3 0.48050     host xr-service-mesh-lab1
- 1 0.48050         osd.1                      up  1.00000          1.00000</p>
-
-<p>$ ceps -s</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">cluster d38afe19-16bd-40f1-b1e4-4249471d656c
- health HEALTH_OK
- monmap e1: 1 mons at {xr-service-mesh-lab=172.20.6.29:6789/0}
-        election epoch 3, quorum 0 xr-service-mesh-lab
- osdmap e10: 2 osds: 2 up, 2 in; 10 remapped pgs
-        flags sortbitwise,require_jewel_osds
-  pgmap v31: 64 pgs, 1 pools, 0 bytes data, 0 objects
-        11934 MB used, 473 GB / 511 GB avail
-              54 active+clean
-              10 active</pre></td></tr></table>
-</div>
-</div><div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">可以看到，两个 osd 节点目前都是正常的
-
-### Cooperate with kubernetes
-
-在部署了 ceph 集群之后，要想在 kubernetes 中通过 ceph 使用集群中的存储资源，还需要一个「桥梁」，它就是 Storage Class。Storage Class 究竟是什么，以及我们要如何构造一个 Storage Class。可以看下另外一篇文章，对 Storage Class 有一个基本的了解：[notion-of-pv-and-pvc](http://localhost:1313/posts/notion-of-pv-and-pvc/)。
-
-要想创建 ceph rbd 的 Storage Class，根据如下链接所给出的步骤操作即可：[https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd](https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd)
-
-### Create pod with pv on ceph
-
-在按照上面的步骤创建好了 ceph rbd 集群以及对应的 Storage Class 资源对象之后，就可以通过创建一个使用了存储资源的 Pod 来测试我们的 ceph rbd 集群是否工作正常。
-
-首先，我们创建一个 PVC，在 ceph rbd 集群上申请一定量的存储资源：</pre></td></tr></table>
-</div>
-</div>
-<p>kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: claim1
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: rbd
-  resources:
-    requests:
-      storage: 1Gi</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">其次，创建一个 Pod，并且通过挂载的方式，在容器内使用我们刚刚申请的存储资源：</pre></td></tr></table>
-</div>
-</div>
-<p>kind: Pod
-apiVersion: v1
-metadata:
-  name: test-pod
-spec:
-  containers:
-  - name: test-pod
-    image: gcr.io/google_containers/busybox:1.24
-    command:
-    - &ldquo;/bin/sh&rdquo;
-    args:
-    - &ldquo;-c&rdquo;
-    - &ldquo;touch /mnt/SUCCESS &amp;&amp; exit 0 || exit 1&rdquo;
-    volumeMounts:
-    - name: pvc
-      mountPath: &ldquo;/mnt&rdquo;
-  restartPolicy: &ldquo;Never&rdquo;
-  volumes:
-  - name: pvc
-    persistentVolumeClaim:
-      claimName: claim1</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">最终，我们可以看到 PV 成功的被创建：</pre></td></tr></table>
-</div>
-</div>
-<p>root@xr-service-mesh-lab:~/external-storage/ceph/rbd# kubectl -n xuran get pv pvc-556fbe5a-c074-11e8-a174-fa163eebca40 -o yaml
+<pre class="chroma">root@xr-service-mesh-lab:~/external-storage/ceph/rbd# kubectl -n xuran get pv pvc-556fbe5a-c074-11e8-a174-fa163eebca40 -o yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -594,7 +630,7 @@ metadata:
   finalizers:
   - kubernetes.io/pv-protection
   name: pvc-556fbe5a-c074-11e8-a174-fa163eebca40
-  resourceVersion: &ldquo;2755796&rdquo;
+  resourceVersion: &#34;2755796&#34;
   selfLink: /api/v1/persistentvolumes/pvc-556fbe5a-c074-11e8-a174-fa163eebca40
   uid: 59406bdb-c074-11e8-a174-fa163eebca40
 spec:
@@ -607,7 +643,7 @@ spec:
     kind: PersistentVolumeClaim
     name: claim1
     namespace: xuran
-    resourceVersion: &ldquo;2755787&rdquo;
+    resourceVersion: &#34;2755787&#34;
     uid: 556fbe5a-c074-11e8-a174-fa163eebca40
   persistentVolumeReclaimPolicy: Delete
   rbd:
@@ -622,7 +658,51 @@ spec:
     user: kube
   storageClassName: rbd
 status:
-  phase: Bound</p>
+  phase: Bound</pre></td></tr></table>
+</div>
+</div>
+<h2 id="部署-elasticsearch">部署 ElasticSearch</h2>
+
+<p>在部署 elasticsearch 的时候，我们将参考 elasticsearch Chart 中的编排文件：<a href="https://github.com/helm/charts/tree/master/incubator/elasticsearch">https://github.com/helm/charts/tree/master/incubator/elasticsearch</a>。它将帮助我们搭建一个含有三个 master 节点，两个 client 节点   ，两个 data 节点的 elasticsearch 集群。</p>
+
+<p>在部署之前，对于上述编排文件，唯一需要改正的就是 elasticsearch 依赖的 storageclass。对此，我们可以使用<code>helm template</code>命令，对 storageclass 的相关参数进行修改，并且最终导出到一个 yaml 文件中，方便我们后续部署.</p>
+
+<p>首先，我们需要下载相应的 chart 包，然后执行如下命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">helm template elasticsearch --name jaeger-es --set cluster.name=tracing-es --set master.persistence.storageClass=ceph --set data.persistence.storageClass=ceph &gt; jaeger-es.yaml</pre></td></tr></table>
+</div>
+</div>
+<p><strong>注意：persistence.storageClass 的值一定要和我们之前部署 ceph 时创建的 StorageClass 的 meta.name 的值相同</strong></p>
+
+<p>然后，我们可以执行 <code>kubectl create -f jaeger-es.yaml -n xxx</code>命令来部署 elasticsearch。</p>
+
+<h2 id="部署-jaeger">部署 Jaeger</h2>
+
+<p>在部署 Jaeger 的时候，我们参考：<a href="https://github.com/jaegertracing/jaeger-kubernetes">GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes</a>。由于我们已经部署好了 elasticsearch，所以链接中关于存储中间件的内容我们可以不用关心。</p>
+
+<p>首先，我们需要创建一个 configMap：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/production-elasticsearch/configmap.yml</pre></td></tr></table>
+</div>
+</div>
+<p>然后，开始部署 jaeger 相关的 component：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/jaeger-production-template.yml</pre></td></tr></table>
+</div>
+</div>
+<p>Jaeger 部署成功之后，可以在相应的 ns 下发现一个名为 jaeger-query 的 service。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt">1
@@ -630,88 +710,46 @@ status:
 </span><span class="lnt">3
 </span><span class="lnt">4
 </span><span class="lnt">5
-</span><span class="lnt">6
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">## 部署 ElasticSearch
-在部署 elasticsearch 的时候，我们将参考 elasticsearch Chart 中的编排文件：[https://github.com/helm/charts/tree/master/incubator/elasticsearch](https://github.com/helm/charts/tree/master/incubator/elasticsearch)。它将帮助我们搭建一个含有三个 master 节点，两个 client 节点	，两个 data 节点的 elasticsearch 集群。
-
-在部署之前，对于上述编排文件，唯一需要改正的就是 elasticsearch 依赖的 storageclass。对此，我们可以使用`helm template`命令，对 storageclass 的相关参数进行修改，并且最终导出到一个 yaml 文件中，方便我们后续部署.
-
-首先，我们需要下载相应的 chart 包，然后执行如下命令：</pre></td></tr></table>
+<pre class="chroma">root@xr-service-mesh-lab:~/external-storage/ceph/rbd# kubectl -n istio-system get svc | grep jaeger
+jaeger-collector                    ClusterIP      10.103.47.166    &lt;none&gt;        14267/TCP,14268/TCP,9411/TCP                                                                                              5d
+jaeger-es-elasticsearch-client      ClusterIP      10.100.101.147   &lt;none&gt;        9200/TCP                                                                                                                  5d
+jaeger-es-elasticsearch-discovery   ClusterIP      None             &lt;none&gt;        9300/TCP                                                                                                                  5d
+jaeger-query                        LoadBalancer   10.105.139.8     &lt;pending&gt;     80:31624/TCP                                                                                                              5d</pre></td></tr></table>
 </div>
 </div>
-<p>helm template elasticsearch &ndash;name jaeger-es &ndash;set cluster.name=tracing-es &ndash;set master.persistence.storageClass=ceph &ndash;set data.persistence.storageClass=ceph &gt; jaeger-es.yaml</p>
+<p>如果是在集群内部，我们是可以直接通过这个 service 的地址访问 jaeger 的查询页面的。但是由于我们现在想在集群外部访问，可选择的方案有如下几种：</p>
+
+<ol>
+<li>修改这个 service 的 type 为 nodePort 并指定一个宿主机的端口。这样在集群外部就可以通过集群的<code>外网 IP：宿主机端口/path</code> 的形式访问 jaeger-query。请求的流量将从宿主机的端口转发至目的 Pod 对应的端口。</li>
+<li>使用 ingress+ingress-controller 的形式。 ingress 写入转发规则，属于一个具有文本记录功能的资源对象。ingress-controller 会根据 ingress 中写入的规则，将请求的流量转发到目的 Pod 对应的端口上。</li>
+</ol>
+
+<p><strong>如果想了解更多关于 k8s 中部署的服务和「访问」相关的问题，可以看下这个链接：<a href="https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/">https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/</a></strong></p>
+
+<h2 id="部署-ingress-nginx-ingress-controller">部署 ingress+nginx-ingress-controller</h2>
+
+<p>首先，我们需要创建一个 Ingress：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">**注意：persistence.storageClass 的值一定要和我们之前部署 ceph 时创建的 StorageClass 的 meta.name 的值相同**
-
-然后，我们可以执行 `kubectl create -f jaeger-es.yaml -n xxx`命令来部署 elasticsearch。
-
-## 部署 Jaeger
-在部署 Jaeger 的时候，我们参考：[GitHub - jaegertracing/jaeger-kubernetes: Support for deploying Jaeger into Kubernetes](https://github.com/jaegertracing/jaeger-kubernetes)。由于我们已经部署好了 elasticsearch，所以链接中关于存储中间件的内容我们可以不用关心。
-
-首先，我们需要创建一个 configMap：</pre></td></tr></table>
-</div>
-</div>
-<p>kubectl create -f <a href="https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/production-elasticsearch/configmap.yml">https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/production-elasticsearch/configmap.yml</a></p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">然后，开始部署 jaeger 相关的 component：</pre></td></tr></table>
-</div>
-</div>
-<p>kubectl create -f <a href="https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/jaeger-production-template.yml">https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/jaeger-production-template.yml</a></p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">Jaeger 部署成功之后，可以在相应的 ns 下发现一个名为 jaeger-query 的 service。</pre></td></tr></table>
-</div>
-</div>
-<p>root@xr-service-mesh-lab:~/external-storage/ceph/rbd# kubectl -n istio-system get svc | grep jaeger
-jaeger-collector                    ClusterIP      10.103.47.166    <none>        14267/TCP,14268/TCP,9411/TCP                                                                                              5d
-jaeger-es-elasticsearch-client      ClusterIP      10.100.101.147   <none>        9200/TCP                                                                                                                  5d
-jaeger-es-elasticsearch-discovery   ClusterIP      None             <none>        9300/TCP                                                                                                                  5d
-jaeger-query                        LoadBalancer   10.105.139.8     <pending>     80:31624/TCP                                                                                                              5d</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span><span class="lnt">9
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">如果是在集群内部，我们是可以直接通过这个 service 的地址访问 jaeger 的查询页面的。但是由于我们现在想在集群外部访问，可选择的方案有如下几种：
-
-1. 修改这个 service 的 type 为 nodePort 并指定一个宿主机的端口。这样在集群外部就可以通过集群的`外网 IP：宿主机端口/path` 的形式访问 jaeger-query。请求的流量将从宿主机的端口转发至目的 Pod 对应的端口。
-2. 使用 ingress+ingress-controller 的形式。 ingress 写入转发规则，属于一个具有文本记录功能的资源对象。ingress-controller 会根据 ingress 中写入的规则，将请求的流量转发到目的 Pod 对应的端口上。
-
-**如果想了解更多关于 k8s 中部署的服务和「访问」相关的问题，可以看下这个链接：https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/**
-
-## 部署 ingress+nginx-ingress-controller
-首先，我们需要创建一个 Ingress：</pre></td></tr></table>
-</div>
-</div>
-<p>apiVersion: extensions/v1beta1
+<pre class="chroma">apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: tracing
@@ -724,22 +762,20 @@ spec:
       - path: /
         backend:
           serviceName: jaeger-query
-          servicePort: 80</p>
+          servicePort: 80</pre></td></tr></table>
+</div>
+</div>
+<p>规则写的很清楚，当我们进行一次 host 为 tracing.istio.io，且 path 为根目录，端口为80的 http 请求的时候，流量就会被转发到同 ns 下的一个名为 jaeger-query 的 svc 上，最终，由这个 svc 将请求流量打向目的 Pod。</p>
+
+<p>有了 ingress 还不行，还需要一个 ingress-controller 加载上面的规则并且根据它转发请求流量：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">规则写的很清楚，当我们进行一次 host 为 tracing.istio.io，且 path 为根目录，端口为80的 http 请求的时候，流量就会被转发到同 ns 下的一个名为 jaeger-query 的 svc 上，最终，由这个 svc 将请求流量打向目的 Pod。
-
-有了 ingress 还不行，还需要一个 ingress-controller 加载上面的规则并且根据它转发请求流量：</pre></td></tr></table>
+<pre class="chroma">kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml</pre></td></tr></table>
 </div>
 </div>
-<p>kubectl apply -f <a href="https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml">https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml</a>
-```</p>
-
 <p>在本次部署中，笔者使用了 nginx-ingress-controller。本质上来说，nginx-controller 就是对 nginx 的一个封装。你可以这样理解 ingress 和 nginx-ingress-controller 之间的关系：ingress 写入一系列的路由规则，nginx-ingress-controller 中封装的 nginx 会加载这些规则，以实现对指定请求的流量控制。</p>
 
 <h2 id="访问-jaeger-query">访问 jaeger-query</h2>
@@ -905,7 +941,7 @@ spec:
     &copy;
     
        -
-    2018
+    2019
     <span class="heart">
       
       <i class="iconfont">

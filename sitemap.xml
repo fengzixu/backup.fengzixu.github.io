@@ -87,13 +87,6 @@
   </url>
   
   <url>
-    <loc>http://littledriver.net/post/2018/11/21/say-love-to-pouch/</loc>
-    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
     <loc>http://littledriver.net/post/2018/11/19/detect-the-mechanism-of-list-watch-in-kubernetes/</loc>
     <lastmod>2018-11-19T23:51:51+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -653,13 +646,6 @@
   </url>
   
   <url>
-    <loc>http://littledriver.net/tags/pouch/</loc>
-    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>http://littledriver.net/tags/python/</loc>
     <lastmod>2017-10-08T22:24:17+00:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -725,13 +711,6 @@
   <url>
     <loc>http://littledriver.net/categories/%E5%B7%A5%E4%BD%9C%E4%BA%86%E4%B9%9F%E4%B8%8D%E8%83%BD%E6%94%BE%E6%9D%BE%E7%B3%BB%E5%88%97/</loc>
     <lastmod>2018-12-09T20:45:33+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://littledriver.net/tags/%E5%BC%80%E6%BA%90%E8%B4%A1%E7%8C%AE/</loc>
-    <lastmod>2018-11-21T01:57:23+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
